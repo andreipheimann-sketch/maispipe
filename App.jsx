@@ -1,0 +1,2139 @@
+import { useState, useEffect, useRef } from "react";
+// -- STORAGE , localStorage (persists across reloads) -------------------------
+var STORAGE_PREFIX = "bdrhelper_";
+function storageGet(key) {
+  return new Promise(function(resolve) {
+    try {
+      var raw = localStorage.getItem(STORAGE_PREFIX + key);
+      resolve(raw ? JSON.parse(raw) : null);
+    } catch(e) { resolve(null); }
+  });
+}
+function storageSet(key, val) {
+  return new Promise(function(resolve) {
+    try {
+      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
+      resolve(true);
+    } catch(e) { resolve(false); }
+  });
+}
+function storageList(prefix) {
+  return new Promise(function(resolve) {
+    try {
+      var keys = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.startsWith(STORAGE_PREFIX + prefix)) {
+          keys.push(k.slice(STORAGE_PREFIX.length));
+        }
+      }
+      resolve(keys);
+    } catch(e) { resolve([]); }
+  });
+}
+function storageDel(key) {
+  return new Promise(function(resolve) {
+    try {
+      localStorage.removeItem(STORAGE_PREFIX + key);
+      resolve(true);
+    } catch(e) { resolve(false); }
+  });
+}
+// -- CONSTANTS ----------------------------------------------------------------
+var STATUS_CONFIG = {
+  "prospecting": { label:"Em prospecção", color:"#64748b", bg:"#f8fafc", border:"#e2e8f0" },
+  "contacted":   { label:"Contatado",     color:"#0369a1", bg:"#eff6ff", border:"#bfdbfe" },
+  "meeting":     { label:"Reunião",       color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe" },
+  "won":         { label:"Convertido",    color:"#2d3a8c", bg:"#f0f3ff", border:"#c7d0fa" },
+  "lost":        { label:"Perdido",       color:"#991b1b", bg:"#fff1f2", border:"#fecdd3" },
+};
+var STATUS_ORDER = ["prospecting","contacted","meeting","won","lost"];
+var FIT_CONFIG = {
+  "ALTO":  { bg:"#e8ecfd", border:"#4361EE", text:"#2d3a8c" },
+  "MEDIO": { bg:"#fef3c7", border:"#f59e0b", text:"#92400e" },
+  "BAIXO": { bg:"#fee2e2", border:"#ef4444", text:"#991b1b" },
+};
+var TIER_COLOR = { "Tier 1":"#2d3a8c", "Tier 2":"#92400e", "Tier 3":"#475569" };
+// Sequence touch types
+var TOUCH_TYPES = {
+  email:    { label:"E-mail",       icon:"E", color:"#0ea5e9", bg:"#eff6ff" },
+  linkedin: { label:"InMail",       icon:"in", color:"#0a66c2", bg:"#eff6ff" },
+  whatsapp: { label:"WhatsApp",     icon:"W", color:"#16a34a", bg:"#f0f3ff" },
+  call:     { label:"Cold Call",    icon:"C", color:"#92400e", bg:"#fffbeb" },
+  follow:   { label:"Follow-up",    icon:"F", color:"#7c3aed", bg:"#f5f3ff" },
+  breakup:  { label:"Breakup",      icon:"B", color:"#64748b", bg:"#f8fafc" },
+};
+var STAKEHOLDER_PROFILES = [
+  { id:"headcx", label:"Head de CX / Diretor de Atendimento", angle:"CSAT, SLA e escala do time",    pain:"volume crescendo mais rapido que headcount, CSAT caindo" },
+  { id:"ceo",    label:"CEO / Diretor Geral",                  angle:"retencao e crescimento",        pain:"churn por atendimento ruim travando expansao da base" },
+  { id:"ops",    label:"VP / Diretor de Operacoes",            angle:"custo por ticket e eficiencia", pain:"budget de CX estourado sem visibilidade de ROI" },
+  { id:"cs",     label:"Head de Customer Success",             angle:"health score e retencao",       pain:"sem visibilidade de clientes em risco antes de churnarem" },
+  { id:"ti",     label:"Gerente de TI / CTO",                  angle:"integracao e migracao",         pain:"sistema atual sem API robusta, customizacoes caras" },
+  { id:"cfo",    label:"CFO / Diretor Financeiro",             angle:"ROI e reducao de custo",        pain:"custo por ticket alto sem benchmark claro do mercado" },
+];
+var SEQUENCE_TEMPLATES = {
+  headcx: [
+    { day:1,  type:"linkedin", subject:"Atendimento omnichannel na {empresa}", body:"Ola, tudo bem?\n\nVi que {empresa} atua em {setor} e tem uma operacao de atendimento ativo.\n\nComo Head de CX, imagino que voce equilibra diariamente a pressao por SLA com a necessidade de escalar o time sem explodir o custo.\n\nEmpresas similares no {setor} conseguiram aumentar CSAT em 25% e reduzir 40% do custo por ticket ao unificar todos os canais na Zendesk Suite com IA nativa.\n\nFaz sentido um papo de 20 minutos para eu entender como esta o processo de atendimento de voces hoje?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:3,  type:"email",    subject:"[{empresa}] Quanto custa um ticket sem resposta?", body:"Ola,\n\nUma pergunta direta: qual o impacto no churn quando um cliente fica mais de 24h sem resposta na {empresa}?\n\nNa media do setor de {setor}, cada 1% de queda no CSAT representa aumento de 2 a 3% no churn. Com a Zendesk Suite, empresas similares:\n\n, Reduziram TMA em 35% com macros e IA de sugestao de resposta\n, Aumentaram first contact resolution de 52% para 78%\n, Deflexionaram 28% dos tickets via self-service inteligente\n\nConsigo te mostrar em 20 minutos com dados do seu setor.\n\nTem disponibilidade essa semana?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:6,  type:"call",     subject:"Cold call , Head de CX {empresa}", body:"Bom dia [Nome], aqui e o BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nPerfeito. Ligo porque {empresa} tem o perfil exato onde a Zendesk gera mais impacto em {setor}: time de atendimento ativo com pressao crescente de CSAT e custo.\n\nEmpresas similares aumentaram CSAT em 25% e reduziram 40% do custo por ticket nos primeiros 90 dias. Faz sentido eu te mostrar como funcionou? Quando voce tem 20 minutos?" },
+    { day:10, type:"email",    subject:"[{empresa}] Case: CSAT de 68% para 89% em 90 dias", body:"Ola,\n\nRecentemente ajudamos uma empresa de {setor} com perfil muito similar ao da {empresa} a:\n\n, Unificar e-mail, chat, WhatsApp e voz em uma unica plataforma em 30 dias\n, Aumentar CSAT de 68% para 89% nos primeiros 90 dias\n, Reduzir TMA em 35% com macros inteligentes e IA de sugestao\n, Deflexionar 28% dos tickets via self-service , sem agente\n\nO time de CX nao parou as operacoes , a implementacao foi conduzida pelo nosso CS.\n\nFaz sentido eu te contar como funcionou? 20 minutos essa semana.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:15, type:"linkedin", subject:"Atualizacao rapida , {empresa}", body:"Ola,\n\nMandei um email sobre atendimento omnichannel na {empresa}, mas imagino que a caixa esta cheia.\n\nUma pergunta direta: voces tem visibilidade em tempo real do CSAT e SLA em todos os canais hoje?\n\nSe nao, vale muito uma conversa , posso mostrar um benchmark do {setor} que costuma mudar a perspectiva.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:21, type:"breakup",  subject:"Ultima mensagem , {empresa}", body:"Ola,\n\nVou respeitar o seu tempo , essa e minha ultima mensagem sobre o tema.\n\nSe CX e self-service nao sao prioridade agora na {empresa}, faz todo sentido. Mas se em algum momento a conversa sobre CSAT, custo por ticket ou escala do time de atendimento ganhar urgencia, pode me chamar.\n\nGuardo a {empresa} no radar.\n\nAbraço,\nBDR/SDR | Zendesk" },
+  ],
+  ceo: [
+    { day:1,  type:"linkedin", subject:"Retencao de clientes na {empresa}", body:"Ola, tudo bem?\n\nVi que {empresa} esta crescendo em {setor} , parabens pelo trabalho.\n\nUma realidade comum em empresas que crescem rapido: a base de clientes cresce mais rapido que a capacidade de atendimento, e o CSAT começa a cair , gerando churn justamente quando mais precisam reter.\n\nEmpresas similares no {setor} resolveram esse problema com Zendesk Suite: escalaram o atendimento com IA e self-service sem aumentar headcount.\n\nVale um papo de 15 minutos?" },
+    { day:3,  type:"email",    subject:"[{empresa}] Atendimento como vantagem competitiva", body:"Ola,\n\nPara uma empresa de {setor} em crescimento como a {empresa}, atendimento ao cliente pode ser o maior diferencial competitivo , ou o maior risco de churn.\n\nO que empresas líderes do setor estao fazendo:\n, Self-service com IA que resolve 30% dos tickets sem agente\n, Omnichannel unificado: o cliente nao precisa repetir o problema\n, CSAT em tempo real para antecipar clientes em risco de churn\n\nConsigo te mostrar em 20 minutos como isso se aplicaria a {empresa}.\n\nTem disponibilidade?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:7,  type:"whatsapp", subject:"WhatsApp , CEO {empresa}", body:"Oi [Nome], BDR da Zendesk. Direto ao ponto: empresa de {setor} com perfil similar ao da {empresa} reduziu churn em 15% ao melhorar CSAT com nossa plataforma. Vale 15 minutos para eu mostrar como?" },
+    { day:12, type:"email",    subject:"[{empresa}] O custo do atendimento ruim", body:"Ola,\n\nUm numero que costuma surpreender CEOs de empresas de {setor}: adquirir um novo cliente custa de 5 a 7x mais do que reter um cliente existente.\n\nE o principal motivo de churn evitavel? Atendimento lento ou fragmentado.\n\nCom a Zendesk Suite, a {empresa} poderia:\n, Responder mais rapido com IA e automacao\n, Dar ao cliente a opcao de resolver sozinho (self-service)\n, Ter visibilidade em tempo real do CSAT e NPS\n\nVale 20 minutos para ver o potencial?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:17, type:"call",     subject:"Cold call , CEO {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Vou ser rapido.\n\nLigo porque {empresa} esta crescendo em {setor} e esse e exatamente o momento em que CX pode ser vantagem competitiva ou gargalo de crescimento.\n\nUma pergunta: qual o CSAT atual de voces e qual o impacto no churn quando um cliente nao e bem atendido?" },
+    { day:22, type:"breakup",  subject:"Encerrando contato , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se em algum momento o tema de CX, retencao de clientes ou escala do atendimento ganhar urgencia na {empresa}, pode me chamar.\n\nAbraço e sucesso!\nBDR/SDR | Zendesk" },
+  ],
+  ops: [
+    { day:1,  type:"email",    subject:"[{empresa}] Custo por ticket no {setor}", body:"Ola,\n\nUma pergunta direta para um Diretor de Operacoes: qual o custo por ticket do time de atendimento da {empresa} hoje?\n\nNa media do setor de {setor}, o custo por ticket varia de R$15 a R$45. Com deflexao via self-service e IA da Zendesk, empresas similares reduziram esse custo em 40% em 90 dias.\n\nConsigo te mostrar o calculo aplicado ao perfil da {empresa} em 20 minutos.\n\nTem disponibilidade?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:4,  type:"linkedin", subject:"Eficiencia operacional no atendimento , {empresa}", body:"Ola,\n\nComo Diretor de Operacoes, imagino que voce olha constantemente para a relacao entre headcount do time de CX e volume de tickets.\n\nO desafio mais comum em {setor}: o volume cresce 20% ao ano mas o budget nao acompanha , e a saida e ou contratar mais agentes ou encontrar eficiencia com tecnologia.\n\nA Zendesk Suite resolve isso com automacao, IA e self-service. Vale um papo?" },
+    { day:8,  type:"call",     subject:"Cold call , Ops {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nPerfeito. Ligo porque {empresa} apareceu no nosso radar em {setor}. Uma pergunta objetiva: qual o custo mensal do time de atendimento de voces , e voces tem visibilidade do custo por ticket hoje?\n\n[ouvir]\n\nEntendi. E quando o volume de tickets sobe, o que acontece com o SLA e com o headcount?" },
+    { day:13, type:"email",    subject:"[{empresa}] ROI de CX: calculo rapido", body:"Ola,\n\nUm calculo que costuma mudar a perspectiva de Diretores de Operacoes:\n\nSe {empresa} tem 50 agentes com custo medio de R$4.000/mes = R$200k/mes\nDeflexionando 30% dos tickets com self-service = 15 agentes equivalentes economizados\nImpacto potencial: R$60k/mes = R$720k/ano\n\nIsso sem contar a melhora de CSAT e reducao de churn.\n\nConsigo te montar um business case especifico para {empresa} em 20 minutos de conversa.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:19, type:"follow",   subject:"[{empresa}] Ultima tentativa , pilot gratuito", body:"Ola,\n\nUltima mensagem , prometo.\n\nEm vez de mais uma conversa, proponho algo diferente: um pilot de 30 dias da Zendesk Suite com dados reais da {empresa}. Sem compromisso.\n\nVoces veem o resultado na pratica , reducao de TMA, deflexao de tickets, CSAT em tempo real. Se nao fizer sentido, sem custo e sem pressao.\n\nVale arriscar 30 dias?" },
+    { day:25, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nNao quero continuar incomodando. Encerro o contato por aqui.\n\nSe em algum momento a conversa sobre custo de atendimento ou eficiencia operacional de CX ganhar espaco, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
+  ],
+  cs: [
+    { day:1,  type:"linkedin", subject:"Customer Success e retencao na {empresa}", body:"Ola,\n\nVi que {empresa} esta investindo em Customer Success em {setor} , otima estrategia.\n\nUma pergunta: voces conseguem identificar proativamente quais clientes estao em risco de churn antes de eles cancelarem?\n\nCom a Zendesk Suite, equipes de CS de empresas similares passaram a cruzar dados de CSAT, historico de tickets e engajamento para gerar health score automatico , e reduziram churn evitavel em 20%.\n\nVale um papo?" },
+    { day:4,  type:"email",    subject:"[{empresa}] Self-service reduz churn , dados do {setor}", body:"Ola,\n\nUm insight relevante para quem cuida de Customer Success em {setor}:\n\nClientes que resolvem problemas via self-service tem taxa de churn 30% menor do que clientes que precisam abrir ticket para resolver o mesmo problema.\n\nMotivo: self-service gera sensacao de autonomia e competencia. Ticket aberto gera sensacao de dependencia e frustracao.\n\nA {empresa} tem um Help Center estruturado hoje? Se nao, consigo mostrar como montar um em 30 dias com a base de conhecimento da Zendesk.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:9,  type:"whatsapp", subject:"WhatsApp , CS {empresa}", body:"Oi [Nome], BDR da Zendesk. {empresa} tem algum processo de health score para identificar clientes em risco antes de churnar? Tenho um case relevante do {setor}. Posso te mandar?" },
+    { day:15, type:"email",    subject:"[{empresa}] Integracao Zendesk + CRM de CS", body:"Ola,\n\nUm dos maiores problemas de times de CS em {setor}: os dados de atendimento ficam no helpdesk e os dados de conta ficam no CRM , e os dois nao conversam.\n\nA Zendesk Suite integra nativamente com Salesforce, HubSpot e principais CRMs, trazendo historico completo de tickets para dentro do contexto de conta.\n\nIsso significa que o CSM ve, em tempo real, se o cliente abriu ticket critico, qual foi a resolucao e como o CSAT esta evoluindo.\n\nVale 20 minutos para ver isso na pratica?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:20, type:"follow",   subject:"[{empresa}] Uma ultima pergunta", body:"Ola,\n\nAntes de encerrar o contato: a {empresa} tem alguma meta de reducao de churn ou aumento de NPS para os proximos 6 meses?\n\nSe sim, vale muito uma conversa agora , antes da pressao chegar.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:26, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se o tema de retencao, health score ou integracao de CX com CS ganhar relevancia, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
+  ],
+  ti: [
+    { day:1,  type:"email",    subject:"[{empresa}] API e integracao Zendesk no {setor}", body:"Ola,\n\nChego ate voce porque {empresa} provavelmente tem um ecossistema de sistemas , ERP, CRM, e-commerce , que precisam conversar com a plataforma de atendimento.\n\nA Zendesk Suite tem API REST completa, marketplace com mais de 1.500 integracoes nativas e webhooks flexiveis. Empresas de {setor} integraram com SAP, TOTVS, Salesforce e plataformas de e-commerce em media em 4 semanas.\n\nPosso te mostrar como funciona a arquitetura de integracao?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:4,  type:"linkedin", subject:"Migracao de helpdesk , {empresa}", body:"Ola,\n\nVi que {empresa} usa [ferramenta atual] para atendimento. Uma pergunta tecnica: qual a maior dor de integracao que voces enfrentam hoje com o sistema atual?\n\nPergunto porque a migracao para Zendesk e conduzida pelo nosso time de CS com script de migracao de dados , historico de tickets, base de conhecimento e configuracoes.\n\nMuitas empresas de {setor} reduziram o trabalho de TI na migracao em mais de 60%. Vale um papo tecnico?" },
+    { day:9,  type:"call",     subject:"Cold call , TI {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nLigo porque {empresa} pode estar avaliando ou ja usar uma ferramenta de atendimento que exige muito trabalho de TI para manter. Uma pergunta: quanto tempo por mes o time de TI de voces gasta mantendo customizacoes e integracoes do sistema de atendimento atual?" },
+    { day:14, type:"email",    subject:"[{empresa}] SLA de implementacao Zendesk", body:"Ola,\n\nPara quem cuida de TI, o maior medo de trocar de plataforma e o tempo e risco de implementacao.\n\nO que o nosso time de CS garante na implementacao da Zendesk Suite:\n, Go-live em 30 dias para Mid Market\n, Migracao de dados com script automatizado\n, Integracoes com ERP e CRM em 4 semanas em media\n, Treinamento do time de atendimento incluido\n, Suporte dedicado nos primeiros 90 dias\n\nVale 20 minutos para ver o plano de implementacao para {empresa}?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:20, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se o tema de migracao de plataforma de atendimento ou integracao com sistemas internos ganhar prioridade, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
+  ],
+  cfo: [
+    { day:1,  type:"email",    subject:"[{empresa}] ROI de CX , calcular antes de decidir", body:"Ola,\n\nUma pergunta direta para um CFO de empresa de {setor}: qual e o custo mensal do time de atendimento da {empresa}, incluindo salarios, ferramentas e overhead?\n\nNa media do mercado Mid Market brasileiro, esse custo varia de R$150k a R$600k/mes dependendo do tamanho do time.\n\nCom deflexao via self-service e IA da Zendesk, empresas similares reduziram esse custo em 30 a 40% em 6 meses. O payback costuma ser em menos de 4 meses.\n\nConsigo te mostrar o business case especifico para {empresa} em 20 minutos.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:5,  type:"linkedin", subject:"Custo de atendimento vs retencao , {empresa}", body:"Ola,\n\nTrabalho com CFOs de empresas de {setor} em um item que normalmente nao esta no radar do budget de tecnologia: a plataforma de atendimento ao cliente.\n\nO argumento que tem funcionado: o custo de perder 1% da base de clientes por atendimento ruim e muito maior do que o investimento em CX estruturado. Com a Zendesk, o payback e em menos de 4 meses.\n\nVale 20 minutos para te mostrar o business case?" },
+    { day:10, type:"email",    subject:"[{empresa}] Business case: CX como centro de lucro", body:"Ola,\n\nUm numero que costuma mudar a perspectiva de CFOs em {setor}:\n\nCusto de adquirir um novo cliente: 5 a 7x maior do que reter um existente\nImpacto de 1% de reducao no churn: R$X de ARR preservado (depende da base)\nDeflexao de 30% dos tickets: reducao de 10 a 15 agentes equivalentes\n\nIsso significa que investir em CX nao e custo , e reducao de custo de aquisicao e aumento de LTV.\n\nPosso montar o business case especifico para {empresa} em 20 minutos de conversa.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:16, type:"call",     subject:"Cold call , CFO {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\nLigo porque tenho um business case especifico para CFOs de empresas de {setor} , sobre reducao de custo operacional de atendimento e ROI de CX.\n\nO numero que costuma surpreender: deflexionar 30% dos tickets com self-service representa economia de 10 a 15 agentes equivalentes. Faz sentido eu te mostrar o calculo aplicado a {empresa}?" },
+    { day:22, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nUltima mensagem. Entendo que o timing pode nao ser o ideal.\n\nSe o tema de custo operacional de atendimento ou ROI de CX ganhar relevancia na agenda da {empresa}, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
+  ],
+};
+function safeArr(v) { return Array.isArray(v) ? v : []; }
+function fmtDate(ts) {
+  if (!ts) return "";
+  var d = new Date(ts);
+  return d.toLocaleDateString("pt-BR", { day:"2-digit", month:"short", year:"2-digit" });
+}
+function applyVars(text, acc) {
+  return text
+    .replace(/\{empresa\}/g, acc.nome || "a empresa")
+    .replace(/\{setor\}/g, (acc.data && acc.data.empresa && acc.data.empresa.setor) || acc.setor || "tecnologia");
+}
+// -- MINI GAUGE ----------------------------------------------------------------
+function MiniGauge(props) {
+  var fc = FIT_CONFIG[props.score] || FIT_CONFIG.ALTO;
+  var pct = props.score === "ALTO" ? 88 : props.score === "MEDIO" ? 55 : 22;
+  var r = 18; var circ = Math.PI * r;
+  return (
+    <svg width="50" height="30" viewBox="0 0 50 30">
+      <path d={"M " + (25-r) + " 26 A " + r + " " + r + " 0 0 1 " + (25+r) + " 26"} fill="none" stroke="#f1f5f9" strokeWidth="5" strokeLinecap="round"/>
+      <path d={"M " + (25-r) + " 26 A " + r + " " + r + " 0 0 1 " + (25+r) + " 26"} fill="none" stroke={fc.border} strokeWidth="5" strokeLinecap="round" strokeDasharray={circ + " " + circ} strokeDashoffset={circ * (1 - pct/100)}/>
+    </svg>
+  );
+}
+// -- COPY BUTTON ---------------------------------------------------------------
+function CopyBtn(props) {
+  var _st_done = useState(false); var done = _st_done[0]; var setDone = _st_done[1];
+  function handle() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(props.text).then(function() { setDone(true); setTimeout(function(){setDone(false);}, 2000); });
+    }
+  }
+  return (
+    <button onClick={handle} style={{display:"flex",alignItems:"center",gap:4,background:done?"#e8ecfd":"#f8fafc",border:"1px solid "+(done?"#86efac":"#e2e8f0"),borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:10,fontWeight:600,color:done?"#2d3a8c":"#64748b",transition:"all .2s",whiteSpace:"nowrap",fontFamily:"inherit",flexShrink:0}}>
+      {done ? "Copiado!" : "Copiar"}
+    </button>
+  );
+}
+// -- SEQUENCE VIEW -------------------------------------------------------------
+function SequenceView(props) {
+  var accounts = props.accounts;
+  var _st_selAcc = useState(null); var selAcc = _st_selAcc[0]; var setSelAcc = _st_selAcc[1];
+  var _st_selProfile = useState(null); var selProfile = _st_selProfile[0]; var setSelProfile = _st_selProfile[1];
+  var _st_customProfile = useState(null); var customProfile = _st_customProfile[0]; var setCustomProfile = _st_customProfile[1];
+  var _st_customLabel = useState(""); var customLabel = _st_customLabel[0]; var setCustomLabel = _st_customLabel[1];
+  var _st_customAngle = useState(""); var customAngle = _st_customAngle[0]; var setCustomAngle = _st_customAngle[1];
+  var _st_generated = useState(null); var generated = _st_generated[0]; var setGenerated = _st_generated[1];
+  var _st_saved = useState([]); var saved = _st_saved[0]; var setSaved = _st_saved[1];
+  var _st_view = useState("builder"); var view = _st_view[0]; var setView = _st_view[1];
+  var _st_openSeq = useState(null); var openSeq = _st_openSeq[0]; var setOpenSeq = _st_openSeq[1];
+
+  useEffect(function() {
+    storageList("seq:").then(function(keys) {
+      if (!keys.length) return;
+      Promise.all(keys.map(storageGet)).then(function(items) {
+        setSaved(items.filter(Boolean).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}));
+      });
+    });
+  }, []);
+
+  function generate() {
+    if (!selAcc || !selProfile) return;
+    var p = selProfile.id === "custom" ? selProfile : (STAKEHOLDER_PROFILES.find(function(x){return x.id===selProfile.id;}) || STAKEHOLDER_PROFILES[0]);
+    var template = SEQUENCE_TEMPLATES[p.id] || SEQUENCE_TEMPLATES.headcx;
+    var touches = template.map(function(t) {
+      return Object.assign({}, t, {body:applyVars(t.body, selAcc), subject:applyVars(t.subject||"", selAcc)});
+    });
+    setGenerated({account:selAcc, profile:p, touches:touches, createdAt:Date.now()});
+  }
+
+  function saveSeq() {
+    if (!generated) return;
+    var id = "seq:" + Date.now();
+    var seq = Object.assign({}, generated, {id:id});
+    storageSet(id, seq).then(function() {
+      setSaved(function(prev){return [seq].concat(prev);});
+      props.showToast("Sequencia salva!");
+    });
+  }
+
+  if (view === "library") {
+    return (
+      <div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+          <div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{"Sequencias Salvas"}</div>
+          <button onClick={function(){setView("builder");}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Nova Sequencia"}</button>
+        </div>
+        {saved.length === 0 ? (
+          <div style={{textAlign:"center",padding:"48px 0",background:"#f8fafc",borderRadius:16,border:"1.5px dashed #e2e8f0"}}>
+            <div style={{fontSize:32,marginBottom:10}}>{"📬"}</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#334155"}}>Nenhuma sequencia salva</div>
+            <div style={{fontSize:12,color:"#6b7280",marginTop:4}}>Gere uma sequencia e clique em Salvar</div>
+          </div>
+        ) : (
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+            {saved.map(function(seq) {
+              var fc = FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
+              return (
+                <div key={seq.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"18px 20px",cursor:"pointer",transition:"all .2s"}} onClick={function(){setOpenSeq(seq);}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                    <div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:2}}>{seq.account&&seq.account.nome}</div>
+                      <div style={{fontSize:11,color:"#6b7280"}}>{seq.profile&&seq.profile.label}</div>
+                    </div>
+                    <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"2px 9px",fontSize:9,fontWeight:700}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
+                  </div>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
+                    {safeArr(seq.touches).map(function(t,i) {
+                      var tc = TOUCH_TYPES[t.type]||TOUCH_TYPES.email;
+                      return <span key={i} style={{background:tc.bg,color:tc.color,borderRadius:5,padding:"2px 7px",fontSize:9,fontWeight:700}}>{"D"+t.day+" "+tc.label}</span>;
+                    })}
+                  </div>
+                  <div style={{display:"flex",gap:6}}>
+                    <button onClick={function(e){e.stopPropagation();setOpenSeq(seq);}} style={{flex:1,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Abrir</button>
+                    <button onClick={function(e){e.stopPropagation();storageDel(seq.id).then(function(){setSaved(function(prev){return prev.filter(function(s){return s.id!==seq.id;});});props.showToast("Removida.","#ef4444");});}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"7px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>x</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {openSeq && <SequenceModal seq={openSeq} onClose={function(){setOpenSeq(null);}}/>}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24,flexWrap:"wrap",gap:12}}>
+        <div>
+          <div style={{fontSize:22,fontWeight:800,color:"#0f172a",marginBottom:3}}>{"Gerador de Sequencias"}</div>
+          <div style={{fontSize:13,color:"#64748b"}}>Selecione a conta e o perfil para gerar uma cadencia de 6 toques.</div>
+        </div>
+        <button onClick={function(){setView("library");}} style={{background:"#f8fafc",color:"#475569",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Biblioteca ("+saved.length+")"}</button>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:24}}>
+        <div>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>{"1. Selecione a conta"}</div>
+          {accounts.length === 0 ? (
+            <div style={{background:"#f8fafc",border:"1.5px dashed #e2e8f0",borderRadius:12,padding:"20px",textAlign:"center"}}>
+              <div style={{fontSize:12,color:"#6b7280"}}>Nenhuma conta mapeada. Va para Busca.</div>
+            </div>
+          ) : (
+            <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
+              {accounts.map(function(acc) {
+                var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
+                var active = selAcc && selAcc.id===acc.id;
+                return (
+                  <div key={acc.id} onClick={function(){setSelAcc(acc);setGenerated(null);}} style={{background:active?"#f0f3ff":"#fff",border:"1.5px solid "+(active?"#4361EE":"#e8edf4"),borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                      <div style={{fontSize:10,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+                    </div>
+                    <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:5,padding:"2px 7px",fontSize:8,fontWeight:700,flexShrink:0}}>{"FIT "+acc.fit}</span>
+                    {active && <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",flexShrink:0}}/>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>{"2. Escolha o stakeholder"}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:7}}>
+            {STAKEHOLDER_PROFILES.map(function(p) {
+              var active = selProfile && selProfile.id===p.id;
+              return (
+                <div key={p.id} onClick={function(){setCustomProfile(null);setSelProfile(p);setGenerated(null);}} style={{background:active?"#f0f3ff":"#fff",border:"1.5px solid "+(active?"#4361EE":"#e8edf4"),borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#0f172a"}}>{p.label}</div>
+                    <div style={{fontSize:10,color:"#6b7280",marginTop:2}}>{"Angulo: "+p.angle}</div>
+                  </div>
+                  {active && <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",flexShrink:0}}/>}
+                </div>
+              );
+            })}
+            <div style={{border:"1.5px dashed "+(customProfile?"#4361EE":"#e2e8f0"),borderRadius:10,padding:"10px 14px",background:customProfile?"#f0f3ff":"#fafafa"}}>
+              <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:7}}>{"+ Cargo personalizado"}</div>
+              <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+                <input value={customLabel} onChange={function(e){setCustomLabel(e.target.value);}} placeholder="Ex: Head de DevOps..." style={{flex:1,minWidth:110,background:"#fff",border:"1px solid #e2e8f0",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
+                <input value={customAngle} onChange={function(e){setCustomAngle(e.target.value);}} placeholder="Angulo de abordagem..." style={{flex:1,minWidth:110,background:"#fff",border:"1px solid #e2e8f0",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
+                <button onClick={function(){if(!customLabel.trim())return;var cp={id:"custom",label:customLabel.trim(),angle:customAngle.trim()||"abordagem customizada",pain:"dores especificas do cargo"};setCustomProfile(cp);setSelProfile(cp);setGenerated(null);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:7,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>Usar cargo</button>
+              </div>
+              {customProfile && <div style={{marginTop:6,fontSize:10,color:"#3451d1",fontWeight:600}}>{"v Usando: "+customProfile.label}</div>}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:10,marginBottom:24}}>
+        <button onClick={generate} disabled={!selAcc||!selProfile} style={{flex:1,background:(!selAcc||!selProfile)?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:(!selAcc||!selProfile)?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 0",fontSize:14,fontWeight:700,cursor:(!selAcc||!selProfile)?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s"}}>Gerar Sequencia de 6 Toques</button>
+        {generated && <button onClick={saveSeq} style={{background:"#fff",color:"#3451d1",border:"1.5px solid #10b981",borderRadius:12,padding:"14px 18px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Salvar</button>}
+      </div>
+      {generated && (
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {safeArr(generated.touches).map(function(touch,i) {
+            var tc = TOUCH_TYPES[touch.type]||TOUCH_TYPES.email;
+            return (
+              <div key={i} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:14,overflow:"hidden"}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",background:tc.bg,borderBottom:"1px solid #f1f5f9"}}>
+                  <div style={{width:28,height:28,borderRadius:8,background:tc.color+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:tc.color,flexShrink:0}}>{tc.icon}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#0f172a"}}>{tc.label+" , Dia "+touch.day}</div>
+                    {touch.subject && <div style={{fontSize:10,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{"Assunto: "+touch.subject}</div>}
+                  </div>
+                  <CopyBtn text={(touch.subject?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
+                </div>
+                <div style={{padding:"14px 16px",fontSize:12.5,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+tc.color}}>{touch.body}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {openSeq && <SequenceModal seq={openSeq} onClose={function(){setOpenSeq(null);}}/>}
+    </div>
+  );
+}
+
+// -- SEQUENCE MODAL ------------------------------------------------------------
+function SequenceModal(props) {
+  var seq = props.seq;
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"24px 16px",overflowY:"auto",backdropFilter:"blur(8px)"}}>
+      <div style={{background:"rgba(255,255,255,.98)",borderRadius:24,width:"100%",maxWidth:680,boxShadow:"0 32px 100px rgba(15,23,42,.28),0 0 0 1px rgba(255,255,255,.8)"}}>
+        <div style={{padding:"22px 28px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div>
+            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:3}}>{seq.account && seq.account.nome}</div>
+            <div style={{fontSize:12,color:"#6b7280"}}>{seq.profile && seq.profile.label + ", " + fmtDate(seq.createdAt)}</div>
+          </div>
+          <button onClick={props.onClose} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:10,padding:"8px 12px",cursor:"pointer",color:"#64748b",fontSize:18,lineHeight:1,fontFamily:"inherit"}}>x</button>
+        </div>
+        <div style={{padding:"22px 28px",maxHeight:"70vh",overflowY:"auto",display:"flex",flexDirection:"column",gap:14}}>
+          {safeArr(seq.touches).map(function(touch, idx) {
+            var tc = TOUCH_TYPES[touch.type] || TOUCH_TYPES.email;
+            return (
+              <div key={idx} style={{border:"1.5px solid #e8edf4",borderRadius:14,overflow:"hidden"}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 16px",background:"#fafafa",borderBottom:"1px solid #f1f5f9"}}>
+                  <span style={{fontSize:11,fontWeight:700,color:tc.color}}>{tc.label}</span>
+                  <span style={{background:tc.bg,color:tc.color,borderRadius:20,padding:"1px 8px",fontSize:9,fontWeight:700}}>{"Dia " + touch.day}</span>
+                  <div style={{flex:1,fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
+                  <CopyBtn text={(touch.type==="email"||touch.type==="linkedin"?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
+                </div>
+                <div style={{padding:"14px 16px",fontSize:12,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.8}}>{touch.body}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+// -- ACCOUNT CARD --------------------------------------------------------------
+function AccountCard(props) {
+  var acc = props.acc;
+  var fc = FIT_CONFIG[acc.fit] || FIT_CONFIG.ALTO;
+  var sc = STATUS_CONFIG[acc.status] || STATUS_CONFIG.prospecting;
+  var _st_menuOpen = useState(false); var menuOpen = _st_menuOpen[0]; var setMenuOpen = _st_menuOpen[1];
+  function handleStatus(s) { props.onStatusChange(acc.id, s); setMenuOpen(false); }
+  return (
+    <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid rgba(228,235,244,.8)",borderRadius:20,padding:"20px 22px",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",boxShadow:"0 2px 12px rgba(15,23,42,.06)"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-5px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(15,23,42,.14)";e.currentTarget.style.borderColor="rgba(67,97,238,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";e.currentTarget.style.borderColor="rgba(228,235,244,.8)";}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+          <div style={{fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+        </div>
+        <MiniGauge score={acc.fit}/>
+      </div>
+      <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
+        <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700}}>{"FIT "+acc.fit}</span>
+        <span style={{background:"#f8fafc",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{position:"relative"}}>
+          <button onClick={function(e){e.stopPropagation();setMenuOpen(!menuOpen);}} style={{display:"flex",alignItems:"center",gap:6,background:sc.bg,border:"1px solid "+sc.border,color:sc.color,borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+            {sc.label}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          {menuOpen && (
+            <div onClick={function(e){e.stopPropagation();}} style={{position:"absolute",bottom:"calc(100% + 6px)",left:0,background:"#fff",border:"1.5px solid #e8edf4",borderRadius:12,boxShadow:"0 8px 32px rgba(15,23,42,.12)",zIndex:50,minWidth:160,overflow:"hidden"}}>
+              {STATUS_ORDER.map(function(s) {
+                var sc2 = STATUS_CONFIG[s];
+                return (
+                  <div key={s} onClick={function(){handleStatus(s);}} style={{padding:"9px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:11,fontWeight:600,color:sc2.color,background:acc.status===s?sc2.bg:"#fff"}} onMouseEnter={function(e){if(acc.status!==s)e.currentTarget.style.background="#f8fafc";}} onMouseLeave={function(e){if(acc.status!==s)e.currentTarget.style.background="#fff";}}>
+                    <div style={{width:6,height:6,borderRadius:"50%",background:sc2.color}}/>
+                    {sc2.label}
+                    {acc.status===s && <svg style={{marginLeft:"auto"}} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <span style={{fontSize:10,color:"#6b7280"}}>{fmtDate(acc.savedAt)}</span>
+          <button onClick={function(e){e.stopPropagation();props.onOpen(acc);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ver</button>
+          <button onClick={function(e){e.stopPropagation();props.onDelete(acc.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>x</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+// -- PIPELINE VIEW -------------------------------------------------------------
+function PipelineView(props) {
+  var _st_overCol = useState(null); var overCol = _st_overCol[0]; var setOverCol = _st_overCol[1];
+  var _st_dragId = useState(null); var dragId = _st_dragId[0]; var setDragId = _st_dragId[1];
+  var _st_dragAcc = useState(null); var dragAcc = _st_dragAcc[0]; var setDragAcc = _st_dragAcc[1];
+  var _st_ghostPos = useState({x:0, y:0}); var ghostPos = _st_ghostPos[0]; var setGhostPos = _st_ghostPos[1];
+  var dragFrom = useRef(null);
+  var colRefs = useRef({});
+  function getColAtPoint(x, y) {
+    var found = null;
+    Object.keys(colRefs.current).forEach(function(col) {
+      var el = colRefs.current[col];
+      if (!el) return;
+      var r = el.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) found = col;
+    });
+    return found;
+  }
+  function startMouseDrag(e, acc, fromCol) {
+    e.preventDefault();
+    dragFrom.current = fromCol;
+    setDragId(acc.id);
+    setDragAcc(acc);
+    setGhostPos({x:e.clientX-80, y:e.clientY-30});
+    setOverCol(fromCol);
+    function onMove(ev) {
+      setGhostPos({x:ev.clientX-80, y:ev.clientY-30});
+      var col = getColAtPoint(ev.clientX, ev.clientY);
+      if (col) setOverCol(col);
+    }
+    function onUp(ev) {
+      var col = getColAtPoint(ev.clientX, ev.clientY);
+      if (col && col !== dragFrom.current) props.onStatusChange(acc.id, col);
+      dragFrom.current = null;
+      setDragId(null);
+      setDragAcc(null);
+      setOverCol(null);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
+  function startTouchDrag(e, acc, fromCol) {
+    var t0 = e.touches[0];
+    dragFrom.current = fromCol;
+    setDragId(acc.id);
+    setDragAcc(acc);
+    setGhostPos({x:t0.clientX-80, y:t0.clientY-30});
+    setOverCol(fromCol);
+    function onTouchMove(ev) {
+      ev.preventDefault();
+      var t = ev.touches[0];
+      if (!t) return;
+      setGhostPos({x:t.clientX-80, y:t.clientY-30});
+      var col = getColAtPoint(t.clientX, t.clientY);
+      if (col) setOverCol(col);
+    }
+    function onEnd(ev) {
+      var t = ev.changedTouches[0];
+      if (t) {
+        var col = getColAtPoint(t.clientX, t.clientY);
+        if (col && col !== dragFrom.current) props.onStatusChange(acc.id, col);
+      }
+      dragFrom.current = null;
+      setDragId(null);
+      setDragAcc(null);
+      setOverCol(null);
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onEnd);
+    }
+    document.addEventListener("touchmove", onTouchMove, {passive:false});
+    document.addEventListener("touchend", onEnd, {once:true});
+  }
+  var ghostFc = dragAcc ? (FIT_CONFIG[dragAcc.fit]||FIT_CONFIG.ALTO) : null;
+  return (
+    <div style={{position:"relative"}}>
+      <div className="fluxo de atendimento-scroll" style={{overflowX:"auto",paddingBottom:16,userSelect:"none"}}>
+        <div style={{display:"flex",gap:14,minWidth:900}}>
+          {STATUS_ORDER.map(function(col) {
+            var sc = STATUS_CONFIG[col];
+            var cards = props.accounts.filter(function(a){return a.status===col;});
+            var isOver = overCol===col && dragFrom.current!==null && dragFrom.current!==col;
+            return (
+              <div key={col} ref={function(el){colRefs.current[col]=el;}} style={{flex:1,minWidth:155,background:isOver?"rgba(67,97,238,.06)":"#f8fafc",borderRadius:16,padding:14,border:"1.5px solid "+(isOver?"#4361EE":"#e8edf4"),transition:"border-color .15s,background .15s",boxShadow:isOver?"0 0 0 3px rgba(67,97,238,.15)":"none"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:sc.color}}/>
+                  <div style={{fontSize:9,fontWeight:700,color:sc.color,textTransform:"uppercase",letterSpacing:.8}}>{sc.label}</div>
+                  <div style={{marginLeft:"auto",fontSize:10,fontWeight:700,color:"#6b7280",background:"#e2e8f0",borderRadius:20,padding:"1px 7px"}}>{cards.length}</div>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:8,minHeight:60}}>
+                  {cards.map(function(acc) {
+                    var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
+                    var isDragging = dragId===acc.id;
+                    return (
+                      <div key={acc.id} onMouseDown={function(e){startMouseDrag(e,acc,col);}} onTouchStart={function(e){startTouchDrag(e,acc,col);}} onClick={function(){if(!dragId)props.onOpen(acc);}} style={{background:"#fff",border:"1px solid "+(isDragging?"#4361EE":"#edf0f7"),borderRadius:14,padding:"12px 14px",cursor:isDragging?"grabbing":"grab",touchAction:"none",opacity:isDragging?0.25:1,transition:"opacity .1s",position:"relative"}}>
+                        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:3}}>
+                          <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{acc.nome}</div>
+                          <div style={{fontSize:11,color:"#cbd5e1",marginLeft:6,flexShrink:0,letterSpacing:2}}>{"..."}</div>
+                        </div>
+                        <div style={{fontSize:10,color:"#6b7280",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+                        <div style={{display:"flex",gap:5}}>
+                          <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700}}>{"FIT "+acc.fit}</span>
+                          <span style={{fontSize:8,color:TIER_COLOR[acc.tier]||"#94a3b8",fontWeight:700}}>{acc.tier}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {cards.length===0&&(
+                    <div style={{textAlign:"center",padding:"28px 8px",color:isOver?"#3451d1":"#cbd5e1",fontSize:11,border:"2px dashed "+(isOver?"#4361EE":"#e8edf4"),borderRadius:10,transition:"all .15s",fontWeight:isOver?600:400}}>
+                      {isOver?"Soltar aqui":"Vazio"}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {dragId&&(
+          <div style={{marginTop:10,textAlign:"center",fontSize:11,color:"#6b7280"}}>
+            {"Solte sobre a coluna de destino"}
+          </div>
+        )}
+      </div>
+      {dragId && dragAcc && (
+        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:160,zIndex:9999,pointerEvents:"none",transform:"rotate(3deg) scale(1.05)",boxShadow:"0 20px 60px rgba(15,23,42,.2),0 4px 16px rgba(67,97,238,.2)",borderRadius:14}}>
+          <div style={{background:"#fff",border:"1.5px solid #10b981",borderRadius:14,padding:"12px 14px"}}>
+            <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{dragAcc.nome}</div>
+            <div style={{fontSize:10,color:"#6b7280",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{dragAcc.setor}</div>
+            {ghostFc&&(
+              <span style={{background:ghostFc.bg,border:"1px solid "+ghostFc.border,color:ghostFc.text,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700}}>{"FIT "+dragAcc.fit}</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+// -- ACCOUNT MODAL -------------------------------------------------------------
+function exportAccountPDF(acc, d) {
+  function safe(path) {
+    try { var parts=path.split("."); var cur=d||{}; for(var i=0;i<parts.length;i++){cur=cur[parts[i]];if(cur==null)return null;} return cur; } catch(e){return null;}
+  }
+  function safeA(path) { var v=safe(path); return Array.isArray(v)?v:[]; }
+  var nome = acc.nome || "";
+  var setor = acc.setor || "";
+  var fit = (d&&d.fit&&d.fit.score) || acc.fit || "";
+  var tier = acc.tier || "";
+  var resumo = safe("empresa.resumo") || "";
+  var dores = safeA("dores.principais");
+  var triggers = safeA("triggers");
+  var stakeholders = safeA("stakeholders");
+  var spin = safeA("estrategia.perguntas_spin");
+  var objecoes = safeA("estrategia.objecoes");
+  var ae = safeA("proximos_passos.ae");
+  var bdr = safeA("proximos_passos.bdr");
+  var prazo = safe("proximos_passos.prazo") || "";
+  var emails = safeA("estrategia.emails");
+  var html = "<html><head><title>Account Map - "+nome+"</title><style>";
+  html += "body{font-family:Verdana,sans-serif;padding:32px;color:#0f172a;font-size:12px;line-height:1.7;max-width:800px;margin:0 auto}";
+  html += "h1{font-size:20px;color:#0f172a;margin-bottom:4px}";
+  html += "h2{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#4361EE;margin:24px 0 8px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}";
+  html += ".meta{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}";
+  html += ".badge{padding:3px 10px;border-radius:6px;font-size:9px;font-weight:700}";
+  html += ".fit-alto{background:#dcfce7;color:#065f46}.fit-medio{background:#fef3c7;color:#92400e}.fit-baixo{background:#fee2e2;color:#991b1b}";
+  html += ".tier{background:#f8fafc;border:1px solid #e2e8f0;color:#475569}";
+  html += "ul{list-style:none;padding:0;margin:0}";
+  html += "li{padding:4px 0 4px 14px;position:relative;border-bottom:1px solid #f8fafc}";
+  html += "li:before{content:'-';position:absolute;left:0;color:#4361EE;font-weight:700}";
+  html += ".msg{background:#f8fafc;border-left:3px solid #10b981;padding:12px 16px;white-space:pre-wrap;margin:6px 0;font-size:11px;line-height:1.8}";
+  html += ".sk{background:#f8fafc;border-radius:8px;padding:10px 14px;margin-bottom:8px}";
+  html += ".footer{margin-top:32px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:10px;color:#94a3b8}";
+  html += "@media print{body{padding:16px}h2{break-inside:avoid}}";
+  html += "</style></head><body>";
+  html += "<h1>"+nome+"</h1>";
+  html += "<div class='meta'><span class='badge fit-"+fit.toLowerCase()+"'>FIT "+fit+"</span><span class='badge tier'>"+tier+"</span><span class='badge tier'>"+setor+"</span></div>";
+  if (resumo) { html += "<h2>Resumo</h2><p>"+resumo+"</p>"; }
+  if (dores.length) { html += "<h2>Dores Mapeadas</h2><ul>"+dores.map(function(d2){return "<li>"+d2+"</li>";}).join("")+"</ul>"; }
+  if (triggers.length) { html += "<h2>Gatilhos Comerciais</h2><ul>"+triggers.map(function(t){return "<li>"+t+"</li>";}).join("")+"</ul>"; }
+  if (stakeholders.length) {
+    html += "<h2>Stakeholders</h2>";
+    stakeholders.forEach(function(s) {
+      html += "<div class='sk'><strong>"+s.cargo+"</strong> <span style='color:#94a3b8;font-size:10px'>("+s.prioridade+")</span><br/><span style='font-size:11px;color:#64748b'>"+s.angulo+"</span>";
+      if (s.email) html += "<br/><a href='mailto:"+s.email+"' style='color:#0ea5e9;font-size:10px'>"+s.email+"</a>";
+      if (s.linkedin) html += " <a href='"+s.linkedin+"' style='color:#0a66c2;font-size:10px'>LinkedIn</a>";
+      html += "</div>";
+    });
+  }
+  if (emails.length) {
+    html += "<h2>Mensagens</h2>";
+    emails.forEach(function(m,i) {
+      html += "<p style='font-size:10px;color:#64748b;margin:8px 0 4px'><strong>Template "+(i+1)+"</strong> - Assunto: "+m.assunto+"</p>";
+      html += "<div class='msg'>"+m.corpo+"</div>";
+    });
+  }
+  if (spin.length) { html += "<h2>Perguntas SPIN</h2><ul>"+spin.map(function(q){return "<li>"+q+"</li>";}).join("")+"</ul>"; }
+  if (objecoes.length) {
+    html += "<h2>Objecoes e Respostas</h2>";
+    objecoes.forEach(function(o) {
+      html += "<div class='sk'><strong style='color:#92400e'>\""+o.objecao+"\"</strong><br/><span style='font-size:11px'>-> "+o.resposta+"</span></div>";
+    });
+  }
+  if (ae.length || bdr.length) {
+    html += "<h2>Plano de Acao</h2><div style='display:flex;gap:20px'>";
+    if (ae.length) { html += "<div style='flex:1'><strong style='font-size:10px;color:#4361EE'>AE</strong><ul style='margin-top:6px'>"+ae.map(function(a){return "<li>"+a+"</li>";}).join("")+"</ul></div>"; }
+    if (bdr.length) { html += "<div style='flex:1'><strong style='font-size:10px;color:#f59e0b'>BDR</strong><ul style='margin-top:6px'>"+bdr.map(function(a){return "<li>"+a+"</li>";}).join("")+"</ul></div>"; }
+    html += "</div>";
+    if (prazo) html += "<p style='margin-top:12px;font-size:11px'><strong>Prazo:</strong> "+prazo+"</p>";
+  }
+  html += "<div class='footer'>Account Mapper Mais Pipe Beta - Zendesk Suite CX - "+new Date().toLocaleDateString("pt-BR")+"</div>";
+  html += "</body></html>";
+  var w = window.open("","_blank");
+  if (!w) return;
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.print();}, 500);
+}
+function AccountModal(props) {
+  var acc = props.acc;
+  var d = acc.data || {};
+  var fit = (d.fit && d.fit.score) || acc.fit;
+  var fc = FIT_CONFIG[fit] || FIT_CONFIG.ALTO;
+  var sc = STATUS_CONFIG[acc.status] || STATUS_CONFIG.prospecting;
+  var _st_activeTab = useState("overview"); var activeTab = _st_activeTab[0]; var setActiveTab = _st_activeTab[1];
+  var _st_enrichedContacts = useState([]); var enrichedContacts = _st_enrichedContacts[0]; var setEnrichedContacts = _st_enrichedContacts[1];
+  var _st_enrichedSources = useState([]); var enrichedSources = _st_enrichedSources[0]; var setEnrichedSources = _st_enrichedSources[1];
+  // Load enriched stakeholder data from localStorage on open
+  useEffect(function() {
+    storageGet(acc.id).then(function(stored) {
+      if (stored && stored.enriched && stored.enriched.contacts) {
+        setEnrichedContacts(stored.enriched.contacts);
+        setEnrichedSources(stored.enriched.sources || []);
+      }
+    });
+    // Also try to load from acc.enriched directly if already merged
+    if (acc.enriched && acc.enriched.contacts) {
+      setEnrichedContacts(acc.enriched.contacts);
+      setEnrichedSources(acc.enriched.sources || []);
+    }
+  }, [acc.id]);
+  function sd(path) {
+    try { var parts=path.split("."); var cur=d; for(var i=0;i<parts.length;i++){cur=cur[parts[i]];if(cur==null)return null;} return cur; } catch(e){return null;}
+  }
+  // Merge enriched contacts into stakeholder profiles for display
+  function getEnrichedStakeholder(cargo) {
+    if (!enrichedContacts.length) return null;
+    var cargoLow = cargo.toLowerCase();
+    var keywords = cargoLow.split(/[\s\/,]+/).filter(function(w){ return w.length > 3; });
+    for (var i = 0; i < enrichedContacts.length; i++) {
+      var c = enrichedContacts[i];
+      var cLow = (c.cargo || "").toLowerCase();
+      if (keywords.some(function(w){ return cLow.includes(w); })) return c;
+    }
+    return null;
+  }
+  var tabs=[{id:"overview",label:"Visão Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"messages",label:"Mensagens"},{id:"spin",label:"SPIN & Objeções"},{id:"plan",label:"Plano de Ação"}];
+  var empresa=sd("empresa")||{};
+  var stakeholders=safeArr(sd("stakeholders"));
+  var dores=safeArr(sd("dores.principais"));
+  var exposicao=safeArr(sd("dores.exposicao_regulatoria"));
+  var sinais=safeArr(sd("dores.sinais_ativos"));
+  var triggers=safeArr(sd("triggers"));
+  var noticias=safeArr(sd("noticias"));
+  var spin=safeArr(sd("estrategia.perguntas_spin"));
+  var objecoes=safeArr(sd("estrategia.objecoes"));
+  var ae=safeArr(sd("proximos_passos.ae"));
+  var bdr=safeArr(sd("proximos_passos.bdr"));
+  var prazo=sd("proximos_passos.prazo")||"";
+  var useCases=safeArr(sd("fit.use_cases"));
+  var solucoes=safeArr(sd("fit.solucoes_zendesk"));
+  var fitJust=sd("fit.justificativa")||"";
+  var concorrentes=safeArr(sd("mercado.competidores_provedor"));
+  var CHANNELS=[{key:"emails",label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)",isObj:true},{key:"inmails",label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)",isObj:true},{key:"whatsapps",label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)",isObj:false},{key:"cold_calls",label:"Cold Call",color:"#92400e",bg:"#fef3c7",isObj:false}];
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.75)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"20px 16px",overflowY:"auto",backdropFilter:"blur(10px)"}}>
+      <div className="modal-box" style={{background:"rgba(255,255,255,.99)",borderRadius:24,width:"100%",maxWidth:820,boxShadow:"0 32px 100px rgba(15,23,42,.3)"}}>
+        <div style={{padding:"22px 28px 0",borderBottom:"1px solid #f1f5f9"}}>
+          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,marginBottom:16}}>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+                <div style={{fontSize:21,fontWeight:800,color:"#0f172a",lineHeight:1.2}}>{acc.nome}</div>
+                {acc.liveMode&&<span style={{background:"#e8ecfd",border:"1px solid #86efac",color:"#2d3a8c",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:700}}>LIVE</span>}
+              </div>
+              <div style={{fontSize:12,color:"#6b7280",marginBottom:10}}>{acc.setor}</div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{"FIT "+fit}</span>
+                <span style={{background:"#f8fafc",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
+                <span style={{background:sc.bg,border:"1px solid "+sc.border,color:sc.color,borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{sc.label}</span>
+                <span style={{background:"#f8fafc",color:"#6b7280",borderRadius:8,padding:"4px 12px",fontSize:9}}>{"Salvo "+fmtDate(acc.savedAt)}</span>
+              </div>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0,alignItems:"flex-end"}}>
+              <div style={{display:"flex",gap:4,flexWrap:"wrap",maxWidth:200}}>
+                {STATUS_ORDER.map(function(s){var sc2=STATUS_CONFIG[s];return <button key={s} onClick={function(){props.onStatusChange(acc.id,s);}} style={{background:acc.status===s?sc2.bg:"#f8fafc",border:"1px solid "+(acc.status===s?sc2.border:"#e2e8f0"),color:acc.status===s?sc2.color:"#6b7280",borderRadius:6,padding:"3px 8px",fontSize:9,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{sc2.label}</button>;})}
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                <button onClick={function(){exportAccountPDF(acc,d);}} style={{display:"flex",alignItems:"center",gap:6,background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"#0369a1",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  {"PDF"}
+                </button>
+                <button onClick={props.onClose} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"#64748b",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>{"Fechar"}</button>
+              </div>
+            </div>
+          </div>
+          <div className="modal-tabs" style={{display:"flex",gap:0,overflowX:"auto"}}>
+            {tabs.map(function(tab){var active=activeTab===tab.id;return <button key={tab.id} onClick={function(){setActiveTab(tab.id);}} style={{padding:"10px 16px",border:"none",borderBottom:"2.5px solid "+(active?"#4361EE":"transparent"),background:"transparent",color:active?"#3451d1":"#94a3b8",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:active?700:500,transition:"all .15s",whiteSpace:"nowrap"}}>{tab.label}</button>;})}
+          </div>
+        </div>
+        <div style={{padding:"22px 28px",maxHeight:"60vh",overflowY:"auto"}}>
+          {activeTab==="overview"&&(
+            <div>
+              {empresa.resumo&&<Sec title="Resumo da Empresa"><p style={{fontSize:13,lineHeight:1.8,color:"#334155",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["Estágio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"#e8ecfd",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#2d3a8c",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"#0f172a",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
+              {fitJust&&<Sec title="Fit Zendesk"><p style={{fontSize:13,lineHeight:1.7,color:"#334155",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(67,97,238,.08)",border:"1px solid rgba(67,97,238,.25)",color:"#3451d1",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
+              {useCases.length>0&&<Sec title="Use Cases Prioritários">{useCases.map(function(u,i){return <R key={i} icon=">" color="#4361EE">{u}</R>;})}</Sec>}
+              {dores.length>0&&<Sec title="Dores Mapeadas">{dores.map(function(d2,i){return <R key={i} icon="!" color="#ef4444">{d2}</R>;})} {exposicao.length>0&&<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>{exposicao.map(function(r,i){return <span key={i} style={{background:"#fef3c7",border:"1px solid #f59e0b",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{r}</span>;})}</div>}</Sec>}
+              {triggers.length>0&&<Sec title="Gatilhos Comerciais">{triggers.map(function(t,i){return <R key={i} icon="T" color="#7c3aed">{t}</R>;})}</Sec>}
+              {sinais.length>0&&<Sec title="Sinais de Intenção"><div style={{background:"#0c2340",borderRadius:12,padding:"12px 16px"}}>{sinais.map(function(s,i){return <div key={i} style={{fontSize:11.5,color:"#7dd3fc",lineHeight:1.6,display:"flex",gap:8,marginBottom:5}}><span style={{color:"#38bdf8",flexShrink:0}}>o</span>{s}</div>;})}</div></Sec>}
+              {concorrentes.length>0&&<Sec title="Concorrentes Prováveis"><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{concorrentes.map(function(cc,i){return <span key={i} style={{background:"#fef3c7",border:"1px solid #f59e0b",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{cc}</span>;})}</div></Sec>}
+              {noticias.length>0&&<Sec title="Notícias e Contexto">{noticias.map(function(n,i){return <div key={i} style={{background:"#f8fafc",border:"1px solid #e8edf4",borderRadius:12,padding:"12px 14px",marginBottom:8}}>{n.url?<a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12.5,fontWeight:700,color:"#0ea5e9",textDecoration:"none",display:"block",marginBottom:3}}>{n.titulo}</a>:<div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",marginBottom:3}}>{n.titulo}</div>}<div style={{fontSize:11.5,color:"#64748b",lineHeight:1.6,marginBottom:3}}>{n.resumo}</div><div style={{fontSize:10,color:"#3451d1",fontWeight:600}}>{"-> "+n.relevancia}</div></div>;})}</Sec>}
+            </div>
+          )}
+          {activeTab==="stakeholders"&&(
+            <div>
+              {enrichedContacts.length>0&&(
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:9,fontWeight:700,letterSpacing:1.5,color:"#3451d1",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",boxShadow:"0 0 8px rgba(16,185,129,.5)"}}/>
+                    {"Contatos Reais Encontrados , "+enrichedContacts.length+" perfil"+(enrichedContacts.length>1?"s":"")}
+                    {enrichedSources.map(function(s,i){return <span key={i} style={{background:"rgba(67,97,238,.08)",border:"1px solid rgba(67,97,238,.2)",color:"#3451d1",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:600}}>{s}</span>;})}
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:10,marginBottom:16}}>
+                    {enrichedContacts.map(function(contact,i){
+                      return (
+                        <div key={i} style={{background:"linear-gradient(145deg,#f0fdf4,#fff)",border:"1.5px solid rgba(67,97,238,.25)",borderRadius:14,padding:"14px 16px"}}>
+                          <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:2}}>{contact.nome}</div>
+                          <div style={{fontSize:11,color:"#3451d1",marginBottom:10}}>{contact.cargo}</div>
+                          <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                            {contact.email&&(
+                              <a href={"mailto:"+contact.email} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"#0ea5e9",textDecoration:"none",background:"rgba(14,165,233,.06)",borderRadius:6,padding:"4px 8px"}}>
+                                <span>{"@"}</span>
+                                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{contact.email}</span>
+                                {contact.email_confidence>0&&<span style={{fontSize:8,color:"#6b7280",marginLeft:"auto",flexShrink:0}}>{contact.email_confidence+"%"}</span>}
+                              </a>
+                            )}
+                            {contact.linkedin&&(
+                              <a href={contact.linkedin.startsWith("http")?contact.linkedin:"https://www.linkedin.com/in/"+contact.linkedin} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"#0a66c2",textDecoration:"none",background:"rgba(10,102,194,.06)",borderRadius:6,padding:"4px 8px",fontWeight:600}}>
+                                <span>in</span><span>Ver perfil LinkedIn</span>
+                              </a>
+                            )}
+                            {contact.phone&&<span style={{fontSize:10,color:"#64748b",padding:"2px 0"}}>{contact.phone}</span>}
+                            <span style={{fontSize:8,color:"#6b7280",fontStyle:"italic"}}>{contact.source}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              <Sec title="Mapeamento Estratégico de Cargos">
+              <div className="modal-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                {stakeholders.map(function(s,i){
+                  var pc=s.prioridade==="PRIMARIO"?"#2d3a8c":s.prioridade==="SECUNDARIO"?"#92400e":"#475569";
+                  var uc=s.urgencia==="Alta"?"#991b1b":s.urgencia==="Media"||s.urgencia==="Média"?"#92400e":"#64748b";
+                  var match=getEnrichedStakeholder(s.cargo);
+                  return (
+                    <div key={i} style={{background:match?"linear-gradient(145deg,#f0fdf4,#fff)":"#f8fafc",border:"1.5px solid "+(match?"rgba(67,97,238,.3)":"#e8edf4"),borderRadius:14,padding:"14px 16px",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 4px 16px rgba(67,97,238,.1)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor=match?"rgba(67,97,238,.3)":"#e8edf4";e.currentTarget.style.boxShadow="";}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                        <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",lineHeight:1.3,flex:1}}>{s.cargo}</div>
+                        <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",marginLeft:8,flexShrink:0}}>
+                          <span style={{background:pc+"20",border:"1px solid "+pc,color:pc,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700,whiteSpace:"nowrap"}}>{s.prioridade}</span>
+                          <span style={{fontSize:8,color:uc,fontWeight:600}}>{"Urgência: "+s.urgencia}</span>
+                        </div>
+                      </div>
+                      {match&&(
+                        <div style={{background:"rgba(67,97,238,.08)",border:"1px solid rgba(67,97,238,.2)",borderRadius:8,padding:"6px 10px",marginBottom:8}}>
+                          <div style={{fontSize:11,fontWeight:700,color:"#3451d1",marginBottom:3}}>{"✓ Match: "+match.nome}</div>
+                          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                            {match.email&&<a href={"mailto:"+match.email} style={{fontSize:10,color:"#0ea5e9",textDecoration:"none"}}>{match.email}</a>}
+                            {match.linkedin&&<a href={match.linkedin.startsWith("http")?match.linkedin:"https://www.linkedin.com/in/"+match.linkedin} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#0a66c2",textDecoration:"none",fontWeight:600}}>Ver LinkedIn -></a>}
+                          </div>
+                        </div>
+                      )}
+                      <div style={{fontSize:11,color:"#64748b",lineHeight:1.6}}>{s.angulo}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              </Sec>
+            </div>
+          )}
+          {activeTab==="messages"&&(
+            <div>
+              {CHANNELS.map(function(cfg){
+                var items=safeArr(sd("estrategia."+cfg.key));
+                if(!items.length)return null;
+                return (
+                  <Sec key={cfg.key} title={cfg.label}>
+                    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                      {items.map(function(item,i){
+                        var text=cfg.isObj?item.corpo:item;
+                        var ck=cfg.key+"-"+i;
+                        return (
+                          <div key={i} style={{border:"1.5px solid #e8edf4",borderRadius:14,overflow:"hidden"}}>
+                            <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:cfg.bg,borderBottom:"1px solid #e8edf4"}}>
+                              <span style={{fontSize:10,fontWeight:700,color:cfg.color}}>{"Template "+(i+1)}</span>
+                              {cfg.isObj&&item.assunto&&<span style={{fontSize:11,color:"#64748b",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{"- "+item.assunto}</span>}
+                              <CopyBtn text={(cfg.isObj&&item.assunto?"Assunto: "+item.assunto+"\n\n":"")+text}/>
+                            </div>
+                            <div style={{padding:"14px 16px",fontSize:12.5,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+cfg.color}}>{text}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Sec>
+                );
+              })}
+            </div>
+          )}
+          {activeTab==="spin"&&(
+            <div>
+              <Sec title="Perguntas SPIN">
+                {spin.map(function(q,i){
+                  var tipo=q.startsWith("SITUAÇÃO")||q.startsWith("SITUAÇÃO")?"S":q.startsWith("PROBLEMA")?"P":q.startsWith("IMPLICAÇÃO")||q.startsWith("IMPLICAÇÃO")?"I":"N";
+                  var tc=tipo==="S"?"#0ea5e9":tipo==="P"?"#92400e":tipo==="I"?"#991b1b":"#2d3a8c";
+                  var clean=q.indexOf(": ")>-1?q.slice(q.indexOf(": ")+2):q;
+                  return (
+                    <div key={i} style={{display:"flex",gap:10,padding:"10px 0",borderBottom:"1px solid #f1f5f9",alignItems:"flex-start"}}>
+                      <span style={{background:tc+"20",border:"1px solid "+tc+"50",color:tc,borderRadius:6,padding:"2px 8px",fontSize:9,fontWeight:800,flexShrink:0,marginTop:1}}>{tipo}</span>
+                      <span style={{fontSize:12.5,color:"#334155",lineHeight:1.6,flex:1}}>{clean}</span>
+                      <CopyBtn text={clean}/>
+                    </div>
+                  );
+                })}
+              </Sec>
+              {objecoes.length>0&&(
+                <Sec title="Objeções e Respostas">
+                  {objecoes.map(function(o,i){
+                    return (
+                      <div key={i} style={{background:"#f8fafc",border:"1.5px solid #e8edf4",borderRadius:14,padding:"14px 16px",marginBottom:10}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8,gap:8}}>
+                          <div style={{fontSize:12,fontWeight:700,color:"#92400e",lineHeight:1.4,flex:1}}>{'"'+o.objecao+'"'}</div>
+                          <CopyBtn text={'"'+o.objecao+'"\n-> '+o.resposta}/>
+                        </div>
+                        <div style={{fontSize:12,color:"#334155",lineHeight:1.65}}>{"-> "+o.resposta}</div>
+                      </div>
+                    );
+                  })}
+                </Sec>
+              )}
+            </div>
+          )}
+          {activeTab==="plan"&&(
+            <div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:18}}>
+                <Sec title="AE , Ações Imediatas">
+                  {ae.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#4361EE",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"#334155",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
+                </Sec>
+                <Sec title="BDR , Ações de Suporte">
+                  {bdr.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#f59e0b",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"#334155",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
+                </Sec>
+              </div>
+              {prazo&&<div style={{background:"rgba(67,97,238,.06)",border:"1px solid rgba(67,97,238,.2)",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}><div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#4361EE,#3451d1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div><div><div style={{fontSize:9,color:"#3451d1",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Prazo</div><div style={{fontSize:13,color:"#0f172a",fontWeight:600}}>{prazo}</div></div></div>}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+function CollapsibleChannels(props) {
+  var sd = props.sd; var CHANNELS = props.CHANNELS;
+  var _st_open = useState({"emails":true,"inmails":false,"whatsapps":false,"cold_calls":false}); var open = _st_open[0]; var setOpen = _st_open[1];
+  function toggle(key) { setOpen(function(prev){var n=Object.assign({},prev);n[key]=!n[key];return n;}); }
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {CHANNELS.map(function(cfg){
+        var items=safeArr(sd("estrategia."+cfg.key));
+        if(!items.length)return null;
+        var isOpen=open[cfg.key];
+        return (
+          <div key={cfg.key} style={{border:"1.5px solid #e8edf4",borderRadius:16,overflow:"hidden",transition:"all .25s"}}>
+            <div onClick={function(){toggle(cfg.key);}} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 18px",background:isOpen?cfg.bg:"#fafafa",cursor:"pointer",userSelect:"none",transition:"background .2s"}}>
+              <div style={{width:32,height:32,borderRadius:9,background:cfg.bg,border:"1.5px solid "+cfg.color+"40",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <span style={{fontSize:11,fontWeight:800,color:cfg.color}}>{cfg.label.slice(0,2)}</span>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{cfg.label}</div>
+                <div style={{fontSize:10,color:"#6b7280"}}>{items.length+" template"+(items.length>1?"s":"")}</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{transition:"transform .25s cubic-bezier(.22,1,.36,1)",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+            {isOpen&&(
+              <div style={{padding:"14px 16px",display:"flex",flexDirection:"column",gap:12,borderTop:"1px solid #f1f5f9"}}>
+                {items.map(function(item,i){
+                  var text=cfg.isObj?item.corpo:item;
+                  var ck=cfg.key+"-"+i;
+                  return (
+                    <div key={i} style={{border:"1px solid #e8edf4",borderRadius:12,overflow:"hidden"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,padding:"9px 14px",background:cfg.bg}}>
+                        <span style={{fontSize:10,fontWeight:700,color:cfg.color}}>{"Template "+(i+1)}</span>
+                        {cfg.isObj&&item.assunto&&<span style={{fontSize:11,color:"#64748b",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{", "+item.assunto}</span>}
+                        <CopyBtn text={(cfg.isObj&&item.assunto?"Assunto: "+item.assunto+"\n\n":"")+text}/>
+                      </div>
+                      <div style={{padding:"14px 16px",fontSize:12.5,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+cfg.color}}>{text}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+function downloadSeqPDF(seq) {
+  var TOUCH_LABELS = {email:"E-mail",linkedin:"InMail",whatsapp:"WhatsApp",call:"Cold Call",follow:"Follow-up",breakup:"Breakup"};
+  var html = "<html><head><title>"+((seq.account&&seq.account.nome)||"Sequencia")+"</title><style>body{font-family:Verdana,sans-serif;padding:32px;color:#0f172a;font-size:12px;line-height:1.7}h1{font-size:16px;color:#059669}h2{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#4361EE;margin:20px 0 6px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}.msg{background:#f8fafc;border-left:4px solid #10b981;padding:12px 16px;white-space:pre-wrap;margin:6px 0;font-size:11px;line-height:1.8}.day{display:inline-block;background:#dcfce7;color:#065f46;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;margin-bottom:6px}.footer{margin-top:24px;border-top:1px solid #e2e8f0;padding-top:10px;font-size:10px;color:#94a3b8}</style></head><body>";
+  html += "<h1>Sequencia: "+((seq.account&&seq.account.nome)||"")+((seq.profile&&seq.profile.label)?" , "+seq.profile.label:"")+"</h1>";
+  html += "<p style='color:#64748b;font-size:11px'>Gerado em "+fmtDate(seq.createdAt)+" - Mais Pipe Beta</p>";
+  (seq.touches||[]).forEach(function(t,i) {
+    html += "<h2>"+(TOUCH_LABELS[t.type]||t.type)+" , Dia "+t.day+"</h2>";
+    if (t.subject) html += "<div class='day'>Assunto: "+t.subject+"</div>";
+    html += "<div class='msg'>"+t.body+"</div>";
+  });
+  html += "<div class='footer'>Mais Pipe Beta , Zendesk , BDR/SDR Zendesk</div></body></html>";
+  var w = window.open("","_blank");
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.print();}, 400);
+}
+function BibliotecaView(props) {
+  var _st_seqs = useState([]); var seqs = _st_seqs[0]; var setSeqs = _st_seqs[1];
+  var _st_loading = useState(true); var loading = _st_loading[0]; var setLoading = _st_loading[1];
+  var _st_openSeq = useState(null); var openSeq = _st_openSeq[0]; var setOpenSeq = _st_openSeq[1];
+  var _st_viewMode = useState("cards"); var viewMode = _st_viewMode[0]; var setViewMode = _st_viewMode[1];
+  var _st_sortOrder = useState("date"); var sortOrder = _st_sortOrder[0]; var setSortOrder = _st_sortOrder[1];
+  useEffect(function() {
+    storageList("seq:").then(function(keys) {
+      if (!keys.length) { setLoading(false); props.onCountChange(0); return; }
+      Promise.all(keys.map(storageGet)).then(function(items) {
+        var valid = items.filter(Boolean); setSeqs(valid);
+        setLoading(false); props.onCountChange(valid.length);
+      });
+    }).catch(function(){setLoading(false);});
+  }, []);
+  function deleteSeq(id) {
+    if (!window.confirm("Remover esta sequencia?")) return;
+    storageDel(id).then(function() {
+      setSeqs(function(prev){var n=prev.filter(function(s){return s.id!==id;});props.onCountChange(n.length);return n;});
+      props.showToast("Sequencia removida.","#ef4444");
+    });
+  }
+  if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}><div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE"}}/><span style={{color:"#6b7280",fontSize:13}}>Carregando...</span></div>;
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
+        <div>
+          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Biblioteca</div>
+          <div style={{fontSize:13,color:"#64748b"}}>{seqs.length+" sequência"+(seqs.length!==1?"s":"")+" salva"+(seqs.length!==1?"s":"")}</div>
+        </div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+            <option value="date">Mais recente</option>
+            <option value="az">A -> Z</option>
+            <option value="za">Z -> A</option>
+          </select>
+          <div style={{display:"flex",background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,overflow:"hidden"}}>
+            <button onClick={function(){setViewMode("cards");}} title="Cards" style={{padding:"8px 12px",border:"none",background:viewMode==="cards"?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:viewMode==="cards"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </button>
+            <button onClick={function(){setViewMode("list");}} title="Lista" style={{padding:"8px 12px",border:"none",background:viewMode==="list"?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:viewMode==="list"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      {seqs.length===0 ? (
+        <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
+          <div style={{fontSize:36,marginBottom:12}}>{"📚"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{"Nenhuma sequência salva ainda"}</div>
+          <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{"Vá para Sequências, gere uma cadência e clique em Salvar na Biblioteca."}</div>
+        </div>
+      ) : (
+        viewMode==="cards" ? (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16}}>
+          {seqs.slice().sort(function(a,b){
+            if(sortOrder==="az") return ((a.account&&a.account.nome)||"").localeCompare((b.account&&b.account.nome)||"","pt");
+            if(sortOrder==="za") return ((b.account&&b.account.nome)||"").localeCompare((a.account&&a.account.nome)||"","pt");
+            return (b.createdAt||0)-(a.createdAt||0);
+          }).map(function(seq){
+            var fc = FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
+            var TOUCH_TYPES_LOCAL = {email:{label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)"},linkedin:{label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)"},whatsapp:{label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)"},call:{label:"Cold Call",color:"#92400e",bg:"#fef3c7"},follow:{label:"Follow-up",color:"#7c3aed",bg:"#f5f3ff"},breakup:{label:"Breakup",color:"#64748b",bg:"#f8fafc"}};
+            return (
+              <div key={seq.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:20,padding:"20px 22px",boxShadow:"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 12px 40px rgba(15,23,42,.12)";e.currentTarget.style.borderColor="#d1dae8";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";e.currentTarget.style.borderColor="#e8edf4";}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
+                    <div style={{fontSize:11,color:"#6b7280",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.profile&&seq.profile.label}</div>
+                    <div style={{fontSize:10,color:"#cbd5e1"}}>{fmtDate(seq.createdAt)}</div>
+                  </div>
+                  <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700,flexShrink:0,marginLeft:8}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
+                </div>
+                <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>
+                  {safeArr(seq.touches).map(function(t,i){
+                    var tc=TOUCH_TYPES_LOCAL[t.type]||TOUCH_TYPES_LOCAL.email;
+                    return <span key={i} style={{background:tc.bg,color:tc.color,borderRadius:6,padding:"2px 8px",fontSize:9,fontWeight:700}}>{"D"+t.day+" "+tc.label}</span>;
+                  })}
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={function(){setOpenSeq(seq);}} style={{flex:1,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"8px 0",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Abrir</button>
+                  <button onClick={function(){downloadSeqPDF(seq);}} title="Baixar PDF" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0369a1",borderRadius:10,padding:"8px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>PDF</button>
+                  <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"8px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>x</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {seqs.slice().sort(function(a,b){
+            if(sortOrder==="az") return ((a.account&&a.account.nome)||"").localeCompare((b.account&&b.account.nome)||"","pt");
+            if(sortOrder==="za") return ((b.account&&b.account.nome)||"").localeCompare((a.account&&a.account.nome)||"","pt");
+            return (b.createdAt||0)-(a.createdAt||0);
+          }).map(function(seq){
+            var fc=FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
+            return (
+              <div key={seq.id} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
+                  <div style={{fontSize:11,color:"#6b7280",marginTop:1}}>{seq.profile&&seq.profile.label}</div>
+                </div>
+                <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"2px 8px",fontSize:9,fontWeight:700,flexShrink:0}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
+                <span style={{fontSize:10,color:"#6b7280",flexShrink:0}}>{fmtDate(seq.createdAt)}</span>
+                <button onClick={function(){setOpenSeq(seq);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Abrir</button>
+                <button onClick={function(){downloadSeqPDF(seq);}} style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0369a1",borderRadius:8,padding:"5px 10px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>PDF</button>
+                <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
+              </div>
+            );
+          })}
+        </div>
+        )
+      )}
+      {openSeq&&<SequenceModal seq={openSeq} onClose={function(){setOpenSeq(null);}}/>}
+    </div>
+  );
+}
+function Sec(props) {
+  return (
+    <div style={{marginBottom:22}}>
+      <div style={{fontSize:9,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:"#4361EE",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+        <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+        {props.title}
+      </div>
+      {props.children}
+    </div>
+  );
+}
+function R(props) {
+  return <div style={{display:"flex",gap:8,padding:"7px 0",borderBottom:"1px solid #f1f5f9",fontSize:12.5,color:"#334155",lineHeight:1.55}}><span style={{color:props.color,flexShrink:0,fontWeight:700}}>{props.icon}</span>{props.children}</div>;
+}
+// -- SEARCH VIEW ---------------------------------------------------------------
+function LoadingStatus() {
+  var steps = [
+    {text:"Consultando fontes públicas com IA...", icon:"🔍"},
+    {text:"Mapeando stakeholders e estrutura da empresa...", icon:"🧭"},
+    {text:"Gerando fit score e dores de CX...", icon:"⚡"},
+    {text:"Criando mensagens personalizadas por canal...", icon:"✉"},
+    {text:"Montando plano de prospecção...", icon:"🎯"},
+  ];
+  var _st_step = useState(0); var step = _st_step[0]; var setStep = _st_step[1];
+  useEffect(function() {
+    var t = setInterval(function() {
+      setStep(function(s) { return (s+1) % steps.length; });
+    }, 1800);
+    return function() { clearInterval(t); };
+  }, []);
+  return (
+    <div style={{marginTop:16,background:"linear-gradient(135deg,rgba(67,97,238,.06),rgba(14,165,233,.04))",border:"1.5px solid rgba(67,97,238,.2)",borderRadius:16,padding:"16px 20px"}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+        <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",boxShadow:"0 0 0 3px rgba(67,97,238,.2)",animation:"pulse 1s ease-in-out infinite",flexShrink:0}}/>
+        <span style={{fontSize:13,color:"#3451d1",fontWeight:700}}>Mais Pipe com IA</span>
+        <span style={{fontSize:10,color:"#6b7280",marginLeft:"auto"}}>{"análise em tempo real"}</span>
+      </div>
+      <div style={{fontSize:13,color:"#334155",lineHeight:1.6,display:"flex",alignItems:"center",gap:8}}>
+        <span style={{fontSize:16}}>{steps[step].icon}</span>
+        <span style={{transition:"opacity .3s"}}>{steps[step].text}</span>
+      </div>
+      <div style={{marginTop:12,height:3,background:"#e2e8f0",borderRadius:3,overflow:"hidden"}}>
+        <div style={{height:"100%",background:"linear-gradient(90deg,#10b981,#0ea5e9)",borderRadius:3,animation:"shimmer 1.5s ease-in-out infinite",backgroundSize:"200% 100%"}}/>
+      </div>
+    </div>
+  );
+}
+function SearchView(props) {
+  var _st_inputVal = useState(""); var inputVal = _st_inputVal[0]; var setInputVal = _st_inputVal[1];
+  var _st_loading = useState(false); var loading = _st_loading[0]; var setLoading = _st_loading[1];
+  var _st_done = useState(null); var done = _st_done[0]; var setDone = _st_done[1];
+  var _st_searchError = useState(""); var searchError = _st_searchError[0]; var setSearchError = _st_searchError[1];
+  var _st_duplicate = useState(null); var duplicate = _st_duplicate[0]; var setDuplicate = _st_duplicate[1];
+  function isUrl(v) { return /^https?:\/\//i.test(v) || /^www\./.test(v); }
+  function extractDomain(val) {
+    if (!isUrl(val)) return "";
+    try {
+      var url = val.startsWith("http") ? val : "https://" + val;
+      return new URL(url).hostname.replace(/^www\./, "");
+    } catch(e) { return ""; }
+  }
+  function buildData(company, searchResults) {
+    var lower = company.toLowerCase();
+    var tavilyAnswers = [];
+    if (Array.isArray(searchResults)) {
+      searchResults.forEach(function(block) {
+        if (block.answer && block.answer.trim().length > 20) tavilyAnswers.push(block.answer.trim());
+      });
+    }
+    var allText = tavilyAnswers.join(" ");
+    function extractVal(pats) {
+      for (var pi=0;pi<pats.length;pi++) { var m=allText.match(pats[pi]); if(m) return m[0]; }
+      return "";
+    }
+    var faturamento = extractVal([/R$[\s]*[\d,\.]+[\s]*(bilh[oo]es?|milh[oo]es?)/i]);
+    var funcionarios = extractVal([/[\d\.]+[\s]*mil[\s]*funcion[aa]rios?/i, /[\d\.]+([\s])*(funcion[aa]rios?|colaboradores?)/i]);
+    var clientes = extractVal([/[\d,\.]+[\s]*(milh[oo]es?|mil)[\s]*(de[\s]*)?(clientes?|usuarios?)/i]);
+    var isEcomm   = /magalu|americanas|shopee|mercado livre|amazon|via varejo|renner|centauro|dafiti/.test(lower);
+    var isFintech = /nubank|c6|inter|stone|pagseguro|pagbank|picpay|cielo|btg|xp|itau|bradesco|banco/.test(lower);
+    var isSaaS    = /totvs|linx|vtex|rdstation|senior|sankhya|contaazul|omie|piperun|agendor/.test(lower);
+    var isHealth  = /hapvida|amil|unimed|dasa|fleury|einstein|afya|hospital|clinica/.test(lower);
+    var isTelecom = /\bvivo\b|claro|\btim\b|algar|embratel/.test(lower);
+    var setor = isEcomm?"E-commerce / Varejo Digital":isFintech?"Fintech / Servicos Financeiros":isSaaS?"Software / SaaS B2B":isHealth?"Saude / Healthtech":isTelecom?"Telecomunicacoes":"Tecnologia / Mid Market";
+    var tier  = (isEcomm||isFintech||isSaaS||isTelecom) ? "Tier 1" : "Tier 2";
+    var resumo = tavilyAnswers.length > 0
+      ? (tavilyAnswers[0] + (tavilyAnswers[1] ? " " + tavilyAnswers[1] : "")).slice(0, 500)
+      : company + " e uma empresa de " + setor + " com operacao de atendimento ativa no Brasil.";
+    var allSources = [];
+    if (Array.isArray(searchResults)) {
+      searchResults.forEach(function(b) { (b.sources||[]).forEach(function(s){allSources.push(s);}); });
+    }
+    var noticias = allSources.filter(function(s){return s.url&&s.title;}).slice(0,4);
+    if (!noticias.length) noticias = [{titulo:"Buscar noticias recentes de "+company, url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX"}];
+    return {
+      empresa:{nome:company,setor:setor,resumo:resumo,tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponivel",clientes:clientes||""},
+      fit:{score:"ALTO",justificativa:company+" atua em "+setor+", vertical de alto potencial para Zendesk Suite. Times de atendimento Mid Market com pressao de CSAT e custo por ticket sao nosso ICP principal.",solucoes_zendesk:["Zendesk Support (ticketing omnichannel)","Zendesk Messaging (chat e WhatsApp)","Help Center com IA generativa","Zendesk Explore (analytics e CSAT)","Workforce Management","QA e automacao de qualidade","Zendesk Sell (CRM de vendas)"]},
+      mercado:{competidores_provedor:["Freshdesk","Salesforce Service Cloud","HubSpot Service Hub","ServiceNow CSM","Intercom","LivePerson","TOTVS CRM","sistema interno legado"],concorrentes_mercado:[]},
+      dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rapido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
+      triggers:["Crescimento acelerado do time de atendimento (vagas abertas de agente/CX)","Alto volume de reclamacoes no Reclame Aqui ou redes sociais","Abertura ou expansao de canal digital (WhatsApp, chat, e-commerce)","Contratacao recente de Head de CX, VP de Ops ou Diretor de Atendimento","Insatisfacao com Freshdesk ou sistema legado","Lancamento de novo produto , aumento de demanda de suporte"],
+      stakeholders:[
+        {cargo:"Head de CX / Diretor de Atendimento",angulo:"Decisor principal. Sente pressao de CSAT, SLA e custo. Quer escalar sem contratar mais agentes.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
+        {cargo:"CEO / Diretor Geral",angulo:"Decisor economico. Ve CX como alavanca de retencao. Quer ROI claro e reducao de churn.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
+        {cargo:"VP / Diretor de Operacoes",angulo:"Co-decisor. Olha custo por ticket e eficiencia. Quer reducao de custo e SLA previsivel.",prioridade:"PRIMARIO",urgencia:"Media"},
+        {cargo:"Head de Customer Success",angulo:"Aliado. Quer integracao com CRM e visibilidade de clientes em risco de churn.",prioridade:"SECUNDARIO",urgencia:"Media"},
+        {cargo:"Gerente de TI / CTO",angulo:"Avalia viabilidade tecnica. Precisa de API robusta e suporte no processo de migracao.",prioridade:"SECUNDARIO",urgencia:"Media"},
+        {cargo:"CFO / Diretor Financeiro",angulo:"Aprova budget. Quer ROI mensuravel e comparativo de custo por ticket antes x depois.",prioridade:"TERCIARIO",urgencia:"Baixa"}
+      ],
+      noticias: noticias,
+      estrategia:{
+        tier:tier,
+        emails:[
+          {assunto:company+" + Zendesk , atendimento que escala",corpo:"Ola,\n\nChego ate voce porque "+company+" tem o perfil exato onde a Zendesk gera mais impacto em "+setor+". Empresas similares reduziram TMA em 35% e deflexionaram 28% dos tickets via self-service.\n\nTem disponibilidade para 20 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
+          {assunto:company+": quanto custa um ticket sem resposta?",corpo:"Ola,\n\nCada 1% de queda no CSAT representa 2 a 3% de aumento no churn. Com Zendesk Suite, empresas de "+setor+" reduziram TMA em 35% e deflexionaram 28% dos tickets via self-service.\n\nPosso te mostrar em 20 minutos.\n\nAbraco,\nBDR/SDR | Zendesk"},
+          {assunto:"Case: CSAT 68% para 89% em 90 dias , "+setor,corpo:"Ola,\n\nAjudamos recentemente uma empresa de "+setor+" a unificar todos os canais em 30 dias, aumentar CSAT de 68% para 89% e reduzir TMA em 35%.\n\nFaz sentido eu te contar como? 20 minutos essa semana.\n\nAbraco,\nBDR/SDR | Zendesk"}
+        ],
+        inmails:[
+          {assunto:company+" + Zendesk , vale 20 minutos?",corpo:"Ola!\n\nEmpresas de "+setor+" com o perfil da "+company+" aumentaram CSAT em 25% e reduziram 40% do custo por ticket com Zendesk Suite. Vale um papo?\n\nAbraco,\nBDR/SDR | Zendesk"},
+          {assunto:"Pergunta sobre atendimento na "+company,corpo:"Voces tem visibilidade em tempo real do CSAT e SLA em todos os canais hoje? Se nao, tenho um benchmark do "+setor+" relevante.\n\nAbraco,\nBDR/SDR | Zendesk"},
+          {assunto:company+" esta crescendo , parabens!",corpo:"Vi o crescimento da "+company+" em "+setor+". Esse e o momento em que CX pode ser vantagem ou gargalo. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"}
+        ],
+        whatsapps:[
+          "Oi [Nome], BDR da Zendesk. Vi que "+company+" tem operacao de atendimento em "+setor+". Empresas similares aumentaram CSAT em 25% e reduziram 40% do custo por ticket. Vale 15 minutos?",
+          "Oi [Nome]! BDR da Zendesk. Empresa de "+setor+" com perfil da "+company+" aumentou CSAT de 68% para 89% em 90 dias. Tenho um case. Posso te mandar?",
+          "Oi [Nome], BDR da Zendesk. Voce cuida de CX na "+company+"? Tenho algo sobre CSAT e custo por ticket. 15 minutos essa semana?"
+        ],
+        cold_calls:[
+          "Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos? [PAUSA] Ligo porque "+company+" tem o perfil exato onde geramos impacto em "+setor+". Empresas similares reduziram 40% do custo e aumentaram CSAT em 25% em 90 dias. Quando voce tem 20 minutos?",
+          "[Nome], bom dia! BDR da Zendesk. Pergunta direta: qual o CSAT atual de voces e o que acontece com o SLA quando o volume de tickets sobe?",
+          "Oi [Nome], BDR da Zendesk. Empresa de "+setor+" com perfil da "+company+" aumentou CSAT em 25 pontos em 90 dias. Vale 2 minutos agora?"
+        ],
+        perguntas_spin:[
+          "SITUACAO: Como esta o time de atendimento da "+company+" , quantos agentes, quais canais?",
+          "SITUACAO: Qual a ferramenta de helpdesk que voces usam e ha quanto tempo?",
+          "SITUACAO: Voces visualizam CSAT, SLA e volume em tempo real em todos os canais?",
+          "SITUACAO: Existe self-service ou base de conhecimento para os clientes?",
+          "PROBLEMA: Com que frequencia o SLA e estourado e qual o impacto no CSAT?",
+          "PROBLEMA: Quando o volume cresce, contratam mais agentes ou o SLA piora?",
+          "PROBLEMA: Os clientes precisam repetir o problema quando mudam de canal?",
+          "PROBLEMA: O time de TI gasta tempo mantendo customizacoes na ferramenta atual?",
+          "IMPLICACAO: Qual o impacto no churn quando um cliente fica insatisfeito?",
+          "IMPLICACAO: Se o CSAT continuar caindo, qual o impacto na renovacao e expansao?",
+          "IMPLICACAO: Qual o custo mensal do time e voces tem visibilidade do custo por ticket?",
+          "NECESSIDADE: Se deflexionassem 30% dos tickets com IA, o que isso liberaria?",
+          "NECESSIDADE: O que precisaria para CX subir de prioridade na "+company+"?",
+          "NECESSIDADE: Se eu mostrasse como aumentar CSAT em 25 pontos em 90 dias, valeria 20 minutos?"
+        ],
+        objecoes:[
+          {objecao:"Ja usamos Freshdesk e estamos satisfeitos",resposta:"A diferenca na pratica e na IA nativa, omnichannel real e analytics profundo com Explore. Vale ver lado a lado?"},
+          {objecao:"Nao temos budget para isso agora",resposta:"Posso mostrar o ROI baseado no custo por ticket atual? Clientes de "+setor+" costumam pagar a plataforma com a economia em 4 a 6 meses."},
+          {objecao:"Nossa TI nao tem capacidade",resposta:"Nosso CS conduz toda a implementacao. Empresas de "+setor+" ficaram no ar em media em 4 semanas sem demandar TI interna."},
+          {objecao:"Nao e prioridade agora",resposta:"Quando CX ganha prioridade , e antes ou depois de uma queda de CSAT que impacta churn?"},
+          {objecao:"Ja usamos Salesforce Service Cloud",resposta:"O Salesforce e poderoso. Zendesk e mais rapida para implementar, mais intuitiva para o agente e mais barata para escalar."},
+          {objecao:"Precisamos envolver mais areas",resposta:"Posso te ajudar a preparar o business case com ROI e casos do "+setor+" para facilitar a conversa interna."},
+          {objecao:"Ja tentamos uma ferramenta e o time nao adotou",resposta:"Problema de UX da ferramenta. Zendesk tem NPS de 86 entre agentes. Posso mostrar a interface em 10 minutos?"},
+          {objecao:"Preferimos desenvolver internamente",resposta:"Manter helpdesk interno custa em media 3x mais que a Zendesk em 2 anos. Posso mostrar o calculo?"}
+        ]
+      },
+      proximos_passos:{
+        ae:["Mapear organograma no LinkedIn , foco em Head de CX, CEO e VP de Ops da "+company,"Pesquisar vagas de agente CX e Analista de Atendimento , sinal de crescimento","Verificar "+company+" no Reclame Aqui , alto volume de reclamacoes e oportunidade","Buscar noticias de crescimento ou lancamento de produto da "+company,"Preparar business case com ROI da Zendesk Suite para "+setor,"InMail ao Head de CX ou CEO com contexto do "+setor],
+        bdr:["Cold call focado em Head de CX e CEO","WhatsApp com Loom referenciando Reclame Aqui ou crescimento recente","Sequencia de 3 emails: Custo de Ticket, Case CSAT, FUP Final","Monitorar LinkedIn , posts sobre CX, vagas abertas, mudanca de lideranca","Eventos: Conarec, ExpoRelations, NRF Brasil, summit de CX"],
+        prazo:"Primeira abordagem em ate 48 horas , prioridade Tier 1 se ha sinal de crescimento ou reclamacoes publicas."
+      }
+    };
+  }
+  function doEnrich(nome, domain) {
+    fetch("/api/stakeholders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company:nome,domain:domain})})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(stakhData){
+        if(!stakhData||!stakhData.contacts||!stakhData.contacts.length) return;
+        storageList("acc:").then(function(keys){
+          keys.forEach(function(k){
+            storageGet(k).then(function(stored){
+              if(!stored||stored.nome.toLowerCase()!==nome.toLowerCase()) return;
+              var merged = mergeStakeholders((stored.data&&stored.data.stakeholders)||[], stakhData.contacts);
+              var updated = Object.assign({},stored,{
+                data:Object.assign({},stored.data,{stakeholders:merged}),
+                enriched:{contacts:stakhData.contacts,sources:stakhData.sources||[]}
+              });
+              storageSet(k, updated);
+              if(props.onUpdateAccount) props.onUpdateAccount(updated);
+            });
+          });
+        });
+      }).catch(function(){});
+  }
+  function handleSearch() {
+    if (!inputVal.trim() || loading) return;
+    var nome = inputVal.trim();
+    var domain = extractDomain(nome);
+    var nomeLower = nome.toLowerCase().trim();
+    if (props.accounts) {
+      var dup = props.accounts.find(function(a){ return a.nome && a.nome.toLowerCase().trim() === nomeLower; });
+      if (dup) { setDuplicate(dup); setInputVal(""); return; }
+    }
+    setLoading(true); setDone(null); setSearchError("");
+    fetch("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company:nome,context:""})})
+      .then(function(r){if(!r.ok)return r.json().then(function(j){throw new Error(j.error||"HTTP "+r.status);}); return r.json();})
+      .then(function(resp){
+        var data = buildData(nome, resp.results);
+        props.onSave(nome, data, true);
+        doEnrich(nome, domain);
+        setLoading(false); setDone(nome); setInputVal("");
+      })
+      .catch(function(){
+        var data = buildData(nome, null);
+        props.onSave(nome, data, false);
+        doEnrich(nome, domain);
+        setLoading(false); setDone(nome); setInputVal("");
+        setSearchError("Busca online indisponivel. Account mapping gerado com base de conhecimento.");
+      });
+  }
+  return (
+    <div>
+      <div style={{marginBottom:32}}>
+        <div style={{fontSize:26,fontWeight:800,color:"#0f172a",marginBottom:6,letterSpacing:"-0.5px"}}>
+          {"Account "}<span style={{color:"#4361EE"}}>{"Mapping"}</span>
+        </div>
+        <div style={{fontSize:13,color:"#64748b",marginBottom:28,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento de CX completo. O resultado é salvo automaticamente em Contas."}</div>
+        <div style={{display:"flex",gap:10}}>
+          <input value={inputVal} onChange={function(e){setInputVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleSearch();}} placeholder="Ex: Nubank, TOTVS, Stone..." style={{flex:1,background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"14px 18px",fontSize:13.5,color:"#0f172a",fontFamily:"inherit",outline:"none",boxShadow:"0 1px 3px rgba(15,23,42,.06)",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+          <button onClick={handleSearch} disabled={loading||!inputVal.trim()} style={{background:loading||!inputVal.trim()?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:loading||!inputVal.trim()?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 28px",fontSize:13,fontWeight:600,cursor:loading||!inputVal.trim()?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:loading||!inputVal.trim()?"none":"0 4px 14px rgba(67,97,238,.35)",transition:"all .2s",whiteSpace:"nowrap"}}>
+            {loading?"Buscando na internet...":"Analisar"}
+          </button>
+        </div>
+        {searchError && (
+          <div style={{marginTop:12,background:"#fffbeb",border:"1px solid #fde68a",borderRadius:12,padding:"12px 16px",fontSize:12,color:"#92400e"}}>{searchError}</div>
+        )}
+        {duplicate && (
+          <div style={{marginTop:14,background:"#fff7ed",border:"1.5px solid #fb923c",borderRadius:14,padding:"14px 18px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#9a3412",marginBottom:3}}>{"Conta já mapeada: "+duplicate.nome}</div>
+                <div style={{fontSize:11,color:"#c2410c"}}>{duplicate.setor + " , " + (STATUS_CONFIG[duplicate.status]&&STATUS_CONFIG[duplicate.status].label)}</div>
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={function(){props.onOpenAccount(duplicate);}} style={{background:"#ea580c",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                  {"Ver mapeamento"}
+                </button>
+                <button onClick={function(){setDuplicate(null);}} style={{background:"none",border:"1px solid #fb923c",color:"#ea580c",borderRadius:10,padding:"8px 12px",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>x</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {done && (
+          <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10,background:"#f0f3ff",border:"1px solid #86efac",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#2d3a8c",fontWeight:600}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            {done + " mapeado e salvo em Contas!"}
+          </div>
+        )}
+      </div>
+      <div style={{background:"linear-gradient(160deg,#f0fdf8 0%,#fff 60%)",border:"1px solid rgba(67,97,238,.2)",borderRadius:20,padding:"20px 24px",marginBottom:24,position:"relative",overflow:"hidden"}}>
+        <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:16}}>Como funciona o Mais Pipe Beta</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:14}}>
+          {[
+            {n:"1",title:"Busca",desc:"Analise qualquer empresa Mid Market e gere o account mapping completo com fit de CX, dores, stakeholders e mensagens."},
+            {n:"2",title:"Contas",desc:"Todas as empresas ficam salvas com status de prospecção, organizadas por fit, tier e estágio."},
+            {n:"3",title:"Sequências",desc:"Gere cadências de 6 toques personalizadas por stakeholder com scripts prontos para copiar e usar."},
+            {n:"4",title:"Pipeline",desc:"Kanban visual para acompanhar cada conta do mapeamento até a conversão."},
+          ].map(function(item) {
+            return (
+              <div key={item.n}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                  <div style={{width:24,height:24,borderRadius:7,background:"rgba(67,97,238,.1)",border:"1px solid rgba(67,97,238,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#3451d1",flexShrink:0}}>{item.n}</div>
+                  <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a"}}>{item.title}</div>
+                </div>
+                <div style={{fontSize:11,color:"#64748b",lineHeight:1.55}}>{item.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+// -- ACCOUNTS VIEW -------------------------------------------------------------
+function AccountsView(props) {
+  var accounts = props.accounts;
+  var _st_filter = useState({fit:"",tier:"",status:""}); var filter = _st_filter[0]; var setFilter = _st_filter[1];
+  var _st_search = useState(""); var search = _st_search[0]; var setSearch = _st_search[1];
+  var _st_viewMode = useState("cards"); var viewMode = _st_viewMode[0]; var setViewMode = _st_viewMode[1];
+  var _st_sortOrder = useState("date"); var sortOrder = _st_sortOrder[0]; var setSortOrder = _st_sortOrder[1];
+  var filtered = accounts.filter(function(a) {
+    if (filter.fit && a.fit !== filter.fit) return false;
+    if (filter.tier && a.tier !== filter.tier) return false;
+    if (filter.status && a.status !== filter.status) return false;
+    if (search && !a.nome.toLowerCase().includes(search.toLowerCase()) && !a.setor.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  }).slice().sort(function(a,b) {
+    if (sortOrder === "az") return a.nome.localeCompare(b.nome, "pt");
+    if (sortOrder === "za") return b.nome.localeCompare(a.nome, "pt");
+    return (b.savedAt||0) - (a.savedAt||0);
+  });
+  var statCounts = {};
+  STATUS_ORDER.forEach(function(s) { statCounts[s] = accounts.filter(function(a){return a.status===s;}).length; });
+  function clearFilters() { setFilter({fit:"",tier:"",status:""}); setSearch(""); }
+  function toggleStatus(s) { setFilter(function(f){return Object.assign({},f,{status:f.status===s?"":s});}); }
+  function changeFit(v) { setFilter(function(f){return Object.assign({},f,{fit:v});}); }
+  function changeTier(v) { setFilter(function(f){return Object.assign({},f,{tier:v});}); }
+  var hasFilter = filter.fit || filter.tier || filter.status || search;
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
+        <div>
+          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Contas</div>
+          <div style={{fontSize:13,color:"#64748b"}}>{accounts.length + " empresa" + (accounts.length!==1?"s":"") + " mapeada" + (accounts.length!==1?"s":"")}</div>
+        </div>
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+            <option value="date">Mais recente</option>
+            <option value="az">A - Z</option>
+            <option value="za">Z - A</option>
+          </select>
+          <div style={{display:"flex",background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,overflow:"hidden"}}>
+            <button onClick={function(){setViewMode("cards");}} title="Cards" style={{padding:"8px 12px",border:"none",background:viewMode==="cards"?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:viewMode==="cards"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1,fontFamily:"inherit"}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </button>
+            <button onClick={function(){setViewMode("list");}} title="Lista" style={{padding:"8px 12px",border:"none",background:viewMode==="list"?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:viewMode==="list"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1,fontFamily:"inherit"}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="status-chips" style={{display:"flex",gap:10,marginBottom:24,overflowX:"auto",paddingBottom:4}}>
+        {STATUS_ORDER.map(function(s) {
+          var sc = STATUS_CONFIG[s];
+          var cnt = statCounts[s];
+          var isActive = filter.status === s;
+          return (
+            <div key={s} onClick={function(){toggleStatus(s);}} style={{flexShrink:0,background:isActive?sc.bg:"#fff",border:"1.5px solid "+(isActive?sc.border:"#e8edf4"),borderRadius:14,padding:"12px 16px",cursor:"pointer",transition:"all .2s",textAlign:"center",minWidth:100}}>
+              <div style={{fontSize:20,fontWeight:800,color:isActive?sc.color:"#64748b"}}>{cnt}</div>
+              <div style={{fontSize:9,fontWeight:600,color:isActive?sc.color:"#6b7280",textTransform:"uppercase",letterSpacing:.8,marginTop:2}}>{sc.label}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
+        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="Buscar por nome ou setor..." style={{flex:1,minWidth:200,background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+        <select value={filter.fit} onChange={function(e){changeFit(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.fit?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <option value="">Fit</option>
+          <option value="ALTO">Fit Alto</option>
+          <option value="MEDIO">Fit Medio</option>
+          <option value="BAIXO">Fit Baixo</option>
+        </select>
+        <select value={filter.tier} onChange={function(e){changeTier(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.tier?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <option value="">Tier</option>
+          <option value="Tier 1">Tier 1</option>
+          <option value="Tier 2">Tier 2</option>
+          <option value="Tier 3">Tier 3</option>
+        </select>
+        {hasFilter && (
+          <button onClick={clearFilters} style={{background:"#fee2e2",border:"1px solid #fecdd3",color:"#991b1b",borderRadius:10,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+            {"Limpar"}
+          </button>
+        )}
+      </div>
+      {filtered.length===0 ? (
+        <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
+          <div style={{fontSize:36,marginBottom:12}}>{"🔍"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{accounts.length===0?"Nenhuma conta mapeada ainda":"Nenhuma conta com esses filtros"}</div>
+          <div style={{fontSize:12,color:"#6b7280"}}>{accounts.length===0?"Va para Busca e analise sua primeira empresa":"Tente limpar os filtros"}</div>
+        </div>
+      ) : viewMode==="cards" ? (
+        <div className="card-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
+          {filtered.map(function(acc) {
+            return <AccountCard key={acc.id} acc={acc} onOpen={props.onOpen} onStatusChange={props.onStatusChange} onDelete={props.onDelete}/>;
+          })}
+        </div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {filtered.map(function(acc) {
+            var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
+            var sc = STATUS_CONFIG[acc.status]||STATUS_CONFIG.prospecting;
+            return (
+              <div key={acc.id} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                  <div style={{fontSize:11,color:"#6b7280",marginTop:2}}>{acc.setor}</div>
+                </div>
+                <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:700,flexShrink:0}}>{"FIT "+acc.fit}</span>
+                <span style={{background:"#f8fafc",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:700,flexShrink:0}}>{acc.tier}</span>
+                <span style={{background:sc.bg,border:"1px solid "+sc.border,color:sc.color,borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:600,flexShrink:0,whiteSpace:"nowrap"}}>{sc.label}</span>
+                <span style={{fontSize:10,color:"#6b7280",flexShrink:0}}>{fmtDate(acc.savedAt)}</span>
+                <button onClick={function(){props.onOpen(acc);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Ver</button>
+                <button onClick={function(){props.onDelete(acc.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+// -- INSIGHTS VIEW -------------------------------------------------------------
+// Merge API-enriched contacts into stakeholder profiles
+function mergeStakeholders(stakeholders, contacts) {
+  var kwmap = {
+    "Head de CX":["head of cx","head cx","customer experience","atendimento","customer service","support manager","director of cx","vp cx"],
+    "CEO":["ceo","chief executive","diretor geral","founder","president","presidente"],
+    "VP Operacoes":["vp operacoes","director of operations","head of operations","chief operating","coo"],
+    "Customer Success":["customer success","head of cs","cs manager","csm","vp customer success"],
+    "TI/CTO":["cto","chief technology","vp engineering","head of engineering","gerente de ti","it manager"],
+    "CFO":["cfo","chief financial","diretor financeiro","vp finance"],
+  };
+  return stakeholders.map(function(s) {
+    if (s.linkedin || s.email) return s;
+    var cargo = (s.cargo||"").toLowerCase();
+    var matched = null;
+    Object.keys(kwmap).forEach(function(k) {
+      if (matched) return;
+      kwmap[k].forEach(function(kw) {
+        if (!matched) contacts.forEach(function(c) {
+          if (!matched && c.cargo && c.cargo.toLowerCase().includes(kw)) matched = c;
+        });
+      });
+    });
+    if (!matched) contacts.forEach(function(c) {
+      if (matched) return;
+      var ct=(c.cargo||"").toLowerCase();
+      if (cargo.split(" ").some(function(w){return w.length>3&&ct.includes(w);})) matched=c;
+    });
+    if (matched) return Object.assign({},s,{nome:matched.nome||s.nome||"",email:matched.email||s.email||"",linkedin:matched.linkedin||s.linkedin||"",phone:matched.phone||s.phone||"",source:matched.source||""});
+    return s;
+  });
+}
+function SemiCircleChart(props) {
+  var convSteps = props.convSteps||[];
+  var colors=["#0f172a","#0369a1","#7c3aed","#2d3a8c","#991b1b"];
+  var radii=[90,76,62,48,34];
+  var steps=convSteps.slice(0,5);
+  var pathData=steps.map(function(step,i){
+    var pct=step.pct/100;
+    var r=radii[i];
+    if(pct<=0) return null;
+    var startA=Math.PI; var endA=Math.PI+(Math.PI*pct);
+    var x1=100+r*Math.cos(startA); var y1=100+r*Math.sin(startA);
+    var x2=100+r*Math.cos(endA);   var y2=100+r*Math.sin(endA);
+    var large=pct>0.5?1:0;
+    return {d:"M "+x1+" "+y1+" A "+r+" "+r+" 0 "+large+" 1 "+x2+" "+y2,color:colors[i],key:i};
+  }).filter(Boolean);
+  return (
+    <svg width="200" height="110" viewBox="0 0 200 110">
+      {pathData.map(function(p){return <path key={p.key} d={p.d} fill="none" stroke={p.color} strokeWidth="10" strokeLinecap="round" opacity="0.85"/>;})}
+      <text x="100" y="98" textAnchor="middle" fontSize="11" fill="#94a3b8">0%</text>
+      <text x="10" y="105" textAnchor="middle" fontSize="11" fill="#94a3b8">Map.</text>
+      <text x="190" y="105" textAnchor="middle" fontSize="11" fill="#2d3a8c">Conv.</text>
+    </svg>
+  );
+}
+function exportRelatoriosPDF(accounts, filters) {
+  var filtered = accounts.filter(function(a) {
+    if (filters.fit && a.fit !== filters.fit) return false;
+    if (filters.tier && a.tier !== filters.tier) return false;
+    if (filters.nome && !a.nome.toLowerCase().includes(filters.nome.toLowerCase())) return false;
+    if (filters.from) { var d = new Date(filters.from); if (new Date(a.savedAt) < d) return false; }
+    if (filters.to)   { var d2 = new Date(filters.to); d2.setHours(23,59,59); if (new Date(a.savedAt) > d2) return false; }
+    return true;
+  });
+  var byStatus = {};
+  STATUS_ORDER.forEach(function(s){byStatus[s]=filtered.filter(function(a){return a.status===s;}).length;});
+  var html = "<html><head><title>Relatórios Mais Pipe</title><style>body{font-family:Verdana,sans-serif;padding:32px;color:#0f172a;font-size:12px}h1{color:#059669;font-size:18px}h2{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#4361EE;margin:20px 0 8px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:8px}th{background:#f8fafc;padding:8px 12px;text-align:left;font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.8px}td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:11px}.fit-alto{color:#065f46;background:#dcfce7;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.fit-medio{color:#92400e;background:#fef3c7;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.fit-baixo{color:#991b1b;background:#fee2e2;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.footer{margin-top:24px;border-top:1px solid #e2e8f0;padding-top:10px;font-size:10px;color:#94a3b8}</style></head><body>";
+  html += "<h1>Relatório de Prospecção , Mais Pipe Beta</h1>";
+  html += "<p style='color:#64748b;font-size:11px'>Gerado em "+new Date().toLocaleDateString("pt-BR")+" - "+filtered.length+" contas</p>";
+  html += "<h2>Funil de Status</h2><table><tr>";
+  STATUS_ORDER.forEach(function(s){html+="<th>"+STATUS_CONFIG[s].label+"</th>";});
+  html+="</tr><tr>";
+  STATUS_ORDER.forEach(function(s){html+="<td><strong>"+byStatus[s]+"</strong></td>";});
+  html+="</tr></table>";
+  html += "<h2>Lista de Contas ("+filtered.length+")</h2><table><tr><th>Empresa</th><th>Setor</th><th>Fit</th><th>Tier</th><th>Status</th><th>Salvo em</th></tr>";
+  filtered.forEach(function(a) {
+    var fitClass = a.fit==="ALTO"?"fit-alto":a.fit==="MEDIO"?"fit-medio":"fit-baixo";
+    html += "<tr><td><strong>"+a.nome+"</strong></td><td>"+a.setor+"</td><td><span class='"+fitClass+"'>"+a.fit+"</span></td><td>"+a.tier+"</td><td>"+(STATUS_CONFIG[a.status]&&STATUS_CONFIG[a.status].label||a.status)+"</td><td>"+fmtDate(a.savedAt)+"</td></tr>";
+  });
+  html += "</table><div class='footer'>Mais Pipe Beta , Zendesk , BDR/SDR Zendesk</div></body></html>";
+  var w = window.open("","_blank");
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.print();}, 400);
+}
+function InsightsView(props) {
+  var accounts = props.accounts;
+  var total = accounts.length;
+  var _st_pdfFilters = useState({fit:"",tier:"",nome:"",from:"",to:""}); var pdfFilters = _st_pdfFilters[0]; var setPdfFilters = _st_pdfFilters[1];
+  // -- SVG Donut chart helper
+  function buildDonutPaths(segments, cx, cy, r, innerR) {
+    var total2=segments.reduce(function(s,seg){return s+(seg.value||0);},0)||1;
+    var startAngle=-Math.PI/2;
+    var result=[];
+    for(var i=0;i<segments.length;i++){
+      var seg=segments[i];
+      var angle=(seg.value/total2)*Math.PI*2;
+      var endAngle=startAngle+angle;
+      var x1=cx+r*Math.cos(startAngle); var y1=cy+r*Math.sin(startAngle);
+      var x2=cx+r*Math.cos(endAngle);   var y2=cy+r*Math.sin(endAngle);
+      var ix1=cx+innerR*Math.cos(endAngle); var iy1=cy+innerR*Math.sin(endAngle);
+      var ix2=cx+innerR*Math.cos(startAngle); var iy2=cy+innerR*Math.sin(startAngle);
+      var large=angle>Math.PI?1:0;
+      if(seg.value>0) result.push({d:"M "+x1+" "+y1+" A "+r+" "+r+" 0 "+large+" 1 "+x2+" "+y2+" L "+ix1+" "+iy1+" A "+innerR+" "+innerR+" 0 "+large+" 0 "+ix2+" "+iy2+" Z",fill:seg.color,key:i});
+      startAngle=endAngle;
+    }
+    return result;
+  }
+  function DonutChart(dprops) {
+    var segments=dprops.segments; var size=dprops.size||120; var hole=dprops.hole||0.62;
+    var cx=size/2; var cy=size/2; var r=size/2-8; var innerR=r*hole;
+    var pathData=buildDonutPaths(segments,cx,cy,r,innerR);
+    return (
+      <svg width={size} height={size} viewBox={"0 0 "+size+" "+size}>
+        {pathData.map(function(p){return <path key={p.key} d={p.d} fill={p.fill} opacity="0.9"/>;})}
+        {dprops.centerLabel&&<text x={cx} y={cy-5} textAnchor="middle" fontSize="18" fontWeight="800" fill="#0f172a">{dprops.centerLabel}</text>}
+        {dprops.centerSub&&<text x={cx} y={cy+14} textAnchor="middle" fontSize="10" fill="#94a3b8">{dprops.centerSub}</text>}
+      </svg>
+    );
+  }
+  // -- Funnel by status
+  var funnel = STATUS_ORDER.map(function(s) {
+    return { status:s, label:STATUS_CONFIG[s].label, count:accounts.filter(function(a){return a.status===s;}).length, color:STATUS_CONFIG[s].color, bg:STATUS_CONFIG[s].bg, border:STATUS_CONFIG[s].border };
+  });
+  var maxFunnel = Math.max.apply(null, funnel.map(function(f){return f.count;})) || 1;
+  // -- By fit score
+  var byFit = ["ALTO","MEDIO","BAIXO"].map(function(f) {
+    var cnt = accounts.filter(function(a){return a.fit===f;}).length;
+    return { fit:f, count:cnt, pct:total?Math.round(cnt/total*100):0, color:FIT_CONFIG[f].text, bg:FIT_CONFIG[f].bg, border:FIT_CONFIG[f].border };
+  });
+  // -- By tier
+  var byTier = ["Tier 1","Tier 2","Tier 3"].map(function(t) {
+    var cnt = accounts.filter(function(a){return a.tier===t;}).length;
+    return { tier:t, count:cnt, pct:total?Math.round(cnt/total*100):0, color:TIER_COLOR[t]||"#94a3b8" };
+  });
+  // -- By setor (top 6)
+  var setorMap = {};
+  accounts.forEach(function(a) {
+    var s = (a.setor||"Outros").split("/")[0].trim();
+    setorMap[s] = (setorMap[s]||0) + 1;
+  });
+  var bySetor = Object.keys(setorMap).map(function(s){return {setor:s,count:setorMap[s]};})
+    .sort(function(a,b){return b.count-a.count;}).slice(0,6);
+  var maxSetor = (bySetor[0]&&bySetor[0].count)||1;
+  // -- Velocity: accounts saved by week (last 8 weeks)
+  var now = Date.now();
+  var weeks = [];
+  for (var w = 7; w >= 0; w--) {
+    var wStart = now - (w+1)*7*24*60*60*1000;
+    var wEnd   = now - w*7*24*60*60*1000;
+    var label  = w===0?"Esta semana":"Sem -"+(w);
+    var cnt    = accounts.filter(function(a){return a.savedAt>=wStart && a.savedAt<wEnd;}).length;
+    weeks.push({label:label, count:cnt});
+  }
+  var maxWeek = Math.max.apply(null, weeks.map(function(w){return w.count;})) || 1;
+  // -- Conversion rates
+  var contacted  = accounts.filter(function(a){return ["contacted","meeting","proposal","won"].indexOf(a.status)>-1;}).length;
+  var meeting    = accounts.filter(function(a){return ["meeting","proposal","won"].indexOf(a.status)>-1;}).length;
+  var proposal   = accounts.filter(function(a){return ["proposal","won"].indexOf(a.status)>-1;}).length;
+  var won        = accounts.filter(function(a){return a.status==="won";}).length;
+  var convSteps = [
+    {label:"Mapeado",   count:total,     pct:100},
+    {label:"Contatado", count:contacted, pct:total?Math.round(contacted/total*100):0},
+    {label:"Reunião",   count:meeting,   pct:total?Math.round(meeting/total*100):0},
+    {label:"Proposta",  count:proposal,  pct:total?Math.round(proposal/total*100):0},
+    {label:"Ganho",     count:won,       pct:total?Math.round(won/total*100):0},
+  ];
+  // -- KPI cards
+  var kpis = [
+    {label:"Total Mapeado",    value:total,     sub:"empresas",          color:"#0f172a", icon:"T"},
+    {label:"Fit Alto",         value:byFit[0]&&byFit[0].count||0, sub:"prospects prime",  color:"#2d3a8c", icon:"A"},
+    {label:"Em Andamento",     value:contacted, sub:"contatados ou mais", color:"#7c3aed", icon:"C"},
+    {label:"Taxa de Ganho",    value:(total?Math.round(won/total*100):0)+"%", sub:"dos mapeados",color:"#3451d1", icon:"G"},
+  ];
+  if (total === 0) {
+    return (
+      <div>
+        <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
+        <div style={{fontSize:13,color:"#64748b",marginBottom:32}}>{"Dashboard de performance da sua prospecção."}</div>
+        <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
+          <div style={{fontSize:36,marginBottom:12}}>{"📊"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>Nenhum dado ainda</div>
+          <div style={{fontSize:12,color:"#6b7280"}}>Mapeie sua primeira empresa em Busca para comecar a ver insights.</div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:28,flexWrap:"wrap",gap:12}}>
+        <div>
+          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
+          <div style={{fontSize:13,color:"#64748b"}}>{"Performance da sua prospecção baseada nas contas mapeadas."}</div>
+        </div>
+        <button onClick={function(){exportRelatoriosPDF(accounts,pdfFilters);}} style={{display:"flex",alignItems:"center",gap:7,background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"10px 18px",fontSize:12,fontWeight:600,color:"#475569",cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.color="#3451d1";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.color="#475569";}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          {"Exportar PDF"}
+        </button>
+      </div>
+      <div style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"16px 20px",marginBottom:24,display:"flex",gap:12,flexWrap:"wrap",alignItems:"center"}}>
+        <span style={{fontSize:10,fontWeight:700,color:"#6b7280",letterSpacing:1,textTransform:"uppercase"}}>Filtros PDF:</span>
+        <select value={pdfFilters.fit} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{fit:e.target.value});});}} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <option value="">Todos os fits</option>
+          <option value="ALTO">Fit Alto</option>
+          <option value="MEDIO">{"Fit Médio"}</option>
+          <option value="BAIXO">Fit Baixo</option>
+        </select>
+        <select value={pdfFilters.tier} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{tier:e.target.value});});}} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <option value="">Todos os tiers</option>
+          <option value="Tier 1">Tier 1</option>
+          <option value="Tier 2">Tier 2</option>
+          <option value="Tier 3">Tier 3</option>
+        </select>
+        <input value={pdfFilters.nome} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{nome:e.target.value});});}} placeholder="Filtrar por nome..." style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#0f172a",fontFamily:"inherit",outline:"none",minWidth:130}}/>
+        <input type="date" value={pdfFilters.from} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{from:e.target.value});});}} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#0f172a",fontFamily:"inherit",outline:"none"}}/>
+        <span style={{fontSize:10,color:"#6b7280"}}>{"até"}</span>
+        <input type="date" value={pdfFilters.to} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{to:e.target.value});});}} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#0f172a",fontFamily:"inherit",outline:"none"}}/>
+      </div>
+      <div className="kpi-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:14,marginBottom:24}}>
+        {kpis.map(function(k) {
+          return (
+            <div key={k.label} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:18,padding:"20px 22px",boxShadow:"0 4px 20px rgba(15,23,42,.06)",position:"relative",overflow:"hidden"}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>{k.label}</div>
+              <div style={{fontSize:32,fontWeight:800,color:k.color,lineHeight:1,marginBottom:6}}>{k.value}</div>
+              <div style={{fontSize:11,color:"#6b7280"}}>{k.sub}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginBottom:18}}>
+        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:20,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+            {"Funil de Conversão"}
+          </div>
+          {convSteps.map(function(step, i) {
+            var colors = ["#0f172a","#0369a1","#7c3aed","#b45309","#2d3a8c"];
+            return (
+              <div key={step.label} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                  <span style={{fontSize:12,fontWeight:600,color:colors[i]}}>{step.label}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{fontSize:11,color:"#6b7280"}}>{step.count}</span>
+                    <span style={{fontSize:11,fontWeight:700,color:colors[i],minWidth:32,textAlign:"right"}}>{step.pct+"%"}</span>
+                  </div>
+                </div>
+                <div style={{height:6,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:step.pct+"%",background:colors[i],borderRadius:4,transition:"width .8s cubic-bezier(.22,1,.36,1)"}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:20,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+            {"Contas por Semana"}
+          </div>
+          <div style={{display:"flex",alignItems:"flex-end",gap:6,height:120}}>
+            {weeks.map(function(w, i) {
+              var h = Math.round((w.count/maxWeek)*100);
+              var isLast = i===weeks.length-1;
+              return (
+                <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                  <div style={{fontSize:9,fontWeight:700,color:isLast?"#3451d1":"#94a3b8"}}>{w.count||""}</div>
+                  <div style={{width:"100%",height:h+"%",minHeight:w.count?4:2,background:isLast?"linear-gradient(180deg,#4361EE,#3451d1)":"#e2e8f0",borderRadius:"4px 4px 0 0",transition:"height .6s ease"}}/>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{display:"flex",alignItems:"flex-end",gap:6,marginTop:6}}>
+            {weeks.map(function(w,i){
+              return <div key={i} style={{flex:1,textAlign:"center",fontSize:8,color:i===weeks.length-1?"#3451d1":"#cbd5e1",overflow:"hidden"}}>{i===weeks.length-1?"Agora":"S-"+i}</div>;
+            })}
+          </div>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:18,marginBottom:18}}>
+        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+            {"Distribuição por Fit"}
+          </div>
+          {byFit.map(function(f) {
+            return (
+              <div key={f.fit} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                  <span style={{fontSize:12,fontWeight:700,color:f.color,background:f.bg,border:"1px solid "+f.border,borderRadius:6,padding:"2px 8px"}}>{"FIT "+f.fit}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:f.color}}>{f.count+" ("+f.pct+"%)"}</span>
+                </div>
+                <div style={{height:6,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:f.pct+"%",background:f.color,borderRadius:4}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+            {"Distribuição por Tier"}
+          </div>
+          {byTier.map(function(t) {
+            return (
+              <div key={t.tier} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                  <span style={{fontSize:12,fontWeight:700,color:t.color}}>{t.tier}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:t.color}}>{t.count+" ("+t.pct+"%)"}</span>
+                </div>
+                <div style={{height:6,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:t.pct+"%",background:t.color,borderRadius:4}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+            {"Top Setores"}
+          </div>
+          {bySetor.length===0 ? (
+            <div style={{fontSize:12,color:"#6b7280"}}>Sem dados</div>
+          ) : bySetor.map(function(s, i) {
+            var barColors = ["#4361EE","#0ea5e9","#7c3aed","#f59e0b","#ef4444","#64748b"];
+            var w = Math.round(s.count/maxSetor*100);
+            return (
+              <div key={s.setor} style={{marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                  <span style={{fontSize:11,fontWeight:600,color:"#334155",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:"70%"}}>{s.setor}</span>
+                  <span style={{fontSize:11,fontWeight:700,color:barColors[i]||"#94a3b8",flexShrink:0}}>{s.count}</span>
+                </div>
+                <div style={{height:5,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:w+"%",background:barColors[i]||"#94a3b8",borderRadius:3}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
+        <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
+          <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+          {"Status Completo,"}
+          {total} Contas
+        </div>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+          {funnel.map(function(f) {
+            var barH = f.count ? Math.round(f.count/maxFunnel*60)+16 : 8;
+            return (
+              <div key={f.status} style={{flex:1,minWidth:80,display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+                <div style={{fontSize:22,fontWeight:800,color:f.color}}>{f.count}</div>
+                <div style={{width:"100%",height:barH,background:f.bg,border:"1.5px solid "+f.border,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <div style={{width:6,height:6,borderRadius:"50%",background:f.color}}/>
+                </div>
+                <div style={{fontSize:9,fontWeight:600,color:f.color,textTransform:"uppercase",letterSpacing:.6,textAlign:"center"}}>{f.label}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginTop:18}}>
+        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+            {"Fit Score, Visão Donut"}
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:24}}>
+            <DonutChart size={120} hole={0.62} segments={byFit.map(function(f){return {value:f.count,color:f.color};})} centerLabel={total} centerSub="contas"/>
+            <div style={{flex:1}}>
+              {byFit.map(function(f){return (
+                <div key={f.fit} style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                  <div style={{width:10,height:10,borderRadius:"50%",background:f.color,flexShrink:0}}/>
+                  <div style={{fontSize:11,color:"#334155",flex:1}}>{"FIT "+f.fit}</div>
+                  <div style={{fontSize:12,fontWeight:700,color:f.color}}>{f.count}</div>
+                  <div style={{fontSize:10,color:"#6b7280"}}>{f.pct+"%"}</div>
+                </div>
+              );})}
+            </div>
+          </div>
+        </div>
+        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
+          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+            {"Funil, Semicírculo"}
+          </div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
+            <SemiCircleChart convSteps={convSteps}/>
+          </div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center"}}>
+            {convSteps.map(function(step,i){
+              var colors=["#0f172a","#0369a1","#7c3aed","#2d3a8c","#991b1b"];
+              return <div key={step.label} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:"50%",background:colors[i]}}/><span style={{fontSize:10,color:"#64748b"}}>{step.label+": "+step.pct+"%"}</span></div>;
+            })}
+          </div>
+        </div>
+      </div>
+      <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)",marginTop:18}}>
+        <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
+          <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+          {"Métricas de Velocidade"}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:14}}>
+          {[
+            {label:"Média por Semana", value:total?(weeks.reduce(function(s,w){return s+w.count;},0)/Math.max(1,weeks.filter(function(w){return w.count>0;}).length)).toFixed(1):0, sub:"contas mapeadas", color:"#0369a1"},
+            {label:"Melhor Semana",    value:Math.max.apply(null,weeks.map(function(w){return w.count;})), sub:"contas em uma semana", color:"#7c3aed"},
+            {label:"Taxa de Avanço",   value:total?Math.round(contacted/total*100)+"%":"0%", sub:"mapeado para contatado", color:"#3451d1"},
+            {label:"Taxa de Reunião",  value:contacted?Math.round(meeting/contacted*100)+"%":"0%", sub:"contatado para reunião", color:"#2d3a8c"},
+          ].map(function(m){return (
+            <div key={m.label} style={{background:"#f8fafc",border:"1px solid #e8edf4",borderRadius:14,padding:"16px 18px"}}>
+              <div style={{fontSize:9,color:"#6b7280",fontWeight:600,marginBottom:8,textTransform:"uppercase",letterSpacing:.8}}>{m.label}</div>
+              <div style={{fontSize:28,fontWeight:800,color:m.color,lineHeight:1,marginBottom:4}}>{m.value}</div>
+              <div style={{fontSize:11,color:"#6b7280"}}>{m.sub}</div>
+            </div>
+          );})}
+        </div>
+      </div>
+    </div>
+  );
+}
+// -- MAIN APP ------------------------------------------------------------------
+function BetaBanner() {
+  var _st_open = useState(false); var open = _st_open[0]; var setOpen = _st_open[1];
+  var _st_form = useState({nome:"",assunto:"",mensagem:""}); var form = _st_form[0]; var setForm = _st_form[1];
+  var _st_sending = useState(false); var sending = _st_sending[0]; var setSending = _st_sending[1];
+  var _st_sent = useState(false); var sent = _st_sent[0]; var setSent = _st_sent[1];
+  var _st_err = useState(""); var err = _st_err[0]; var setErr = _st_err[1];
+  function handleSend() {
+    if (!form.nome.trim() || !form.assunto.trim() || !form.mensagem.trim()) {
+      setErr("Preencha todos os campos.");
+      return;
+    }
+    setSending(true); setErr("");
+    var subject = encodeURIComponent("[Mais Pipe Beta] " + form.assunto);
+    var body = encodeURIComponent("Nome: " + form.nome + "\n\nAssunto: " + form.assunto + "\n\nMensagem:\n" + form.mensagem + "\n\n---\nEnviado via Mais Pipe Beta");
+    window.location.href = "mailto:andreip.heimann@gmail.com?subject=" + subject + "&body=" + body;
+    setTimeout(function() { setSending(false); setSent(true); setOpen(false); setForm({nome:"",assunto:"",mensagem:""}); }, 800);
+  }
+  function update(field, val) { setForm(function(f){ var n=Object.assign({},f); if(field==="nome")n.nome=val; else if(field==="assunto")n.assunto=val; else n.mensagem=val; return n; }); }
+  var inputStyle = {width:"100%",background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:8,padding:"9px 12px",fontSize:12,color:"#0f172a",fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+  return (
+    <div style={{position:"relative",zIndex:200}}>
+      <div style={{background:"linear-gradient(90deg,#0A0A0F 0%,#0d0d1a 100%)",borderBottom:"1px solid rgba(67,97,238,.25)",padding:"0 20px",height:40,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <span style={{background:"rgba(67,97,238,.15)",border:"1px solid rgba(67,97,238,.3)",color:"#4361EE",borderRadius:6,padding:"2px 9px",fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>{"Beta"}</span>
+          <span style={{fontSize:12,color:"#6b7280"}}>{"Esta é uma versão Beta , deixe sua sugestão ou comentário no botão ao lado"}</span>
+        </div>
+        <button onClick={function(){setOpen(true);setSent(false);setErr("");}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"6px 16px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(67,97,238,.3)",letterSpacing:.3}}>
+          {"Enviar Feedback"}
+        </button>
+      </div>
+      {open && (
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(2px)"}} onClick={function(){setOpen(false);}}>
+          <div style={{background:"#fff",borderRadius:20,padding:"28px 32px",width:"100%",maxWidth:440,boxShadow:"0 32px 80px rgba(15,23,42,.25)"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <div>
+                <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:2}}>{"Feedback , Mais Pipe Beta"}</div>
+                <div style={{fontSize:11,color:"#6b7280"}}>{"Sua mensagem será enviada para a equipe Mais Pipe"}</div>
+              </div>
+              <button onClick={function(){setOpen(false);}} style={{background:"#f1f5f9",border:"none",borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:14,color:"#64748b",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>{"x"}</button>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div>
+                <label style={{fontSize:11,fontWeight:600,color:"#64748b",display:"block",marginBottom:5}}>{"Nome"}</label>
+                <input value={form.nome} onChange={function(e){update("nome",e.target.value);}} placeholder="Seu nome" style={inputStyle} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+              </div>
+              <div>
+                <label style={{fontSize:11,fontWeight:600,color:"#64748b",display:"block",marginBottom:5}}>{"Assunto"}</label>
+                <input value={form.assunto} onChange={function(e){update("assunto",e.target.value);}} placeholder="Ex: Sugestão de funcionalidade, Bug encontrado..." style={inputStyle} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+              </div>
+              <div>
+                <label style={{fontSize:11,fontWeight:600,color:"#64748b",display:"block",marginBottom:5}}>{"Mensagem"}</label>
+                <textarea value={form.mensagem} onChange={function(e){update("mensagem",e.target.value);}} placeholder="Descreva sua sugestão, problema ou comentário em detalhes..." rows={4} style={Object.assign({},inputStyle,{resize:"vertical",lineHeight:1.6})} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+              </div>
+              {err && <div style={{fontSize:11,color:"#ef4444",background:"#fff1f2",border:"1px solid #fecdd3",borderRadius:8,padding:"7px 12px"}}>{err}</div>}
+              <div style={{display:"flex",gap:8,marginTop:4}}>
+                <button onClick={handleSend} disabled={sending} style={{flex:1,background:sending?"#94a3b8":"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"11px 0",fontSize:12,fontWeight:700,cursor:sending?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:sending?"none":"0 4px 12px rgba(67,97,238,.3)",transition:"all .2s"}}>
+                  {sending?"Abrindo cliente de email...":"Enviar Feedback"}
+                </button>
+                <button onClick={function(){setOpen(false);}} style={{background:"#f8fafc",border:"1.5px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"11px 20px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              </div>
+              <div style={{fontSize:10,color:"#cbd5e1",textAlign:"center"}}>{"Abre seu cliente de email com a mensagem pronta para enviar para andreip.heimann@gmail.com"}</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+export default function App() {
+  var _st_nav = useState("search"); var nav = _st_nav[0]; var setNav = _st_nav[1];
+  var _st_accounts = useState([]); var accounts = _st_accounts[0]; var setAccounts = _st_accounts[1];
+  var _st_loading = useState(true); var loading = _st_loading[0]; var setLoading = _st_loading[1];
+  var _st_openAcc = useState(null); var openAcc = _st_openAcc[0]; var setOpenAcc = _st_openAcc[1];
+  var _st_toast = useState(null); var toast = _st_toast[0]; var setToast = _st_toast[1];
+  var _st_sidebarOpen = useState(true); var sidebarOpen = _st_sidebarOpen[0]; var setSidebarOpen = _st_sidebarOpen[1];
+  var _st_seqCount = useState(0); var seqCount = _st_seqCount[0]; var setSeqCount = _st_seqCount[1];
+  function showToast(msg, color) {
+    setToast({msg:msg,color:color||"#3451d1"});
+    setTimeout(function(){setToast(null);}, 3000);
+  }
+  useEffect(function() {
+    Promise.all([
+      storageList("acc:"),
+      storageList("seq:")
+    ]).then(function(results) {
+      var accKeys = results[0]; var seqKeys = results[1];
+      setSeqCount(seqKeys.length);
+      if (!accKeys.length) { setLoading(false); return; }
+      return Promise.all(accKeys.map(storageGet)).then(function(items) {
+        var valid = items.filter(Boolean).sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
+        setAccounts(valid); setLoading(false);
+      });
+    }).catch(function(){setLoading(false);});
+  }, []);
+  function saveAccount(nome, data, liveMode) {
+    var id = "acc:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
+    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estrategia&&data.estrategia.tier)||"Tier 2", status:"prospecting", liveMode:liveMode||false, savedAt:Date.now(), data:data };
+    storageSet(id, acc).then(function() {
+      setAccounts(function(prev){return [acc].concat(prev);});
+    });
+  }
+  function updateStatus(id, status) {
+    setAccounts(function(prev) {
+      return prev.map(function(a) {
+        if (a.id!==id) return a;
+        var updated = Object.assign({},a,{status:status});
+        storageSet(id, updated);
+        if (openAcc&&openAcc.id===id) setOpenAcc(updated);
+        return updated;
+      });
+    });
+    showToast("Status: " + STATUS_CONFIG[status].label);
+  }
+  function deleteAccount(id) {
+    if (!window.confirm("Remover esta conta?")) return;
+    storageDel(id).then(function() {
+      setAccounts(function(prev){return prev.filter(function(a){return a.id!==id;});});
+      showToast("Conta removida.", "#ef4444");
+    });
+  }
+  var css = [
+    "*{box-sizing:border-box;margin:0;padding:0}",
+    "body{font-family:Inter,system-ui,Verdana,sans-serif;background:linear-gradient(135deg,#f0fdf8 0%,#f8fafc 50%,#f0f4ff 100%);min-height:100vh}",
+    "@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}",
+    "@keyframes toastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}",
+    "::-webkit-scrollbar{width:5px;height:5px}",
+    "::-webkit-scrollbar-track{background:#f1f5f9}",
+    "::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}",
+    "@media(max-width:768px){.main-content{padding:20px!important}.g2{grid-template-columns:1fr!important}.modal-grid{grid-template-columns:1fr!important}.kpi-grid{grid-template-columns:1fr 1fr!important}.chart-grid{grid-template-columns:1fr!important}.card-grid{grid-template-columns:1fr!important}.modal-box{max-width:98vw!important;border-radius:16px!important}.modal-tabs{overflow-x:auto!important}.modal-tabs button{font-size:10px!important;padding:8px 10px!important}.status-chips{overflow-x:auto!important}.fluxo de atendimento-scroll{overflow-x:auto!important}}",
+    "@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}",
+    "@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}50%{box-shadow:0 0 0 6px rgba(67,97,238,.1)}}",
+    "@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}",
+    ".sidebar{transition:width .3s cubic-bezier(.22,1,.36,1)}",
+    ".sidebar-label{transition:opacity .2s ease,transform .2s ease;white-space:nowrap;overflow:hidden}",
+    ".sidebar-label.hidden{opacity:0;transform:translateX(-6px);pointer-events:none;width:0}",
+    ".sidebar-label.visible{opacity:1;transform:translateX(0)}",
+    ".toggle-btn{transition:all .25s cubic-bezier(.22,1,.36,1)}",
+    ".toggle-btn:hover{background:rgba(67,97,238,.1) !important}",
+    ".card-hover{transition:all .25s cubic-bezier(.22,1,.36,1)}",
+    ".card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(15,23,42,.12)}",
+    ".glass{background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}",
+    ".gradient-border{position:relative;background:#fff;border-radius:18px}",
+    ".gradient-border::before{content:'';position:absolute;inset:-1.5px;border-radius:19px;background:linear-gradient(135deg,#10b981,#0ea5e9,#8b5cf6);z-index:-1;opacity:.4}",
+    ".badge-glow{animation:glow 2.5s ease-in-out infinite}",
+  ].join("");
+  var NAV = [
+    {id:"search",    emoji:"🔍", label:"Busca"},
+    {id:"accounts",  emoji:"📁", label:"Contas"},
+    {id:"sequences", emoji:"📬", label:"Sequências"},
+    {id:"biblioteca",emoji:"📚", label:"Biblioteca"},
+    {id:"pipeline",  emoji:"📊", label:"Pipeline"},
+    {id:"relatorios",emoji:"📈", label:"Relatórios"},
+  ];
+  return (
+    <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#f8fafc",overflow:"hidden"}}>
+      <BetaBanner/>
+    <div style={{display:"flex",flex:1,overflow:"hidden"}}>
+      <style>{css}</style>
+      <div className="sidebar" style={{width:sidebarOpen?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden"}}>
+        <div style={{height:3,background:"linear-gradient(90deg,#4361EE,#7B5EA7,#A78BFA)",flexShrink:0}}/>
+        {sidebarOpen ? (
+          <div style={{padding:"14px 14px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:9,overflow:"hidden",flex:1,minWidth:0}}>
+                            <div style={{width:34,height:34,borderRadius:10,background:"#0A0A0F",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px rgba(67,97,238,.5)",flexShrink:0}}>
+                <svg width="26" height="20" viewBox="0 0 26 20" fill="none">
+                  <line x1="7" y1="4" x2="7" y2="16" stroke="#4361EE" strokeWidth="3" strokeLinecap="round"/>
+                  <line x1="3" y1="10" x2="11" y2="10" stroke="#4361EE" strokeWidth="3" strokeLinecap="round"/>
+                  <path d="M15 4 L15 10 Q15 16 21 16 Q26 16 26 10 Q26 4 21 4 L15 4" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div style={{minWidth:0,overflow:"hidden"}}>
+                <div style={{fontSize:12.5,fontWeight:800,color:"#ffffff",letterSpacing:"-0.3px",lineHeight:1.2,whiteSpace:"nowrap"}}>Mais<span style={{color:"#4361EE"}}> Pipe</span></div>
+                <div style={{fontSize:7.5,color:"#6b7280",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
+              </div>
+            </div>
+            <button className="toggle-btn" onClick={function(){setSidebarOpen(false);}} title="Recolher menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",flexShrink:0,padding:0}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          </div>
+        ) : (
+          <div style={{padding:"14px 0 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
+                        <div style={{width:36,height:36,borderRadius:10,background:"#0A0A0F",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px rgba(67,97,238,.5)"}}>
+              <svg width="26" height="20" viewBox="0 0 26 20" fill="none">
+                <line x1="7" y1="4" x2="7" y2="16" stroke="#4361EE" strokeWidth="3" strokeLinecap="round"/>
+                <line x1="3" y1="10" x2="11" y2="10" stroke="#4361EE" strokeWidth="3" strokeLinecap="round"/>
+                <path d="M15 4 L15 10 Q15 16 21 16 Q26 16 26 10 Q26 4 21 4 L15 4" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <button className="toggle-btn" onClick={function(){setSidebarOpen(true);}} title="Expandir menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",padding:0}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        )}
+        <div style={{height:1,background:"#f1f5f9",margin:"0 10px 8px",flexShrink:0}}/>
+        <nav style={{padding:"0 8px",flex:1,overflow:"hidden"}}>
+          {NAV.map(function(item) {
+            var active = nav===item.id;
+            return (
+              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarOpen?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarOpen?"10px 12px":"8px 0",justifyContent:sidebarOpen?"flex-start":"center",borderRadius:12,border:"none",background:active?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:active?"#fff":"#6b7280",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?600:500,marginBottom:4,transition:"all .25s cubic-bezier(.22,1,.36,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(67,97,238,.3)":"none",position:"relative"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="#f8fafc";e.currentTarget.style.color="#0f172a";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#64748b";}}}>
+                <span style={{fontSize:sidebarOpen?16:20,flexShrink:0,transition:"font-size .2s ease"}}>{item.emoji}</span>
+                <span className={"sidebar-label " + (sidebarOpen?"visible":"hidden")} style={{flex:1}}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+        {sidebarOpen && (
+          <div style={{padding:"10px 14px 18px",borderTop:"1px solid #f1f5f9",flexShrink:0}}>
+            <div style={{fontSize:10,color:"#6b7280",lineHeight:1.6}}>
+              {accounts.length+" conta"+(accounts.length!==1?"s":"")+" salva"+(accounts.length!==1?"s":"")}
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+        <div className="main-content" style={{flex:1,overflowY:"auto",padding:"36px 40px"}}>
+          {loading ? (
+            <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",gap:12}}>
+              <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE"}}/>
+              <span style={{color:"#6b7280",fontSize:13}}>Carregando...</span>
+            </div>
+          ) : (
+            <div style={{animation:"fadeUp .35s ease"}}>
+              {nav==="search"    && <SearchView accounts={accounts} onSave={saveAccount} onOpenAccount={function(acc){setOpenAcc(acc);}} onUpdateAccount={function(updated){setAccounts(function(prev){return prev.map(function(a){return a.id===updated.id?updated:a;});});}}/>}
+              {nav==="accounts"  && <AccountsView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus} onDelete={deleteAccount}/>}
+              {nav==="sequences" && <SequenceView accounts={accounts} showToast={showToast}/>}
+              {nav==="relatorios"&& <InsightsView accounts={accounts}/>}
+              {nav==="biblioteca" && <BibliotecaView showToast={showToast} onCountChange={setSeqCount}/>}
+              {nav==="pipeline"  && (
+                <div>
+                  <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Pipeline</div>
+                  <div style={{fontSize:13,color:"#64748b",marginBottom:24}}>{"Arraste os cards entre colunas para avançar ou recuar o estágio da prospecção."}</div>
+                  <PipelineView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus}/>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      {openAcc && <AccountModal acc={openAcc} onClose={function(){setOpenAcc(null);}} onStatusChange={updateStatus}/>}
+      {toast && (
+        <div style={{position:"fixed",bottom:28,right:28,background:toast.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(15,23,42,.2),0 0 0 1px rgba(255,255,255,.15)",animation:"toastIn .35s cubic-bezier(.22,1,.36,1)",zIndex:300,maxWidth:340,display:"flex",alignItems:"center",gap:10}}>
+          {toast.msg}
+        </div>
+      )}
+    </div>
+    </div>
+  );
+}
