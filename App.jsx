@@ -1327,7 +1327,7 @@ function HomeView(props) {
         <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:8}}>
           <div>
             <div style={{fontSize:30,fontWeight:900,color:"#0f172a",letterSpacing:"-0.8px",lineHeight:1.15}}><span style={{color:"#4361EE"}}>{"+"}</span>{"pipe"}<span style={{fontSize:13,fontWeight:500,color:"#94a3b8",letterSpacing:0,marginLeft:10}}>{"Beta"}</span></div>
-            <div style={{fontSize:14,color:"#64748b",marginTop:4}}>{"Inteligencia Artificial para BDRs e SDRs Zendesk"}</div>
+            <div style={{fontSize:14,color:"#64748b",marginTop:4}}>{"pipeline inteligente, resultados previsíveis"}</div>
           </div>
           <div style={{display:"flex",gap:16}}>
             {[
@@ -1631,7 +1631,7 @@ function SearchView(props) {
         )}
       </div>
       <div style={{background:"linear-gradient(160deg,#f0fdf8 0%,#fff 60%)",border:"1px solid rgba(67,97,238,.2)",borderRadius:20,padding:"20px 24px",marginBottom:24,position:"relative",overflow:"hidden"}}>
-        <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:16}}>Como funciona o Mais Pipe Beta</div>
+        <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:16}}>Como funciona o + Pipe</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:14}}>
           {[
             {n:"1",title:"Busca",desc:"Analise qualquer empresa Mid Market e gere o account mapping completo com fit de CX, dores, stakeholders e mensagens."},
@@ -2212,10 +2212,25 @@ function BetaBanner() {
       return;
     }
     setSending(true); setErr("");
-    var subject = encodeURIComponent("[Mais Pipe Beta] " + form.assunto);
-    var body = encodeURIComponent("Nome: " + form.nome + "\n\nAssunto: " + form.assunto + "\n\nMensagem:\n" + form.mensagem + "\n\n---\nEnviado via Mais Pipe Beta");
-    window.location.href = "mailto:andreip.heimann@gmail.com?subject=" + subject + "&body=" + body;
-    setTimeout(function() { setSending(false); setSent(true); setOpen(false); setForm({nome:"",assunto:"",mensagem:""}); }, 800);
+    fetch("/api/feedback", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({nome:form.nome, assunto:form.assunto, mensagem:form.mensagem})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(resp) {
+      if (resp.ok) {
+        setSending(false); setSent(true); setOpen(false);
+        setForm({nome:"",assunto:"",mensagem:""});
+      } else {
+        setSending(false);
+        setErr(resp.error || "Erro ao enviar. Tente novamente.");
+      }
+    })
+    .catch(function() {
+      setSending(false);
+      setErr("Erro de conexao. Tente novamente.");
+    });
   }
   function update(field, val) { setForm(function(f){ var n=Object.assign({},f); if(field==="nome")n.nome=val; else if(field==="assunto")n.assunto=val; else n.mensagem=val; return n; }); }
   var inputStyle = {width:"100%",background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:8,padding:"9px 12px",fontSize:12,color:"#0f172a",fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
@@ -2256,11 +2271,11 @@ function BetaBanner() {
               {err && <div style={{fontSize:11,color:"#ef4444",background:"#fff1f2",border:"1px solid #fecdd3",borderRadius:8,padding:"7px 12px"}}>{err}</div>}
               <div style={{display:"flex",gap:8,marginTop:4}}>
                 <button onClick={handleSend} disabled={sending} style={{flex:1,background:sending?"#94a3b8":"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"11px 0",fontSize:12,fontWeight:700,cursor:sending?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:sending?"none":"0 4px 12px rgba(67,97,238,.3)",transition:"all .2s"}}>
-                  {sending?"Abrindo cliente de email...":"Enviar Feedback"}
+                  {sending?"Enviando...":"Enviar Feedback"}
                 </button>
                 <button onClick={function(){setOpen(false);}} style={{background:"#f8fafc",border:"1.5px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"11px 20px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
               </div>
-              <div style={{fontSize:10,color:"#cbd5e1",textAlign:"center"}}>{"Abre seu cliente de email com a mensagem pronta para enviar para andreip.heimann@gmail.com"}</div>
+              <div style={{fontSize:10,color:"#cbd5e1",textAlign:"center"}}>{"Sua mensagem sera enviada diretamente para a equipe + Pipe."}</div>
             </div>
           </div>
         </div>
@@ -2367,14 +2382,7 @@ export default function App() {
         {sidebarExpanded ? (
           <div style={{padding:"14px 14px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",gap:9,overflow:"hidden",flex:1,minWidth:0}}>
-                            <div style={{width:36,height:36,borderRadius:10,background:"#0A0A0F",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px rgba(67,97,238,.5)",flexShrink:0}}>
-                <svg width="28" height="22" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <line x1="7" y1="3" x2="7" y2="19" stroke="#4361EE" strokeWidth="3.2" strokeLinecap="round"/>
-                  <line x1="2.5" y1="11" x2="11.5" y2="11" stroke="#4361EE" strokeWidth="3.2" strokeLinecap="round"/>
-                  <path d="M16 3 L16 11 C16 17 22 18 25 14 C27 11 25 3 19.5 3 Z" stroke="white" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="16" y1="11" x2="16" y2="19" stroke="white" strokeWidth="2.3" strokeLinecap="round"/>
-                </svg>
-              </div>
+                            <img src="/logo.png" alt="+pipe" style={{width:36,height:36,borderRadius:10,objectFit:"contain",flexShrink:0}}/>
               <div style={{minWidth:0,overflow:"hidden"}}>
                 <div style={{fontSize:14,fontWeight:800,letterSpacing:"-0.3px",lineHeight:1.2,whiteSpace:"nowrap"}}><span style={{color:"#4361EE"}}>+</span><span style={{color:"#ffffff"}}> pipe</span></div>
                 <div style={{fontSize:7.5,color:"#6b7280",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
@@ -2386,14 +2394,7 @@ export default function App() {
           </div>
         ) : (
           <div style={{padding:"14px 0 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
-                        <div style={{width:40,height:40,borderRadius:12,background:"#0A0A0F",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px rgba(67,97,238,.5)"}}>
-              <svg width="28" height="22" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <line x1="7" y1="3" x2="7" y2="19" stroke="#4361EE" strokeWidth="3.2" strokeLinecap="round"/>
-                <line x1="2.5" y1="11" x2="11.5" y2="11" stroke="#4361EE" strokeWidth="3.2" strokeLinecap="round"/>
-                <path d="M16 3 L16 11 C16 17 22 18 25 14 C27 11 25 3 19.5 3 Z" stroke="white" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                <line x1="16" y1="11" x2="16" y2="19" stroke="white" strokeWidth="2.3" strokeLinecap="round"/>
-              </svg>
-            </div>
+                      <img src="/logo.png" alt="+pipe" style={{width:40,height:40,borderRadius:12,objectFit:"contain"}}/>
             <button onClick={function(){setSidebarPinned(true);setSidebarHover(true);}} title="Fixar menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",padding:0}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
