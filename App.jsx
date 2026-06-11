@@ -178,10 +178,72 @@ function SequenceView(props) {
     });
   }, []);
 
+  function buildOneTouchVariant(touch, profile, acc) {
+    var cargo = profile.label || "Decisor";
+    var angulo = profile.angle || "impacto no negocio";
+    var nome = acc.nome || "a empresa";
+    var setor = (acc.data && acc.data.empresa && acc.data.empresa.setor) || acc.setor || "tecnologia";
+    var pain = profile.pain || "dores do negocio";
+
+    var variants = {
+      email: [
+        {subject:"["+nome+"] Uma pergunta direta para o "+cargo, body:"Ola,\n\nUma pergunta que raramente fazem para um "+cargo+":\n\nQuanto custa para "+nome+" cada cliente que vai embora sem conseguir atendimento?\n\nPergunto porque empresas de "+setor+" com perfil similar reduziram esse custo em 40% nos primeiros 90 dias com Zendesk.\n\nSe voce gerencia "+angulo+", vale 20 minutos para ver os numeros?\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {subject:"["+nome+"] O que "+cargo+" mais reclama sobre CX", body:"Ola,\n\nEm conversas com "+cargo+"s de "+setor+", o que mais ouço e:\n\n\"Meu time apaga incendio o dia todo mas nao tem visibilidade do que realmente importa.\"\n\nIsso ressoa com voce na "+nome+"?\n\nSe sim, tenho 3 formas que empresas similares resolveram isso. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {subject:"["+nome+"] Benchmark de CX para "+cargo+"s de "+setor, body:"Ola,\n\nMontei um benchmark especifico para "+cargo+"s de "+setor+" com o perfil da "+nome+":\n\nMedia de CSAT do setor: 72%\nMediana de custo por ticket: R$ 28\nDeflexao via self-service: 18%\n\nCom Zendesk Suite, a media dessas empresas foi para CSAT 87%, R$17 por ticket e 31% de deflexao.\n\nQuer ver como "+nome+" se compara? 20 minutos.\n\nAbraco,\nBDR/SDR | Zendesk"},
+      ],
+      linkedin: [
+        {subject:"Uma pergunta sobre "+angulo+" na "+nome, body:"Ola,\n\nVi que voce cuida de "+angulo+" na "+nome+".\n\nQuando o volume de tickets sobe 30% em um mes, o que acontece com a sua operacao?\n\nPergunto porque a resposta me diz muito sobre o momento ideal para a Zendesk entrar em cena.\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {subject:nome+" + Zendesk , pergunta rapida", body:"Ola!\n\nUm insight sobre "+setor+": empresas que perdem CSAT nao percebem ate o churn aparecer no relatorio trimestral.\n\nVoce tem visibilidade disso em tempo real hoje na "+nome+"?\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {subject:"Vi algo sobre a "+nome+" que vale compartilhar", body:"Ola,\n\nPesquisando empresas de "+setor+" vi a "+nome+" crescendo , parabens.\n\nEmpresa que cresce rapido tem um momento critico onde o atendimento ou vira vantagem competitiva ou vira gargalo.\n\nJa vi dos dois lados. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
+      ],
+      call: [
+        {subject:"Script Cold Call "+cargo+" "+nome, body:"Bom dia [Nome], BDR da Zendesk. 30 segundos?\n\n[PAUSA] Otimo.\n\nLigo porque "+nome+" apareceu no nosso radar e imagino que como "+cargo+" voce lida com "+pain+" no dia a dia.\n\nUma pergunta: quando um cliente manda mensagem pelo WhatsApp e depois liga, seu time consegue ver o historico completo ou precisa pedir para ele repetir tudo?\n\n[ouvir]\n\nE exatamente esse problema que resolvemos. Vale 20 minutos essa semana?"},
+        {subject:"Script Cold Call 2 "+cargo+" "+nome, body:"[Nome], bom dia! BDR Zendesk. Rapido.\n\nTrabalhamos com "+cargo+"s de "+setor+" que tem uma dor especifica: o time cresce mas o CSAT nao melhora.\n\nIsso acontece na "+nome+"?\n\n[ouvir]\n\nPerfeito. Tenho um case de empresa identica que reverteu isso em 90 dias. Vale 20 minutos?"},
+      ],
+      whatsapp: [
+        {subject:"WhatsApp "+cargo+" "+nome, body:"Oi [Nome], BDR da Zendesk. Voce cuida de "+angulo+" na "+nome+"? Tenho um dado de "+setor+" que acho que vai te surpreender. Posso mandar?"},
+        {subject:"WhatsApp 2 "+cargo+" "+nome, body:"Oi [Nome]! Vi que "+nome+" esta crescendo em "+setor+" , parabens. Empresas nessa fase tem um timing critico com CX. Posso te contar em 2 minutos?"},
+      ],
+      breakup: [
+        {subject:"Encerrando , "+nome, body:"Ola,\n\nNao quero continuar incomodando.\n\nSe em algum momento "+angulo+" virar prioridade na "+nome+" , e normalmente e depois que o CSAT cai , pode me chamar.\n\nGuardo a "+nome+" no radar.\n\nAbraco,\nBDR/SDR | Zendesk"},
+      ],
+    };
+
+    var pool = variants[touch.type] || variants.email;
+    var variant = pool[Math.floor(Math.random() * pool.length)];
+    return Object.assign({}, touch, {
+      subject: applyVars(variant.subject, acc),
+      body: applyVars(variant.body, acc)
+    });
+  }
+
+  function regenerateTouch(idx) {
+    if (!generated || !selProfile) return;
+    var p = selProfile.id === "custom" ? selProfile : (STAKEHOLDER_PROFILES.find(function(x){return x.id===selProfile.id;}) || STAKEHOLDER_PROFILES[0]);
+    var touch = generated.touches[idx];
+    var newTouch = buildOneTouchVariant(touch, p, selAcc);
+    var newTouches = generated.touches.map(function(t,i){return i===idx?newTouch:t;});
+    setGenerated(Object.assign({},generated,{touches:newTouches}));
+  }
+
+    function buildCustomTemplate(profile, acc) {
+    var nome = acc.nome || "a empresa";
+    var setor = (acc.data && acc.data.empresa && acc.data.empresa.setor) || acc.setor || "tecnologia";
+    var cargo = profile.label || "Decisor";
+    var angulo = profile.angle || "impacto no negocio";
+    var pain = profile.pain || "dores do cargo";
+    var days = [1,3,6,10,15,21];
+    var types = ["linkedin","email","call","email","whatsapp","breakup"];
+    return days.map(function(day,i){
+      var touch = {day:day, type:types[i], subject:"", body:""};
+      return buildOneTouchVariant(touch, profile, acc);
+    });
+  }
+
   function generate() {
     if (!selAcc || !selProfile) return;
     var p = selProfile.id === "custom" ? selProfile : (STAKEHOLDER_PROFILES.find(function(x){return x.id===selProfile.id;}) || STAKEHOLDER_PROFILES[0]);
-    var template = SEQUENCE_TEMPLATES[p.id] || SEQUENCE_TEMPLATES.headcx;
+    var template = (p.id === "custom") ? buildCustomTemplate(p, selAcc) : (SEQUENCE_TEMPLATES[p.id] || SEQUENCE_TEMPLATES.headcx);
     var touches = template.map(function(t) {
       return Object.assign({}, t, {body:applyVars(t.body, selAcc), subject:applyVars(t.subject||"", selAcc)});
     });
@@ -322,6 +384,12 @@ function SequenceView(props) {
                     <div style={{fontSize:12,fontWeight:700,color:"#0f172a"}}>{tc.label+" , Dia "+touch.day}</div>
                     {touch.subject && <div style={{fontSize:10,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{"Assunto: "+touch.subject}</div>}
                   </div>
+                  <button onClick={function(){regenerateTouch(i);}} title="Gerar nova versao" style={{background:"none",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 8px",cursor:"pointer",color:"#94a3b8",display:"flex",alignItems:"center",gap:4,fontSize:10,fontFamily:"inherit",transition:"all .2s"}}
+                    onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.color="#4361EE";}}
+                    onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.color="#94a3b8";}}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Recarregar
+                  </button>
                   <CopyBtn text={(touch.subject?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
                 </div>
                 <div style={{padding:"14px 16px",fontSize:12.5,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+tc.color}}>{touch.body}</div>
@@ -557,6 +625,103 @@ function PipelineView(props) {
   );
 }
 // -- ACCOUNT MODAL -------------------------------------------------------------
+function AttachmentAnalysis(props) {
+  var acc = props.acc;
+  var _st_analysis = useState(null); var analysis = _st_analysis[0]; var setAnalysis = _st_analysis[1];
+  var _st_loading = useState(false); var loading = _st_loading[0]; var setLoading = _st_loading[1];
+
+  useEffect(function() {
+    if (!acc.attachData || analysis) return;
+    setLoading(true);
+    var b64 = acc.attachData.split(",")[1] || acc.attachData;
+    var mediaType = acc.attachData.indexOf("pdf") > -1 ? "application/pdf" :
+                    acc.attachData.indexOf("sheet") > -1 ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" :
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1500,
+        messages:[{role:"user",content:[
+          {type:"document",source:{type:"base64",media_type:mediaType,data:b64}},
+                    {type:"text",text:"Analise este documento e retorne APENAS um JSON (sem markdown) com: {resumo, insights: array de 5 strings, oportunidades: array de 3 strings, alertas: array}. Foque em informacoes uteis para um BDR de Zendesk abordando esta empresa. Responda somente o JSON."}        ]}]
+      })
+    })
+    .then(function(r){return r.json();})
+    .then(function(resp){
+      var text = (resp.content||[]).map(function(b){return b.text||"";}).join("");
+      try { setAnalysis(JSON.parse(text.replace(/json|---/g,"").trim())); }
+      catch(e) { setAnalysis({resumo:text,insights:[],oportunidades:[],alertas:[]}); }
+      setLoading(false);
+    })
+    .catch(function(){ setLoading(false); setAnalysis({resumo:"Erro ao analisar o documento.",insights:[],oportunidades:[],alertas:[]}); });
+  }, [acc.attachData]);
+
+  if (!acc.attachData) return null;
+  if (loading) return (
+    <div style={{display:"flex",alignItems:"center",gap:12,padding:"32px 0",justifyContent:"center"}}>
+      <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",animation:"pulse 1s infinite"}}/>
+      <span style={{color:"#6b7280",fontSize:13}}>{"Analisando documento com IA..."}</span>
+    </div>
+  );
+  if (!analysis) return null;
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:"#f0f3ff",borderRadius:10,border:"1px solid #c7d0fa"}}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        <span style={{fontSize:11,color:"#4361EE",fontWeight:600}}>{acc.attachFileName||"Documento anexado"}</span>
+      </div>
+      <div style={{background:"#f8fafc",borderRadius:14,padding:"16px 18px",border:"1px solid #e8edf4"}}>
+        <div style={{fontSize:9,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>Resumo Executivo</div>
+        <div style={{fontSize:13,color:"#334155",lineHeight:1.7}}>{analysis.resumo}</div>
+      </div>
+      {analysis.insights&&analysis.insights.length>0&&(
+        <div>
+          <div style={{fontSize:9,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Insights para Prospecção</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {analysis.insights.map(function(ins,i){return (
+              <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",background:"#fff",border:"1px solid #e8edf4",borderRadius:10,padding:"10px 14px"}}>
+                <div style={{width:20,height:20,borderRadius:6,background:"linear-gradient(135deg,#4361EE,#3451d1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <span style={{fontSize:9,fontWeight:700,color:"#fff"}}>{i+1}</span>
+                </div>
+                <span style={{fontSize:12,color:"#334155",lineHeight:1.6}}>{ins}</span>
+              </div>
+            );})}
+          </div>
+        </div>
+      )}
+      {analysis.oportunidades&&analysis.oportunidades.length>0&&(
+        <div>
+          <div style={{fontSize:9,fontWeight:700,color:"#059669",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Oportunidades Comerciais</div>
+          <div style={{display:"flex",flexDirection:"column",gap:7}}>
+            {analysis.oportunidades.map(function(op,i){return (
+              <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"8px 12px",background:"#f0fdf4",borderRadius:8,border:"1px solid #bbf7d0"}}>
+                <span style={{color:"#059669",fontWeight:700,flexShrink:0}}>{"+"}</span>
+                <span style={{fontSize:12,color:"#065f46",lineHeight:1.6}}>{op}</span>
+              </div>
+            );})}
+          </div>
+        </div>
+      )}
+      {analysis.alertas&&analysis.alertas.length>0&&(
+        <div>
+          <div style={{fontSize:9,fontWeight:700,color:"#92400e",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Alertas e Riscos</div>
+          <div style={{display:"flex",flexDirection:"column",gap:7}}>
+            {analysis.alertas.map(function(al,i){return (
+              <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"8px 12px",background:"#fffbeb",borderRadius:8,border:"1px solid #fde68a"}}>
+                <span style={{color:"#92400e",fontWeight:700,flexShrink:0}}>{"!"}</span>
+                <span style={{fontSize:12,color:"#92400e",lineHeight:1.6}}>{al}</span>
+              </div>
+            );})}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function exportAccountPDF(acc, d) {
   function safe(path) {
     try { var parts=path.split("."); var cur=d||{}; for(var i=0;i<parts.length;i++){cur=cur[parts[i]];if(cur==null)return null;} return cur; } catch(e){return null;}
@@ -673,7 +838,7 @@ function AccountModal(props) {
     }
     return null;
   }
-  var tabs=[{id:"overview",label:"Visão Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"messages",label:"Mensagens"},{id:"spin",label:"SPIN & Objeções"},{id:"plan",label:"Plano de Ação"}];
+  var tabs=[{id:"overview",label:"Visão Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"messages",label:"Mensagens"},{id:"spin",label:"SPIN & Objeções"},{id:"plan",label:"Plano de Ação"}].concat(acc.attachData?[{id:"attachment",label:"Conteudo Anexado"}]:[]);
   var empresa=sd("empresa")||{};
   var stakeholders=safeArr(sd("stakeholders"));
   var dores=safeArr(sd("dores.principais"));
@@ -732,7 +897,7 @@ function AccountModal(props) {
               {empresa.resumo&&<Sec title="Resumo da Empresa"><p style={{fontSize:13,lineHeight:1.8,color:"#334155",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["Estágio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"#e8ecfd",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#2d3a8c",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"#0f172a",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
               {fitJust&&<Sec title="Fit Zendesk"><p style={{fontSize:13,lineHeight:1.7,color:"#334155",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(67,97,238,.08)",border:"1px solid rgba(67,97,238,.25)",color:"#3451d1",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
               {useCases.length>0&&<Sec title="Use Cases Prioritários">{useCases.map(function(u,i){return <R key={i} icon=">" color="#4361EE">{u}</R>;})}</Sec>}
-              {dores.length>0&&<Sec title="Dores Mapeadas">{dores.map(function(d2,i){return <R key={i} icon="!" color="#ef4444">{d2}</R>;})} {exposicao.length>0&&<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>{exposicao.map(function(r,i){return <span key={i} style={{background:"#fef3c7",border:"1px solid #f59e0b",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{r}</span>;})}</div>}</Sec>}
+              {dores.length>0&&<Sec title="Possiveis dores para mapear">{dores.map(function(d2,i){return <R key={i} icon="!" color="#ef4444">{d2}</R>;})} {exposicao.length>0&&<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>{exposicao.map(function(r,i){return <span key={i} style={{background:"#fef3c7",border:"1px solid #f59e0b",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{r}</span>;})}</div>}</Sec>}
               {triggers.length>0&&<Sec title="Gatilhos Comerciais">{triggers.map(function(t,i){return <R key={i} icon="T" color="#7c3aed">{t}</R>;})}</Sec>}
               {sinais.length>0&&<Sec title="Sinais de Intenção"><div style={{background:"#0c2340",borderRadius:12,padding:"12px 16px"}}>{sinais.map(function(s,i){return <div key={i} style={{fontSize:11.5,color:"#7dd3fc",lineHeight:1.6,display:"flex",gap:8,marginBottom:5}}><span style={{color:"#38bdf8",flexShrink:0}}>o</span>{s}</div>;})}</div></Sec>}
               {concorrentes.length>0&&<Sec title="Concorrentes Prováveis"><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{concorrentes.map(function(cc,i){return <span key={i} style={{background:"#fef3c7",border:"1px solid #f59e0b",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{cc}</span>;})}</div></Sec>}
@@ -868,6 +1033,9 @@ function AccountModal(props) {
                 </Sec>
               )}
             </div>
+          )}
+          {activeTab==="attachment"&&(
+            <AttachmentAnalysis acc={acc}/>
           )}
           {activeTab==="plan"&&(
             <div>
@@ -1114,12 +1282,129 @@ function LoadingStatus() {
     </div>
   );
 }
+
+function HomeView(props) {
+  var accounts = props.accounts || [];
+  var onNav = props.onNav;
+  var _st_hidden = useState({}); var hidden = _st_hidden[0]; var setHidden = _st_hidden[1];
+
+  function toggleCard(id) {
+    setHidden(function(h){ var n=Object.assign({},h); n[id]=!n[id]; return n; });
+  }
+
+  var byStatus = {};
+  STATUS_ORDER.forEach(function(s){ byStatus[s]=accounts.filter(function(a){return a.status===s;}).length; });
+  var total = accounts.length;
+  var converted = byStatus.won||0;
+  var taxa = total>0?Math.round(converted/total*100):0;
+
+  var CARDS = [
+    {id:"busca",    label:"Busca com IA",       emoji:"🔍", nav:"search",
+     desc:"Analise qualquer empresa Mid Market e gere account mapping completo com fit, dores, stakeholders e mensagens personalizadas.",
+     stat:total+" conta"+(total!==1?"s":"")+" mapeada"+(total!==1?"s":""), statColor:"#4361EE"},
+    {id:"contas",   label:"Contas",              emoji:"📁", nav:"accounts",
+     desc:"Todas as empresas mapeadas organizadas por fit, tier e estagio. Visualize em cards ou lista com filtros avancados.",
+     stat:total+" no total", statColor:"#0369a1"},
+    {id:"seqs",     label:"Sequencias",          emoji:"📬", nav:"sequences",
+     desc:"Gere cadencias de 6 toques personalizadas por stakeholder com e-mail, InMail, WhatsApp e cold call.",
+     stat:"6 perfis de stakeholder", statColor:"#7c3aed"},
+    {id:"biblio",   label:"Biblioteca",          emoji:"📚", nav:"biblioteca",
+     desc:"Todas as sequencias salvas organizadas. Exporte qualquer cadencia em PDF com um clique.",
+     stat:"Sequencias salvas", statColor:"#059669"},
+    {id:"pipe",     label:"Pipeline Kanban",     emoji:"📊", nav:"pipeline",
+     desc:"Visualize todas as contas por estagio da prospeccao. Arraste os cards entre colunas para atualizar o status.",
+     stat:converted+" convertida"+(converted!==1?"s":""), statColor:"#065f46"},
+    {id:"relat",    label:"Relatorios",          emoji:"📈", nav:"relatorios",
+     desc:"Dashboard com funil de conversao, distribuicao por fit e tier, graficos donut e semicirculo e export em PDF.",
+     stat:taxa+"% taxa de conversao", statColor:"#92400e"},
+  ];
+
+  var visible = CARDS.filter(function(c2){ return !hidden[c2.id]; });
+
+  return (
+    <div>
+      <div style={{marginBottom:32}}>
+        <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:8}}>
+          <div>
+            <div style={{fontSize:30,fontWeight:900,color:"#0f172a",letterSpacing:"-0.8px",lineHeight:1.15}}><span style={{color:"#4361EE"}}>{"+"}</span>{"pipe"}<span style={{fontSize:13,fontWeight:500,color:"#94a3b8",letterSpacing:0,marginLeft:10}}>{"Beta"}</span></div>
+            <div style={{fontSize:14,color:"#64748b",marginTop:4}}>{"Inteligencia Artificial para BDRs e SDRs Zendesk"}</div>
+          </div>
+          <div style={{display:"flex",gap:16}}>
+            {[
+              {label:"Contas mapeadas", value:total, color:"#4361EE"},
+              {label:"Convertidas", value:converted, color:"#059669"},
+              {label:"Taxa de conversao", value:taxa+"%", color:"#7c3aed"},
+            ].map(function(m){return (
+              <div key={m.label} style={{textAlign:"center",background:"#fff",border:"1px solid #e8edf4",borderRadius:14,padding:"14px 20px",boxShadow:"0 2px 8px rgba(15,23,42,.05)"}}>
+                <div style={{fontSize:26,fontWeight:800,color:m.color,lineHeight:1}}>{m.value}</div>
+                <div style={{fontSize:10,color:"#94a3b8",fontWeight:500,marginTop:4,whiteSpace:"nowrap"}}>{m.label}</div>
+              </div>
+            );})}
+          </div>
+        </div>
+        <div style={{height:2,background:"linear-gradient(90deg,#4361EE,#7B5EA7,rgba(67,97,238,0))",borderRadius:2}}/>
+      </div>
+
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+        <div style={{fontSize:12,color:"#94a3b8"}}>{"Clique nos cards para navegar. Use os controles para personalizar a Home."}</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {CARDS.map(function(c2){
+            var isHidden = hidden[c2.id];
+            return (
+              <button key={c2.id} onClick={function(){toggleCard(c2.id);}} style={{background:isHidden?"#f8fafc":"#f0f3ff",border:"1px solid "+(isHidden?"#e2e8f0":"#c7d0fa"),color:isHidden?"#94a3b8":"#4361EE",borderRadius:8,padding:"4px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",opacity:isHidden?.5:1}}>
+                {c2.emoji+" "+c2.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:18}}>
+        {visible.map(function(card){
+          return (
+            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:20,padding:"24px",cursor:"pointer",transition:"all .25s",position:"relative",overflow:"hidden"}}
+              onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 12px 40px rgba(67,97,238,.12)";}}
+              onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
+              <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#4361EE,#7B5EA7)",borderRadius:"20px 20px 0 0"}}/>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14}}>
+                <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#4361EE,#3451d1)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 12px rgba(67,97,238,.3)",flexShrink:0}}>
+                  <span style={{fontSize:20}}>{card.emoji}</span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              </div>
+              <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:8}}>{card.label}</div>
+              <div style={{fontSize:12,color:"#64748b",lineHeight:1.65,marginBottom:16}}>{card.desc}</div>
+              <div style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",background:"#f8fafc",borderRadius:8,border:"1px solid #f1f5f9",width:"fit-content"}}>
+                <div style={{width:6,height:6,borderRadius:"50%",background:card.statColor,flexShrink:0}}/>
+                <span style={{fontSize:11,color:card.statColor,fontWeight:600}}>{card.stat}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {total === 0 && (
+        <div style={{marginTop:32,background:"linear-gradient(135deg,#f0f3ff,#fff)",border:"1.5px solid #c7d0fa",borderRadius:20,padding:"32px",textAlign:"center"}}>
+          <div style={{fontSize:40,marginBottom:12}}>{"🚀"}</div>
+          <div style={{fontSize:18,fontWeight:700,color:"#0f172a",marginBottom:8}}>{"Bem-vindo ao +pipe Beta"}</div>
+          <div style={{fontSize:13,color:"#64748b",marginBottom:20,lineHeight:1.7,maxWidth:400,margin:"0 auto 20px"}}>{"Comece mapeando sua primeira conta. Digite o nome de uma empresa na Busca e deixe a IA gerar o account mapping completo."}</div>
+          <button onClick={function(){onNav("search");}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:12,padding:"12px 28px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(67,97,238,.35)"}}>
+            {"Mapear primeira conta"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SearchView(props) {
   var _st_inputVal = useState(""); var inputVal = _st_inputVal[0]; var setInputVal = _st_inputVal[1];
   var _st_loading = useState(false); var loading = _st_loading[0]; var setLoading = _st_loading[1];
   var _st_done = useState(null); var done = _st_done[0]; var setDone = _st_done[1];
   var _st_searchError = useState(""); var searchError = _st_searchError[0]; var setSearchError = _st_searchError[1];
   var _st_duplicate = useState(null); var duplicate = _st_duplicate[0]; var setDuplicate = _st_duplicate[1];
+  var _st_attachment = useState(null); var attachment = _st_attachment[0]; var setAttachment = _st_attachment[1];
+  var _st_attachName = useState(""); var attachName = _st_attachName[0]; var setAttachName = _st_attachName[1];
   function isUrl(v) { return /^https?:\/\//i.test(v) || /^www\./.test(v); }
   function extractDomain(val) {
     if (!isUrl(val)) return "";
@@ -1266,13 +1551,15 @@ function SearchView(props) {
       .then(function(r){if(!r.ok)return r.json().then(function(j){throw new Error(j.error||"HTTP "+r.status);}); return r.json();})
       .then(function(resp){
         var data = buildData(nome, resp.results);
-        props.onSave(nome, data, true);
+        props.onSave(nome, data, true, attachment, attachName);
+        setAttachment(null); setAttachName("");
         doEnrich(nome, domain);
         setLoading(false); setDone(nome); setInputVal("");
       })
       .catch(function(){
         var data = buildData(nome, null);
-        props.onSave(nome, data, false);
+        props.onSave(nome, data, false, attachment, attachName);
+        setAttachment(null); setAttachName("");
         doEnrich(nome, domain);
         setLoading(false); setDone(nome); setInputVal("");
         setSearchError("Busca online indisponivel. Account mapping gerado com base de conhecimento.");
@@ -1290,6 +1577,32 @@ function SearchView(props) {
           <button onClick={handleSearch} disabled={loading||!inputVal.trim()} style={{background:loading||!inputVal.trim()?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:loading||!inputVal.trim()?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 28px",fontSize:13,fontWeight:600,cursor:loading||!inputVal.trim()?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:loading||!inputVal.trim()?"none":"0 4px 14px rgba(67,97,238,.35)",transition:"all .2s",whiteSpace:"nowrap"}}>
             {loading?"Buscando na internet...":"Analisar"}
           </button>
+        </div>
+
+        <div style={{marginTop:12,background:"#f8fafc",border:"1.5px dashed #e2e8f0",borderRadius:12,padding:"13px 16px",cursor:"pointer",transition:"all .2s"}}
+          onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.background="#f0f3ff";}}
+          onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.background="#f8fafc";}}
+          onClick={function(){document.getElementById("mpipe-attach").click();}}>
+          <input id="mpipe-attach" type="file" accept=".pdf,.xlsx,.xls,.docx,.doc,.txt" style={{display:"none"}} onChange={function(e){
+            var file=e.target.files&&e.target.files[0];
+            if(!file)return;
+            setAttachName(file.name);
+            var reader=new FileReader();
+            reader.onload=function(ev){setAttachment(ev.target.result);};
+            reader.readAsDataURL(file);
+          }}/>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:32,height:32,borderRadius:8,background:attachment?"rgba(67,97,238,.12)":"#fff",border:"1px solid "+(attachment?"#4361EE":"#e2e8f0"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={attachment?"#4361EE":"#94a3b8"} strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:12,fontWeight:600,color:attachment?"#4361EE":"#475569",marginBottom:2}}>{attachment?"Arquivo anexado":"Deseja enriquecer a sua pesquisa?"}</div>
+              <div style={{fontSize:11,color:"#94a3b8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment?attachName:"Anexe aqui o RI da empresa, relatorios, etc (pdf, xlsx, docx)"}</div>
+            </div>
+            {attachment&&(
+              <button onClick={function(e){e.stopPropagation();setAttachment(null);setAttachName("");}} style={{background:"none",border:"1px solid #e2e8f0",borderRadius:6,color:"#94a3b8",cursor:"pointer",fontSize:11,padding:"3px 8px",fontFamily:"inherit",flexShrink:0}}>{"Remover"}</button>
+            )}
+          </div>
         </div>
         {searchError && (
           <div style={{marginTop:12,background:"#fffbeb",border:"1px solid #fde68a",borderRadius:12,padding:"12px 16px",fontSize:12,color:"#92400e"}}>{searchError}</div>
@@ -1911,7 +2224,7 @@ function BetaBanner() {
       <div style={{background:"linear-gradient(90deg,#0A0A0F 0%,#0d0d1a 100%)",borderBottom:"1px solid rgba(67,97,238,.25)",padding:"0 20px",height:40,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <span style={{background:"rgba(67,97,238,.15)",border:"1px solid rgba(67,97,238,.3)",color:"#4361EE",borderRadius:6,padding:"2px 9px",fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>{"Beta"}</span>
-          <span style={{fontSize:12,color:"#6b7280"}}>{"Esta é uma versão Beta , deixe sua sugestão ou comentário no botão ao lado"}</span>
+          <span style={{fontSize:12,color:"#ffffff",opacity:.85}}>{"Esta é uma versão Beta , deixe sua sugestão ou comentário no botão ao lado"}</span>
         </div>
         <button onClick={function(){setOpen(true);setSent(false);setErr("");}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"6px 16px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(67,97,238,.3)",letterSpacing:.3}}>
           {"Enviar Feedback"}
@@ -1956,12 +2269,15 @@ function BetaBanner() {
   );
 }
 export default function App() {
-  var _st_nav = useState("search"); var nav = _st_nav[0]; var setNav = _st_nav[1];
+  var _st_nav = useState("home"); var nav = _st_nav[0]; var setNav = _st_nav[1];
   var _st_accounts = useState([]); var accounts = _st_accounts[0]; var setAccounts = _st_accounts[1];
   var _st_loading = useState(true); var loading = _st_loading[0]; var setLoading = _st_loading[1];
   var _st_openAcc = useState(null); var openAcc = _st_openAcc[0]; var setOpenAcc = _st_openAcc[1];
   var _st_toast = useState(null); var toast = _st_toast[0]; var setToast = _st_toast[1];
-  var _st_sidebarOpen = useState(true); var sidebarOpen = _st_sidebarOpen[0]; var setSidebarOpen = _st_sidebarOpen[1];
+  var _st_sidebarOpen = useState(false); var sidebarOpen = _st_sidebarOpen[0]; var setSidebarOpen = _st_sidebarOpen[1];
+  var _st_sidebarPinned = useState(false); var sidebarPinned = _st_sidebarPinned[0]; var setSidebarPinned = _st_sidebarPinned[1];
+  var _st_sidebarHover = useState(false); var sidebarHover = _st_sidebarHover[0]; var setSidebarHover = _st_sidebarHover[1];
+  var sidebarExpanded = sidebarPinned || sidebarHover;
   var _st_seqCount = useState(0); var seqCount = _st_seqCount[0]; var setSeqCount = _st_seqCount[1];
   function showToast(msg, color) {
     setToast({msg:msg,color:color||"#3451d1"});
@@ -1981,9 +2297,9 @@ export default function App() {
       });
     }).catch(function(){setLoading(false);});
   }, []);
-  function saveAccount(nome, data, liveMode) {
+  function saveAccount(nome, data, liveMode, attachData, attachFileName) {
     var id = "acc:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
-    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estrategia&&data.estrategia.tier)||"Tier 2", status:"prospecting", liveMode:liveMode||false, savedAt:Date.now(), data:data };
+    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estrategia&&data.estrategia.tier)||"Tier 2", status:"prospecting", liveMode:liveMode||false, savedAt:Date.now(), data:data, attachData:attachData||null, attachFileName:attachFileName||"" };
     storageSet(id, acc).then(function() {
       setAccounts(function(prev){return [acc].concat(prev);});
     });
@@ -2033,6 +2349,7 @@ export default function App() {
     ".badge-glow{animation:glow 2.5s ease-in-out infinite}",
   ].join("");
   var NAV = [
+    {id:"home",      emoji:"🏠", label:"Home"},
     {id:"search",    emoji:"🔍", label:"Busca"},
     {id:"accounts",  emoji:"📁", label:"Contas"},
     {id:"sequences", emoji:"📬", label:"Sequências"},
@@ -2045,37 +2362,39 @@ export default function App() {
       <BetaBanner/>
     <div style={{display:"flex",flex:1,overflow:"hidden"}}>
       <style>{css}</style>
-      <div className="sidebar" style={{width:sidebarOpen?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden"}}>
+      <div className="sidebar" onMouseEnter={function(){if(!sidebarPinned)setSidebarHover(true);}} onMouseLeave={function(){if(!sidebarPinned)setSidebarHover(false);}} style={{width:sidebarExpanded?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .25s cubic-bezier(.22,1,.36,1)"}}>
         <div style={{height:3,background:"linear-gradient(90deg,#4361EE,#7B5EA7,#A78BFA)",flexShrink:0}}/>
-        {sidebarOpen ? (
+        {sidebarExpanded ? (
           <div style={{padding:"14px 14px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",gap:9,overflow:"hidden",flex:1,minWidth:0}}>
-                            <div style={{width:34,height:34,borderRadius:10,background:"#0A0A0F",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px rgba(67,97,238,.5)",flexShrink:0}}>
-                <svg width="26" height="20" viewBox="0 0 26 20" fill="none">
-                  <line x1="7" y1="4" x2="7" y2="16" stroke="#4361EE" strokeWidth="3" strokeLinecap="round"/>
-                  <line x1="3" y1="10" x2="11" y2="10" stroke="#4361EE" strokeWidth="3" strokeLinecap="round"/>
-                  <path d="M15 4 L15 10 Q15 16 21 16 Q26 16 26 10 Q26 4 21 4 L15 4" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                            <div style={{width:36,height:36,borderRadius:10,background:"#0A0A0F",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px rgba(67,97,238,.5)",flexShrink:0}}>
+                <svg width="28" height="22" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <line x1="7" y1="3" x2="7" y2="19" stroke="#4361EE" strokeWidth="3.2" strokeLinecap="round"/>
+                  <line x1="2.5" y1="11" x2="11.5" y2="11" stroke="#4361EE" strokeWidth="3.2" strokeLinecap="round"/>
+                  <path d="M16 3 L16 11 C16 17 22 18 25 14 C27 11 25 3 19.5 3 Z" stroke="white" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="16" y1="11" x2="16" y2="19" stroke="white" strokeWidth="2.3" strokeLinecap="round"/>
                 </svg>
               </div>
               <div style={{minWidth:0,overflow:"hidden"}}>
-                <div style={{fontSize:12.5,fontWeight:800,color:"#ffffff",letterSpacing:"-0.3px",lineHeight:1.2,whiteSpace:"nowrap"}}>Mais<span style={{color:"#4361EE"}}> Pipe</span></div>
+                <div style={{fontSize:14,fontWeight:800,letterSpacing:"-0.3px",lineHeight:1.2,whiteSpace:"nowrap"}}><span style={{color:"#4361EE"}}>+</span><span style={{color:"#ffffff"}}> pipe</span></div>
                 <div style={{fontSize:7.5,color:"#6b7280",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
               </div>
             </div>
-            <button className="toggle-btn" onClick={function(){setSidebarOpen(false);}} title="Recolher menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",flexShrink:0,padding:0}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <button onClick={function(){setSidebarPinned(function(v){return !v;});}} title={sidebarPinned?"Desafixar":"Fixar menu"} style={{width:26,height:26,borderRadius:7,border:"none",background:sidebarPinned?"rgba(67,97,238,.2)":"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:sidebarPinned?"#4361EE":"#6b7280",flexShrink:0,padding:0,transition:"all .2s"}}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
             </button>
           </div>
         ) : (
           <div style={{padding:"14px 0 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
-                        <div style={{width:36,height:36,borderRadius:10,background:"#0A0A0F",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px rgba(67,97,238,.5)"}}>
-              <svg width="26" height="20" viewBox="0 0 26 20" fill="none">
-                <line x1="7" y1="4" x2="7" y2="16" stroke="#4361EE" strokeWidth="3" strokeLinecap="round"/>
-                <line x1="3" y1="10" x2="11" y2="10" stroke="#4361EE" strokeWidth="3" strokeLinecap="round"/>
-                <path d="M15 4 L15 10 Q15 16 21 16 Q26 16 26 10 Q26 4 21 4 L15 4" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                        <div style={{width:40,height:40,borderRadius:12,background:"#0A0A0F",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px rgba(67,97,238,.5)"}}>
+              <svg width="28" height="22" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="7" y1="3" x2="7" y2="19" stroke="#4361EE" strokeWidth="3.2" strokeLinecap="round"/>
+                <line x1="2.5" y1="11" x2="11.5" y2="11" stroke="#4361EE" strokeWidth="3.2" strokeLinecap="round"/>
+                <path d="M16 3 L16 11 C16 17 22 18 25 14 C27 11 25 3 19.5 3 Z" stroke="white" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="16" y1="11" x2="16" y2="19" stroke="white" strokeWidth="2.3" strokeLinecap="round"/>
               </svg>
             </div>
-            <button className="toggle-btn" onClick={function(){setSidebarOpen(true);}} title="Expandir menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",padding:0}}>
+            <button onClick={function(){setSidebarPinned(true);setSidebarHover(true);}} title="Fixar menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",padding:0}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
@@ -2085,16 +2404,16 @@ export default function App() {
           {NAV.map(function(item) {
             var active = nav===item.id;
             return (
-              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarOpen?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarOpen?"10px 12px":"8px 0",justifyContent:sidebarOpen?"flex-start":"center",borderRadius:12,border:"none",background:active?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:active?"#fff":"#6b7280",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?600:500,marginBottom:4,transition:"all .25s cubic-bezier(.22,1,.36,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(67,97,238,.3)":"none",position:"relative"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="#f8fafc";e.currentTarget.style.color="#0f172a";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#64748b";}}}>
-                <span style={{fontSize:sidebarOpen?16:20,flexShrink:0,transition:"font-size .2s ease"}}>{item.emoji}</span>
-                <span className={"sidebar-label " + (sidebarOpen?"visible":"hidden")} style={{flex:1}}>
+              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarExpanded?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarExpanded?"10px 12px":"8px 0",justifyContent:sidebarExpanded?"flex-start":"center",borderRadius:12,border:"none",background:active?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:active?"#fff":"#6b7280",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?600:500,marginBottom:4,transition:"all .25s cubic-bezier(.22,1,.36,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(67,97,238,.3)":"none",position:"relative"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="rgba(67,97,238,.12)";e.currentTarget.style.color="#ffffff";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#6b7280";}}}>
+                <span style={{fontSize:sidebarExpanded?16:20,flexShrink:0,transition:"font-size .2s ease"}}>{item.emoji}</span>
+                <span className={"sidebar-label " + (sidebarExpanded?"visible":"hidden")} style={{flex:1}}>
                   {item.label}
                 </span>
               </button>
             );
           })}
         </nav>
-        {sidebarOpen && (
+        {sidebarExpanded && (
           <div style={{padding:"10px 14px 18px",borderTop:"1px solid #f1f5f9",flexShrink:0}}>
             <div style={{fontSize:10,color:"#6b7280",lineHeight:1.6}}>
               {accounts.length+" conta"+(accounts.length!==1?"s":"")+" salva"+(accounts.length!==1?"s":"")}
@@ -2111,6 +2430,7 @@ export default function App() {
             </div>
           ) : (
             <div style={{animation:"fadeUp .35s ease"}}>
+              {nav==="home"      && <HomeView accounts={accounts} onNav={setNav}/>}
               {nav==="search"    && <SearchView accounts={accounts} onSave={saveAccount} onOpenAccount={function(acc){setOpenAcc(acc);}} onUpdateAccount={function(updated){setAccounts(function(prev){return prev.map(function(a){return a.id===updated.id?updated:a;});});}}/>}
               {nav==="accounts"  && <AccountsView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus} onDelete={deleteAccount}/>}
               {nav==="sequences" && <SequenceView accounts={accounts} showToast={showToast}/>}
