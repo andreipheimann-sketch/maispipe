@@ -1,7 +1,7 @@
 {
-  "name": "bdr-helper-pro",
+  "name": "+ Pipe Account Mapping com IA",
   "version": "1.0.0",
-  "description": "BDR Helper Pro — Prospecting Tool for Sales Teams",
+  "description": "+ Pipe \u2014 Prospecting Tool for Sales Teams",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "nodemailer": "6.9.9"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "4.2.1",
