@@ -1436,15 +1436,47 @@ function SearchView(props) {
     var isTelecom = /\bvivo\b|claro|\btim\b|algar|embratel/.test(lower);
     var setor = isEcomm?"E-commerce / Varejo Digital":isFintech?"Fintech / Servicos Financeiros":isSaaS?"Software / SaaS B2B":isHealth?"Saude / Healthtech":isTelecom?"Telecomunicacoes":"Tecnologia / Mid Market";
     var tier  = (isEcomm||isFintech||isSaaS||isTelecom) ? "Tier 1" : "Tier 2";
-    var resumo = tavilyAnswers.length > 0
-      ? (tavilyAnswers[0] + (tavilyAnswers[1] ? " " + tavilyAnswers[1] : "")).slice(0, 500)
-      : company + " e uma empresa de " + setor + " com operacao de atendimento ativa no Brasil.";
+    function buildResumo() {
+      if (!tavilyAnswers.length) return company+" e uma empresa de "+setor+" com operacao ativa no Brasil.";
+      // Filter to best PT-BR content
+      var ptAnswers = tavilyAnswers.filter(function(a) {
+        return a.length > 80 && /\b(empresa|brasil|compan|serv|produt|clientes|mercado|tecnolog|atend|fundad|operas|setor)\b/i.test(a);
+      });
+      var best = (ptAnswers.length ? ptAnswers : tavilyAnswers).slice(0,3);
+      // Deduplicate: remove sentences that appear in multiple answers
+      var sentences = [];
+      best.forEach(function(a) {
+        a.replace(/([^.!?]+[.!?]+)/g, function(s) {
+          var clean = s.trim();
+          if (clean.length < 30) return;
+          var isDup = sentences.some(function(existing) {
+            return existing.toLowerCase().slice(0,40) === clean.toLowerCase().slice(0,40);
+          });
+          if (!isDup) sentences.push(clean);
+        });
+      });
+      var text = sentences.slice(0,5).join(" ").trim();
+      if (!text) text = best[0].slice(0,500);
+      // Remove any raw URLs, brackets, asterisks
+      text = text.replace(/https?:\/\/\S+/g,"").replace(/\[.*?\]/g,"").replace(/\*+/g,"").replace(/\s+/g," ").trim();
+      return text.slice(0,600) || company+" e uma empresa de "+setor+" no Brasil.";
+    }
+    var resumo = buildResumo();
     var allSources = [];
     if (Array.isArray(searchResults)) {
       searchResults.forEach(function(b) { (b.sources||[]).forEach(function(s){allSources.push(s);}); });
     }
-    var noticias = allSources.filter(function(s){return s.url&&s.title;}).slice(0,4);
-    if (!noticias.length) noticias = [{titulo:"Buscar noticias recentes de "+company, url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX"}];
+    // Build noticias — sources have {title, url, content} from search API
+    var noticiasSources = allSources
+      .filter(function(s){ return s.url && (s.title||s.titulo); })
+      .filter(function(s){ return !/linkedin\.com|facebook\.com|instagram\.com|twitter\.com/.test(s.url||""); })
+      .slice(0,5)
+      .map(function(s){
+        var title = s.title || s.titulo || "";
+        var snippet = (s.content || s.resumo || "").replace(/https?:\/\/\S+/g,"").replace(/\s+/g," ").trim().slice(0,180);
+        return {titulo:title, resumo:snippet, url:s.url, relevancia:"Fonte de contexto"};
+      });
+    var noticias = noticiasSources.length ? noticiasSources : [{titulo:"Buscar noticias recentes de "+company, resumo:"Clique para pesquisar noticias sobre a empresa.", url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX 2024", relevancia:"Pesquisa sugerida"}];
     return {
       empresa:{nome:company,setor:setor,resumo:resumo,tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponivel",clientes:clientes||""},
       fit:{score:"ALTO",justificativa:company+" atua em "+setor+", vertical de alto potencial para Zendesk Suite. Times de atendimento Mid Market com pressao de CSAT e custo por ticket sao nosso ICP principal.",solucoes_zendesk:["Zendesk Support (ticketing omnichannel)","Zendesk Messaging (chat e WhatsApp)","Help Center com IA generativa","Zendesk Explore (analytics e CSAT)","Workforce Management","QA e automacao de qualidade","Zendesk Sell (CRM de vendas)"]},
@@ -2351,7 +2383,7 @@ export default function App() {
     "@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}50%{box-shadow:0 0 0 6px rgba(67,97,238,.1)}}",
     "@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}",
     ".sidebar{transition:width .3s cubic-bezier(.22,1,.36,1)}",
-    ".sidebar-label{transition:opacity .2s ease,transform .2s ease;white-space:nowrap;overflow:hidden}",
+    ".sidebar-label{transition:opacity .3s cubic-bezier(.4,0,.2,1),transform .3s cubic-bezier(.4,0,.2,1);white-space:nowrap;overflow:hidden}",
     ".sidebar-label.hidden{opacity:0;transform:translateX(-6px);pointer-events:none;width:0}",
     ".sidebar-label.visible{opacity:1;transform:translateX(0)}",
     ".toggle-btn{transition:all .25s cubic-bezier(.22,1,.36,1)}",
@@ -2377,7 +2409,7 @@ export default function App() {
       <BetaBanner/>
     <div style={{display:"flex",flex:1,overflow:"hidden"}}>
       <style>{css}</style>
-      <div className="sidebar" onMouseEnter={function(){if(!sidebarPinned)setSidebarHover(true);}} onMouseLeave={function(){if(!sidebarPinned)setSidebarHover(false);}} style={{width:sidebarExpanded?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .25s cubic-bezier(.22,1,.36,1)"}}>
+      <div className="sidebar" onMouseEnter={function(){if(!sidebarPinned)setSidebarHover(true);}} onMouseLeave={function(){if(!sidebarPinned)setSidebarHover(false);}} style={{width:sidebarExpanded?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .35s cubic-bezier(.4,0,.2,1)"}}>
         <div style={{height:3,background:"linear-gradient(90deg,#4361EE,#7B5EA7,#A78BFA)",flexShrink:0}}/>
         {sidebarExpanded ? (
           <div style={{padding:"14px 14px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
@@ -2405,7 +2437,7 @@ export default function App() {
           {NAV.map(function(item) {
             var active = nav===item.id;
             return (
-              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarExpanded?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarExpanded?"10px 12px":"8px 0",justifyContent:sidebarExpanded?"flex-start":"center",borderRadius:12,border:"none",background:active?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:active?"#fff":"#6b7280",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?600:500,marginBottom:4,transition:"all .25s cubic-bezier(.22,1,.36,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(67,97,238,.3)":"none",position:"relative"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="rgba(67,97,238,.12)";e.currentTarget.style.color="#ffffff";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#6b7280";}}}>
+              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarExpanded?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarExpanded?"10px 12px":"8px 0",justifyContent:sidebarExpanded?"flex-start":"center",borderRadius:12,border:"none",background:active?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:active?"#fff":"#6b7280",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?600:500,marginBottom:4,transition:"all .3s cubic-bezier(.4,0,.2,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(67,97,238,.3)":"none",position:"relative",willChange:"background,color"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="rgba(67,97,238,.12)";e.currentTarget.style.color="#ffffff";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#6b7280";}}}>
                 <span style={{fontSize:sidebarExpanded?16:20,flexShrink:0,transition:"font-size .2s ease"}}>{item.emoji}</span>
                 <span className={"sidebar-label " + (sidebarExpanded?"visible":"hidden")} style={{flex:1}}>
                   {item.label}
@@ -2430,7 +2462,7 @@ export default function App() {
               <span style={{color:"#6b7280",fontSize:13}}>Carregando...</span>
             </div>
           ) : (
-            <div style={{animation:"fadeUp .35s ease"}}>
+            <div key={nav} style={{animation:"fadeUp .4s cubic-bezier(.4,0,.2,1) both"}}>
               {nav==="home"      && <HomeView accounts={accounts} onNav={setNav}/>}
               {nav==="search"    && <SearchView accounts={accounts} onSave={saveAccount} onOpenAccount={function(acc){setOpenAcc(acc);}} onUpdateAccount={function(updated){setAccounts(function(prev){return prev.map(function(a){return a.id===updated.id?updated:a;});});}}/>}
               {nav==="accounts"  && <AccountsView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus} onDelete={deleteAccount}/>}
