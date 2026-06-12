@@ -1283,6 +1283,274 @@ function LoadingStatus() {
   );
 }
 
+
+// -- CONTACTS VIEW -------------------------------------------------------------
+function ContactsView(props) {
+  var _st_contacts = useState([]); var contacts = _st_contacts[0]; var setContacts = _st_contacts[1];
+  var _st_loading = useState(true); var loadingC = _st_loading[0]; var setLoadingC = _st_loading[1];
+  var _st_search = useState(""); var search = _st_search[0]; var setSearch = _st_search[1];
+  var _st_enriching = useState({}); var enriching = _st_enriching[0]; var setEnriching = _st_enriching[1];
+  var _st_toast = useState(null); var toastC = _st_toast[0]; var setToastC = _st_toast[1];
+
+  var APOLLO_KEY = (window.__APOLLO_KEY__) || "";
+
+  useEffect(function() {
+    storageList("contact:").then(function(keys) {
+      if (!keys.length) { setLoadingC(false); return; }
+      Promise.all(keys.map(storageGet)).then(function(items) {
+        setContacts(items.filter(Boolean));
+        setLoadingC(false);
+      });
+    }).catch(function(){ setLoadingC(false); });
+  }, []);
+
+  function showToastC(msg, color) {
+    setToastC({msg:msg,color:color||"#3451d1"});
+    setTimeout(function(){ setToastC(null); }, 3000);
+  }
+
+  function deleteContact(id) {
+    if (!window.confirm("Remover este contato?")) return;
+    storageDel(id).then(function() {
+      setContacts(function(prev){ return prev.filter(function(c){ return c.id !== id; }); });
+      showToastC("Contato removido.", "#ef4444");
+    });
+  }
+
+  function enrichEmail(contact) {
+    setEnriching(function(e){ var n=Object.assign({},e); n[contact.id]=true; return n; });
+    var url = "https://api.apollo.io/v1/people/match";
+    fetch(url, {
+      method: "POST",
+      headers: {"Content-Type":"application/json","Cache-Control":"no-cache","X-Api-Key": APOLLO_KEY},
+      body: JSON.stringify({first_name: (contact.nome||"").split(" ")[0], last_name: (contact.nome||"").split(" ").slice(1).join(" "), organization_name: contact.empresa, title: contact.cargo})
+    }).then(function(r){ return r.json(); }).then(function(data) {
+      var email = (data.person && data.person.email) || "";
+      if (!email) { showToastC("E-mail nao encontrado no Apollo.", "#f59e0b"); }
+      else {
+        var updated = Object.assign({}, contact, {email: email, emailValidated: true});
+        storageSet(contact.id, updated).then(function() {
+          setContacts(function(prev){ return prev.map(function(c){ return c.id===contact.id ? updated : c; }); });
+          showToastC("E-mail encontrado: " + email, "#10b981");
+        });
+      }
+    }).catch(function() {
+      showToastC("Erro ao consultar Apollo.io.", "#ef4444");
+    }).finally(function() {
+      setEnriching(function(e){ var n=Object.assign({},e); delete n[contact.id]; return n; });
+    });
+  }
+
+  var filtered = contacts.filter(function(c) {
+    if (!search) return true;
+    var q = search.toLowerCase();
+    return (c.nome||"").toLowerCase().includes(q) || (c.empresa||"").toLowerCase().includes(q) || (c.cargo||"").toLowerCase().includes(q);
+  });
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
+        <div>
+          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Contatos"}</div>
+          <div style={{fontSize:13,color:"#64748b"}}>{contacts.length + " contato" + (contacts.length!==1?"s":"") + " mapeado" + (contacts.length!==1?"s":"")}</div>
+        </div>
+        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder={"Buscar por nome, empresa ou cargo..."} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",minWidth:260}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+      </div>
+      {loadingC ? (
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE"}}/>
+          <span style={{color:"#6b7280",fontSize:13}}>{"Carregando..."}</span>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
+          <div style={{fontSize:36,marginBottom:12}}>{"👥"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{search ? "Nenhum contato encontrado" : "Nenhum contato ainda"}</div>
+          <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{search ? "Tente outro termo de busca." : "Os contatos sao criados automaticamente ao fazer uma pesquisa com IA que retorne stakeholders do LinkedIn."}</div>
+        </div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {filtered.map(function(c) {
+            return (
+              <div key={c.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"16px 20px",display:"flex",alignItems:"center",gap:16,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
+                <div style={{width:42,height:42,borderRadius:12,background:"linear-gradient(135deg,#4361EE,#0ea5e9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <span style={{fontSize:16,color:"#fff",fontWeight:700}}>{(c.nome||"?")[0].toUpperCase()}</span>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome}</div>
+                  <div style={{fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo + (c.empresa ? " · " + c.empresa : "")}</div>
+                </div>
+                <div style={{minWidth:200,flexShrink:0}}>
+                  {c.email ? (
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{fontSize:11,color:c.emailValidated?"#10b981":"#64748b",fontWeight:c.emailValidated?700:400}}>{c.email}</span>
+                      {c.emailValidated && <span style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 6px"}}>{"VALIDADO"}</span>}
+                    </div>
+                  ) : (
+                    <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{background:enriching[c.id]?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:enriching[c.id]?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit"}}>
+                      {enriching[c.id] ? "Buscando..." : "Buscar e-mail Apollo"}
+                    </button>
+                  )}
+                </div>
+                <div style={{display:"flex",gap:6,flexShrink:0}}>
+                  {c.linkedin && (
+                    <a href={c.linkedin} target="_blank" rel="noreferrer" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0a66c2",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center"}}>{"in"}</a>
+                  )}
+                  <button onClick={function(){deleteContact(c.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>{"x"}</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {toastC && (
+        <div style={{position:"fixed",bottom:28,right:28,background:toastC.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(15,23,42,.2)",zIndex:400,maxWidth:340}}>
+          {toastC.msg}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// -- INTEGRATIONS VIEW ---------------------------------------------------------
+function IntegrationsView() {
+  var INTEGRATIONS = [
+    {id:"salesforce", name:"Salesforce", logo:"☁️", desc:"Sincronize contas, contatos e oportunidades com o Salesforce CRM.", color:"#00A1E0", connected:false},
+    {id:"hubspot",    name:"HubSpot",    logo:"🟠", desc:"Exporte leads e sequencias diretamente para o HubSpot CRM.",      color:"#FF7A59", connected:false},
+    {id:"pipedrive",  name:"Pipedrive",  logo:"🎯", desc:"Crie deals automaticamente no Pipedrive ao salvar uma conta.",    color:"#272D35", connected:false},
+  ];
+  var _st_states = useState(function(){
+    var saved = {};
+    try { var r = localStorage.getItem("bdrhelper_integrations"); if(r) saved = JSON.parse(r); } catch(e){}
+    return saved;
+  }); var intStates = _st_states[0]; var setIntStates = _st_states[1];
+  var _st_modal = useState(null); var modalInt = _st_modal[0]; var setModalInt = _st_modal[1];
+  var _st_apiKey = useState(""); var apiKey = _st_apiKey[0]; var setApiKey = _st_apiKey[1];
+  var _st_customModal = useState(false); var customModal = _st_customModal[0]; var setCustomModal = _st_customModal[1];
+  var _st_customName = useState(""); var customName = _st_customName[0]; var setCustomName = _st_customName[1];
+  var _st_customKey = useState(""); var customKey = _st_customKey[0]; var setCustomKey = _st_customKey[1];
+  var _st_customURL = useState(""); var customURL = _st_customURL[0]; var setCustomURL = _st_customURL[1];
+  var _st_customs = useState(function(){
+    try { var r = localStorage.getItem("bdrhelper_custom_integrations"); if(r) return JSON.parse(r); } catch(e){} return [];
+  }); var customs = _st_customs[0]; var setCustoms = _st_customs[1];
+
+  function saveIntState(id, data) {
+    var next = Object.assign({}, intStates);
+    next[id] = data;
+    setIntStates(next);
+    try { localStorage.setItem("bdrhelper_integrations", JSON.stringify(next)); } catch(e){}
+  }
+
+  function connect(intId) {
+    saveIntState(intId, {connected:true, apiKey:apiKey, connectedAt:Date.now()});
+    setModalInt(null);
+    setApiKey("");
+  }
+
+  function disconnect(intId) {
+    if (!window.confirm("Desconectar esta integracao?")) return;
+    saveIntState(intId, {connected:false});
+  }
+
+  function addCustom() {
+    if (!customName) return;
+    var c = {id:"custom_"+Date.now(), name:customName, apiKey:customKey, webhookURL:customURL, connectedAt:Date.now()};
+    var next = customs.concat([c]);
+    setCustoms(next);
+    try { localStorage.setItem("bdrhelper_custom_integrations", JSON.stringify(next)); } catch(e){}
+    setCustomModal(false); setCustomName(""); setCustomKey(""); setCustomURL("");
+  }
+
+  function removeCustom(id) {
+    if (!window.confirm("Remover esta integracao?")) return;
+    var next = customs.filter(function(c){ return c.id !== id; });
+    setCustoms(next);
+    try { localStorage.setItem("bdrhelper_custom_integrations", JSON.stringify(next)); } catch(e){}
+  }
+
+  return (
+    <div>
+      <div style={{marginBottom:28}}>
+        <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Integracoes"}</div>
+        <div style={{fontSize:13,color:"#64748b"}}>{"Conecte o Mais Pipe ao seu CRM e ferramentas de vendas."}</div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16,marginBottom:32}}>
+        {INTEGRATIONS.map(function(int) {
+          var st = intStates[int.id] || {};
+          var isConn = st.connected;
+          return (
+            <div key={int.id} style={{background:"#fff",border:"1.5px solid "+(isConn?"#bbf7d0":"#e8edf4"),borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(15,23,42,.10)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+                <div style={{width:44,height:44,borderRadius:12,background:int.color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{int.logo}</div>
+                <div>
+                  <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>{int.name}</div>
+                  {isConn && <div style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CONECTADO"}</div>}
+                </div>
+              </div>
+              <div style={{fontSize:12,color:"#64748b",lineHeight:1.6,marginBottom:16}}>{int.desc}</div>
+              {isConn ? (
+                <div style={{display:"flex",gap:8}}>
+                  <div style={{flex:1,background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"8px 12px",fontSize:11,color:"#10b981",fontWeight:600}}>{"Ativo"}</div>
+                  <button onClick={function(){disconnect(int.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"8px 12px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{"Desconectar"}</button>
+                </div>
+              ) : (
+                <button onClick={function(){setModalInt(int);setApiKey("");}} style={{width:"100%",background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(67,97,238,.25)"}}>{"Conectar"}</button>
+              )}
+            </div>
+          );
+        })}
+        {customs.map(function(c) {
+          return (
+            <div key={c.id} style={{background:"#fff",border:"1.5px solid #bbf7d0",borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(15,23,42,.06)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+                <div style={{width:44,height:44,borderRadius:12,background:"#f8fafc",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{"🔌"}</div>
+                <div>
+                  <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>{c.name}</div>
+                  <div style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CUSTOMIZADO"}</div>
+                </div>
+              </div>
+              <div style={{fontSize:11,color:"#64748b",marginBottom:14,wordBreak:"break-all"}}>{c.webhookURL || "Webhook configurado"}</div>
+              <button onClick={function(){removeCustom(c.id);}} style={{width:"100%",background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"8px 0",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{"Remover"}</button>
+            </div>
+          );
+        })}
+        <button onClick={function(){setCustomModal(true);}} style={{background:"#f8fafc",border:"2px dashed #e2e8f0",borderRadius:20,padding:"24px",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,transition:"all .2s",minHeight:180}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.background="#eff6ff";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.background="#f8fafc";}}>
+          <span style={{fontSize:32}}>{"+"}</span>
+          <span style={{fontSize:13,fontWeight:600,color:"#64748b"}}>{"Adicionar integracao"}</span>
+          <span style={{fontSize:11,color:"#94a3b8"}}>{"Via webhook ou API key"}</span>
+        </button>
+      </div>
+      {modalInt && (
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+          <div style={{background:"#fff",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(15,23,42,.28)"}}>
+            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:4}}>{modalInt.logo + " Conectar " + modalInt.name}</div>
+            <div style={{fontSize:12,color:"#6b7280",marginBottom:20}}>{"Insira sua API Key do " + modalInt.name + " para ativar a integracao."}</div>
+            <input value={apiKey} onChange={function(e){setApiKey(e.target.value);}} placeholder={"API Key do " + modalInt.name} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={function(){setModalInt(null);setApiKey("");}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={function(){connect(modalInt.id);}} disabled={!apiKey} style={{flex:2,background:apiKey?"linear-gradient(135deg,#4361EE,#3451d1)":"#e2e8f0",color:apiKey?"#fff":"#94a3b8",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:apiKey?"pointer":"default",fontFamily:"inherit"}}>{"Conectar " + modalInt.name}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {customModal && (
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+          <div style={{background:"#fff",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(15,23,42,.28)"}}>
+            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar integracao personalizada"}</div>
+            <input value={customName} onChange={function(e){setCustomName(e.target.value);}} placeholder={"Nome da ferramenta (ex: RD Station)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+            <input value={customURL} onChange={function(e){setCustomURL(e.target.value);}} placeholder={"Webhook URL (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+            <input value={customKey} onChange={function(e){setCustomKey(e.target.value);}} placeholder={"API Key (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={function(){setCustomModal(false);}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={addCustom} disabled={!customName} style={{flex:2,background:customName?"linear-gradient(135deg,#4361EE,#3451d1)":"#e2e8f0",color:customName?"#fff":"#94a3b8",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:customName?"pointer":"default",fontFamily:"inherit"}}>{"Adicionar"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function HomeView(props) {
   var accounts = props.accounts || [];
   var onNav = props.onNav;
@@ -2350,6 +2618,13 @@ export default function App() {
     storageSet(id, acc).then(function() {
       setAccounts(function(prev){return [acc].concat(prev);});
     });
+    var stakeholders = (data.stakeholders && Array.isArray(data.stakeholders)) ? data.stakeholders : [];
+    stakeholders.forEach(function(s) {
+      if (!s.cargo) return;
+      var cid = "contact:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
+      var contact = { id:cid, nome:s.nome||"", cargo:s.cargo||"", empresa:nome, email:s.email||"", emailValidated:false, linkedin:s.linkedin||"", savedAt:Date.now() };
+      storageSet(cid, contact);
+    });
   }
   function updateStatus(id, status) {
     setAccounts(function(prev) {
@@ -2396,13 +2671,15 @@ export default function App() {
     ".badge-glow{animation:glow 2.5s ease-in-out infinite}",
   ].join("");
   var NAV = [
-    {id:"home",      emoji:"🏠", label:"Home"},
-    {id:"search",    emoji:"🔍", label:"Busca"},
-    {id:"accounts",  emoji:"📁", label:"Contas"},
-    {id:"sequences", emoji:"📬", label:"Sequências"},
-    {id:"biblioteca",emoji:"📚", label:"Biblioteca"},
-    {id:"pipeline",  emoji:"📊", label:"Pipeline"},
-    {id:"relatorios",emoji:"📈", label:"Relatórios"},
+    {id:"home",         emoji:"🏠", label:"Home"},
+    {id:"search",       emoji:"🔍", label:"Busca"},
+    {id:"accounts",     emoji:"📁", label:"Contas"},
+    {id:"contacts",     emoji:"👥", label:"Contatos"},
+    {id:"sequences",    emoji:"📬", label:"Sequências"},
+    {id:"biblioteca",   emoji:"📚", label:"Biblioteca"},
+    {id:"pipeline",     emoji:"📊", label:"Pipeline"},
+    {id:"relatorios",   emoji:"📈", label:"Relatórios"},
+    {id:"integracoes",  emoji:"🔌", label:"Integracoes"},
   ];
   return (
     <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#f8fafc",overflow:"hidden"}}>
@@ -2454,7 +2731,7 @@ export default function App() {
           </div>
         )}
       </div>
-      <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+      <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
         <div className="main-content" style={{flex:1,overflowY:"auto",padding:"36px 40px"}}>
           {loading ? (
             <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",gap:12}}>
@@ -2469,6 +2746,8 @@ export default function App() {
               {nav==="sequences" && <SequenceView accounts={accounts} showToast={showToast}/>}
               {nav==="relatorios"&& <InsightsView accounts={accounts}/>}
               {nav==="biblioteca" && <BibliotecaView showToast={showToast} onCountChange={setSeqCount}/>}
+              {nav==="contacts" && <ContactsView showToast={showToast}/>}
+              {nav==="integracoes" && <IntegrationsView/>}
               {nav==="pipeline"  && (
                 <div>
                   <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Pipeline</div>
