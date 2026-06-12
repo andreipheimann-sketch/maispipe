@@ -1122,7 +1122,6 @@ function downloadSeqPDF(seq) {
 function BibliotecaView(props) {
   var _st_seqs = useState([]); var seqs = _st_seqs[0]; var setSeqs = _st_seqs[1];
   var _st_loading = useState(true); var loading = _st_loading[0]; var setLoading = _st_loading[1];
-  var _st_openSeq = useState(null); var openSeq = _st_openSeq[0]; var setOpenSeq = _st_openSeq[1];
   var _st_viewMode = useState("cards"); var viewMode = _st_viewMode[0]; var setViewMode = _st_viewMode[1];
   var _st_sortOrder = useState("date"); var sortOrder = _st_sortOrder[0]; var setSortOrder = _st_sortOrder[1];
   useEffect(function() {
@@ -1198,7 +1197,7 @@ function BibliotecaView(props) {
                   })}
                 </div>
                 <div style={{display:"flex",gap:6}}>
-                  <button onClick={function(){setOpenSeq(seq);}} style={{flex:1,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"8px 0",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Abrir</button>
+                  <button onClick={function(){props.onOpenSeq(seq);}} style={{flex:1,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"8px 0",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Abrir</button>
                   <button onClick={function(){downloadSeqPDF(seq);}} title="Baixar PDF" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0369a1",borderRadius:10,padding:"8px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>PDF</button>
                   <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"8px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>x</button>
                 </div>
@@ -1222,7 +1221,7 @@ function BibliotecaView(props) {
                 </div>
                 <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"2px 8px",fontSize:9,fontWeight:700,flexShrink:0}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
                 <span style={{fontSize:10,color:"#6b7280",flexShrink:0}}>{fmtDate(seq.createdAt)}</span>
-                <button onClick={function(){setOpenSeq(seq);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Abrir</button>
+                <button onClick={function(){props.onOpenSeq(seq);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Abrir</button>
                 <button onClick={function(){downloadSeqPDF(seq);}} style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0369a1",borderRadius:8,padding:"5px 10px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>PDF</button>
                 <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
               </div>
@@ -1231,7 +1230,6 @@ function BibliotecaView(props) {
         </div>
         )
       )}
-      {openSeq&&<SequenceModal seq={openSeq} onClose={function(){setOpenSeq(null);}}/>}
     </div>
   );
 }
@@ -1292,8 +1290,6 @@ function ContactsView(props) {
   var _st_enriching = useState({}); var enriching = _st_enriching[0]; var setEnriching = _st_enriching[1];
   var _st_toast = useState(null); var toastC = _st_toast[0]; var setToastC = _st_toast[1];
 
-  var APOLLO_KEY = (window.__APOLLO_KEY__) || "";
-
   useEffect(function() {
     storageList("contact:").then(function(keys) {
       if (!keys.length) { setLoadingC(false); return; }
@@ -1319,23 +1315,23 @@ function ContactsView(props) {
 
   function enrichEmail(contact) {
     setEnriching(function(e){ var n=Object.assign({},e); n[contact.id]=true; return n; });
-    var url = "https://api.apollo.io/v1/people/match";
-    fetch(url, {
+    fetch("/api/apollo", {
       method: "POST",
-      headers: {"Content-Type":"application/json","Cache-Control":"no-cache","X-Api-Key": APOLLO_KEY},
-      body: JSON.stringify({first_name: (contact.nome||"").split(" ")[0], last_name: (contact.nome||"").split(" ").slice(1).join(" "), organization_name: contact.empresa, title: contact.cargo})
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({first_name:(contact.nome||"").split(" ")[0], last_name:(contact.nome||"").split(" ").slice(1).join(" "), organization_name:contact.empresa, title:contact.cargo})
     }).then(function(r){ return r.json(); }).then(function(data) {
+      if (data.error) { showToastC(data.error, "#f59e0b"); return; }
       var email = (data.person && data.person.email) || "";
       if (!email) { showToastC("E-mail nao encontrado no Apollo.", "#f59e0b"); }
       else {
-        var updated = Object.assign({}, contact, {email: email, emailValidated: true});
+        var updated = Object.assign({}, contact, {email:email, emailValidated:true});
         storageSet(contact.id, updated).then(function() {
           setContacts(function(prev){ return prev.map(function(c){ return c.id===contact.id ? updated : c; }); });
           showToastC("E-mail encontrado: " + email, "#10b981");
         });
       }
     }).catch(function() {
-      showToastC("Erro ao consultar Apollo.io.", "#ef4444");
+      showToastC("Erro ao consultar Apollo. Verifique a chave APOLLO_API_KEY no servidor.", "#ef4444");
     }).finally(function() {
       setEnriching(function(e){ var n=Object.assign({},e); delete n[contact.id]; return n; });
     });
@@ -1365,41 +1361,63 @@ function ContactsView(props) {
         <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
           <div style={{fontSize:36,marginBottom:12}}>{"👥"}</div>
           <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{search ? "Nenhum contato encontrado" : "Nenhum contato ainda"}</div>
-          <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{search ? "Tente outro termo de busca." : "Os contatos sao criados automaticamente ao fazer uma pesquisa com IA que retorne stakeholders do LinkedIn."}</div>
+          <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{search ? "Tente outro termo de busca." : "Os contatos sao criados automaticamente ao fazer uma pesquisa com IA que retorne stakeholders."}</div>
         </div>
       ) : (
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {filtered.map(function(c) {
-            return (
-              <div key={c.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"16px 20px",display:"flex",alignItems:"center",gap:16,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
-                <div style={{width:42,height:42,borderRadius:12,background:"linear-gradient(135deg,#4361EE,#0ea5e9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  <span style={{fontSize:16,color:"#fff",fontWeight:700}}>{(c.nome||"?")[0].toUpperCase()}</span>
+        <div style={{display:"flex",flexDirection:"column",gap:20}}>
+          {(function(){
+            var grouped = {};
+            filtered.forEach(function(c){
+              var key = c.empresa || "Sem empresa";
+              if (!grouped[key]) grouped[key] = [];
+              grouped[key].push(c);
+            });
+            return Object.keys(grouped).sort().map(function(empresa) {
+              var group = grouped[empresa];
+              return (
+                <div key={empresa}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,padding:"8px 14px",background:"linear-gradient(135deg,rgba(67,97,238,.06),rgba(14,165,233,.04))",border:"1px solid rgba(67,97,238,.12)",borderRadius:12}}>
+                    <span style={{fontSize:14}}>{"🏢"}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{empresa}</span>
+                    <span style={{fontSize:10,color:"#6b7280",marginLeft:"auto"}}>{group.length + " contato" + (group.length!==1?"s":"")}</span>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:8,paddingLeft:8}}>
+                    {group.map(function(c) {
+                      return (
+                        <div key={c.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
+                          <div style={{width:38,height:38,borderRadius:10,background:"linear-gradient(135deg,#4361EE,#0ea5e9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                            <span style={{fontSize:14,color:"#fff",fontWeight:700}}>{(c.nome||"?")[0].toUpperCase()}</span>
+                          </div>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome}</div>
+                            <div style={{fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo}</div>
+                          </div>
+                          <div style={{minWidth:180,flexShrink:0}}>
+                            {c.email ? (
+                              <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                                <span style={{fontSize:11,color:c.emailValidated?"#10b981":"#64748b",fontWeight:c.emailValidated?700:400,wordBreak:"break-all"}}>{c.email}</span>
+                                {c.emailValidated && <span style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 6px"}}>{"OK"}</span>}
+                              </div>
+                            ) : (
+                              <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{background:enriching[c.id]?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:enriching[c.id]?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit"}}>
+                                {enriching[c.id] ? "Buscando..." : "Buscar e-mail Apollo"}
+                              </button>
+                            )}
+                          </div>
+                          <div style={{display:"flex",gap:6,flexShrink:0}}>
+                            {c.linkedin && (
+                              <a href={c.linkedin} target="_blank" rel="noreferrer" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0a66c2",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center"}}>{"in"}</a>
+                            )}
+                            <button onClick={function(){deleteContact(c.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>{"x"}</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome}</div>
-                  <div style={{fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo + (c.empresa ? " · " + c.empresa : "")}</div>
-                </div>
-                <div style={{minWidth:200,flexShrink:0}}>
-                  {c.email ? (
-                    <div style={{display:"flex",alignItems:"center",gap:6}}>
-                      <span style={{fontSize:11,color:c.emailValidated?"#10b981":"#64748b",fontWeight:c.emailValidated?700:400}}>{c.email}</span>
-                      {c.emailValidated && <span style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 6px"}}>{"VALIDADO"}</span>}
-                    </div>
-                  ) : (
-                    <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{background:enriching[c.id]?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:enriching[c.id]?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit"}}>
-                      {enriching[c.id] ? "Buscando..." : "Buscar e-mail Apollo"}
-                    </button>
-                  )}
-                </div>
-                <div style={{display:"flex",gap:6,flexShrink:0}}>
-                  {c.linkedin && (
-                    <a href={c.linkedin} target="_blank" rel="noreferrer" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0a66c2",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center"}}>{"in"}</a>
-                  )}
-                  <button onClick={function(){deleteContact(c.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>{"x"}</button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
       )}
       {toastC && (
@@ -1471,8 +1489,8 @@ function IntegrationsView() {
   return (
     <div>
       <div style={{marginBottom:28}}>
-        <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Integracoes"}</div>
-        <div style={{fontSize:13,color:"#64748b"}}>{"Conecte o Mais Pipe ao seu CRM e ferramentas de vendas."}</div>
+        <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Integrações"}</div>
+        <div style={{fontSize:13,color:"#64748b"}}>{"Conecte o + Pipe ao seu CRM e ferramentas de vendas."}</div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16,marginBottom:32}}>
         {INTEGRATIONS.map(function(int) {
@@ -2594,6 +2612,7 @@ export default function App() {
   var _st_sidebarHover = useState(false); var sidebarHover = _st_sidebarHover[0]; var setSidebarHover = _st_sidebarHover[1];
   var sidebarExpanded = sidebarPinned || sidebarHover;
   var _st_seqCount = useState(0); var seqCount = _st_seqCount[0]; var setSeqCount = _st_seqCount[1];
+  var _st_openSeq = useState(null); var openSeq = _st_openSeq[0]; var setOpenSeq = _st_openSeq[1];
   function showToast(msg, color) {
     setToast({msg:msg,color:color||"#3451d1"});
     setTimeout(function(){setToast(null);}, 3000);
@@ -2679,7 +2698,7 @@ export default function App() {
     {id:"biblioteca",   emoji:"📚", label:"Biblioteca"},
     {id:"pipeline",     emoji:"📊", label:"Pipeline"},
     {id:"relatorios",   emoji:"📈", label:"Relatórios"},
-    {id:"integracoes",  emoji:"🔌", label:"Integracoes"},
+    {id:"integracoes",  emoji:"🔌", label:"Integrações"},
   ];
   return (
     <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#f8fafc",overflow:"hidden"}}>
@@ -2745,7 +2764,7 @@ export default function App() {
               {nav==="accounts"  && <AccountsView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus} onDelete={deleteAccount}/>}
               {nav==="sequences" && <SequenceView accounts={accounts} showToast={showToast}/>}
               {nav==="relatorios"&& <InsightsView accounts={accounts}/>}
-              {nav==="biblioteca" && <BibliotecaView showToast={showToast} onCountChange={setSeqCount}/>}
+              {nav==="biblioteca" && <BibliotecaView showToast={showToast} onCountChange={setSeqCount} onOpenSeq={setOpenSeq}/>}
               {nav==="contacts" && <ContactsView showToast={showToast}/>}
               {nav==="integracoes" && <IntegrationsView/>}
               {nav==="pipeline"  && (
@@ -2760,6 +2779,7 @@ export default function App() {
         </div>
       </div>
       {openAcc && <AccountModal acc={openAcc} onClose={function(){setOpenAcc(null);}} onStatusChange={updateStatus}/>}
+      {openSeq && <SequenceModal seq={openSeq} onClose={function(){setOpenSeq(null);}}/>}
       {toast && (
         <div style={{position:"fixed",bottom:28,right:28,background:toast.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(15,23,42,.2),0 0 0 1px rgba(255,255,255,.15)",animation:"toastIn .35s cubic-bezier(.22,1,.36,1)",zIndex:300,maxWidth:340,display:"flex",alignItems:"center",gap:10}}>
           {toast.msg}
