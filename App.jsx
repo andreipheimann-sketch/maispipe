@@ -408,7 +408,7 @@ function SequenceModal(props) {
   var seq = props.seq;
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"24px 16px",overflowY:"auto",backdropFilter:"blur(8px)"}}>
-      <div style={{background:"rgba(255,255,255,.98)",borderRadius:24,width:"100%",maxWidth:680,boxShadow:"0 32px 100px rgba(15,23,42,.28),0 0 0 1px rgba(255,255,255,.8)"}}>
+      <div style={{background:"rgba(255,255,255,.98)",borderRadius:24,width:"100%",maxWidth:680,boxShadow:"0 32px 100px rgba(15,23,42,.28),0 0 0 1px rgba(255,255,255,.8)",marginBottom:24}}>
         <div style={{padding:"22px 28px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <div>
             <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:3}}>{seq.account && seq.account.nome}</div>
@@ -416,7 +416,7 @@ function SequenceModal(props) {
           </div>
           <button onClick={props.onClose} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:10,padding:"8px 12px",cursor:"pointer",color:"#64748b",fontSize:18,lineHeight:1,fontFamily:"inherit"}}>x</button>
         </div>
-        <div style={{padding:"22px 28px",maxHeight:"70vh",overflowY:"auto",display:"flex",flexDirection:"column",gap:14}}>
+        <div style={{padding:"22px 28px",display:"flex",flexDirection:"column",gap:14}}>
           {safeArr(seq.touches).map(function(touch, idx) {
             var tc = TOUCH_TYPES[touch.type] || TOUCH_TYPES.email;
             return (
