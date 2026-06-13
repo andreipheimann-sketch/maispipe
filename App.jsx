@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 // -- STORAGE , localStorage (persists across reloads) -------------------------
 var STORAGE_PREFIX = "bdrhelper_";
 function storageGet(key) {
@@ -406,28 +407,28 @@ function SequenceView(props) {
 // -- SEQUENCE MODAL ------------------------------------------------------------
 function SequenceModal(props) {
   var seq = props.seq;
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"12px 8px",overflowY:"auto",overflowX:"hidden",backdropFilter:"blur(8px)",boxSizing:"border-box"}}>
-      <div style={{background:"rgba(255,255,255,.98)",borderRadius:20,width:"100%",maxWidth:680,boxShadow:"0 32px 100px rgba(15,23,42,.28)",marginBottom:16,boxSizing:"border-box",minWidth:0}}>
-        <div style={{padding:"16px 16px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+  var el = (
+    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(15,23,42,.75)",zIndex:9999,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"12px 10px",overflowY:"auto",overflowX:"hidden",WebkitOverflowScrolling:"touch"}} onClick={function(e){if(e.target===e.currentTarget)props.onClose();}}>
+      <div style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:660,boxShadow:"0 24px 80px rgba(15,23,42,.3)",marginBottom:16,flexShrink:0}} onClick={function(e){e.stopPropagation();}}>
+        <div style={{padding:"14px 14px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
           <div style={{minWidth:0,flex:1}}>
-            <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account && seq.account.nome}</div>
+            <div style={{fontSize:15,fontWeight:800,color:"#0f172a",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account && seq.account.nome}</div>
             <div style={{fontSize:11,color:"#6b7280"}}>{seq.profile && seq.profile.label + ", " + fmtDate(seq.createdAt)}</div>
           </div>
-          <button onClick={props.onClose} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:10,padding:"6px 10px",cursor:"pointer",color:"#64748b",fontSize:16,lineHeight:1,fontFamily:"inherit",flexShrink:0}}>x</button>
+          <button onClick={props.onClose} style={{background:"#f1f5f9",border:"none",borderRadius:8,padding:"6px 10px",cursor:"pointer",color:"#64748b",fontSize:15,lineHeight:1,fontFamily:"inherit",flexShrink:0}}>{"x"}</button>
         </div>
-        <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:12}}>
+        <div style={{padding:"12px 10px",display:"flex",flexDirection:"column",gap:10}}>
           {safeArr(seq.touches).map(function(touch, idx) {
             var tc = TOUCH_TYPES[touch.type] || TOUCH_TYPES.email;
             return (
               <div key={idx} style={{border:"1.5px solid #e8edf4",borderRadius:12,overflow:"hidden"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,padding:"9px 12px",background:"#fafafa",borderBottom:"1px solid #f1f5f9",flexWrap:"wrap"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",background:"#fafafa",borderBottom:"1px solid #f1f5f9",flexWrap:"wrap"}}>
                   <span style={{fontSize:10,fontWeight:700,color:tc.color,flexShrink:0}}>{tc.label}</span>
                   <span style={{background:tc.bg,color:tc.color,borderRadius:20,padding:"1px 7px",fontSize:9,fontWeight:700,flexShrink:0}}>{"Dia " + touch.day}</span>
-                  <div style={{flex:1,minWidth:60,fontSize:10,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
+                  <div style={{flex:1,minWidth:40,fontSize:10,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
                   <CopyBtn text={(touch.type==="email"||touch.type==="linkedin"?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
                 </div>
-                <div style={{padding:"12px",fontSize:12,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.8,wordBreak:"break-word",overflowWrap:"break-word"}}>{touch.body}</div>
+                <div style={{padding:"10px",fontSize:12,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.75,wordBreak:"break-word",overflowWrap:"break-word"}}>{touch.body}</div>
               </div>
             );
           })}
@@ -435,6 +436,7 @@ function SequenceModal(props) {
       </div>
     </div>
   );
+  return ReactDOM.createPortal(el, document.body);
 }
 // -- ACCOUNT CARD --------------------------------------------------------------
 function AccountCard(props) {
