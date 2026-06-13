@@ -39,6 +39,118 @@ function storageDel(key) {
     } catch(e) { resolve(false); }
   });
 }
+// -- USAGE / PLANS MODULE -----------------------------------------------------
+// IMPORTANTE: Este modulo concentra TODO o controle de uso/plano.
+// Hoje persiste em localStorage (Fase 1 - validacao). Na Fase 2, substituir o
+// corpo destas funcoes por chamadas a uma serverless (/api/usage) que le/grava
+// no Supabase, mantendo as MESMAS assinaturas. O resto do app nao muda.
+var PLANS = {
+  "starter":      { id:"starter",      label:"Starter",      limit:30,  color:"#0ea5e9" },
+  "professional": { id:"professional", label:"Professional", limit:100, color:"#4361EE" },
+  "free":         { id:"free",         label:"Trial",        limit:5,   color:"#64748b" },
+};
+var USAGE_KEY = "usage_state";
+
+function currentPeriod() {
+  var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+}
+
+// Retorna {plan, period, used, limit, remaining}
+function getUsage() {
+  return new Promise(function(resolve) {
+    try {
+      var raw = localStorage.getItem(STORAGE_PREFIX + USAGE_KEY);
+      var st = raw ? JSON.parse(raw) : null;
+      var period = currentPeriod();
+      if (!st || st.period !== period) {
+        // novo mes -> zera o contador, mantem o plano
+        st = { plan: (st && st.plan) || "free", period: period, used: 0 };
+        localStorage.setItem(STORAGE_PREFIX + USAGE_KEY, JSON.stringify(st));
+      }
+      var plan = PLANS[st.plan] || PLANS.free;
+      resolve({ plan: plan.id, planLabel: plan.label, planColor: plan.color, period: st.period, used: st.used, limit: plan.limit, remaining: Math.max(0, plan.limit - st.used) });
+    } catch(e) {
+      resolve({ plan:"free", planLabel:"Trial", planColor:"#64748b", period:currentPeriod(), used:0, limit:5, remaining:5 });
+    }
+  });
+}
+
+// Incrementa 1 mapeamento. Retorna {ok, usage} ou {ok:false, reason}
+function consumeMapping() {
+  return new Promise(function(resolve) {
+    getUsage().then(function(u) {
+      if (u.remaining <= 0) { resolve({ ok:false, reason:"limit", usage:u }); return; }
+      try {
+        var raw = localStorage.getItem(STORAGE_PREFIX + USAGE_KEY);
+        var st = raw ? JSON.parse(raw) : { plan:"free", period:currentPeriod(), used:0 };
+        st.used = (st.used||0) + 1;
+        localStorage.setItem(STORAGE_PREFIX + USAGE_KEY, JSON.stringify(st));
+        getUsage().then(function(u2){ resolve({ ok:true, usage:u2 }); });
+      } catch(e) { resolve({ ok:false, reason:"error", usage:u }); }
+    });
+  });
+}
+
+function setPlan(planId) {
+  return new Promise(function(resolve) {
+    try {
+      var raw = localStorage.getItem(STORAGE_PREFIX + USAGE_KEY);
+      var st = raw ? JSON.parse(raw) : { period:currentPeriod(), used:0 };
+      st.plan = planId;
+      if (!st.period) st.period = currentPeriod();
+      if (st.used == null) st.used = 0;
+      localStorage.setItem(STORAGE_PREFIX + USAGE_KEY, JSON.stringify(st));
+      resolve(true);
+    } catch(e) { resolve(false); }
+  });
+}
+
+// -- CSV PARSER ---------------------------------------------------------------
+// Espera colunas: nome/empresa, site/website/url, linkedin (opcional).
+// Tolerante a maiusculas, acentos e ordem das colunas.
+function parseCSV(text) {
+  var lines = text.split(/\r\n|\n|\r/).filter(function(l){ return l.trim().length; });
+  if (!lines.length) return { rows: [], error: "Arquivo vazio." };
+
+  function splitLine(line) {
+    var out = []; var cur = ""; var inQ = false;
+    for (var i=0;i<line.length;i++) {
+      var ch = line[i];
+      if (ch === '"') { inQ = !inQ; continue; }
+      if ((ch === "," || ch === ";") && !inQ) { out.push(cur); cur=""; continue; }
+      cur += ch;
+    }
+    out.push(cur);
+    return out.map(function(s){ return s.trim(); });
+  }
+
+  function norm(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); }
+
+  var header = splitLine(lines[0]).map(norm);
+  var idxNome = header.findIndex(function(h){ return h==="nome"||h==="empresa"||h==="company"||h==="name"||h==="conta"||h==="account"; });
+  var idxSite = header.findIndex(function(h){ return h==="site"||h==="website"||h==="url"||h==="dominio"||h==="domain"||h==="web"; });
+  var idxLink = header.findIndex(function(h){ return h.indexOf("linkedin")>=0||h==="li"; });
+
+  var hasHeader = idxNome >= 0;
+  var start = hasHeader ? 1 : 0;
+  if (!hasHeader) { idxNome = 0; idxSite = 1; idxLink = 2; }
+
+  var rows = [];
+  for (var r=start; r<lines.length; r++) {
+    var cols = splitLine(lines[r]);
+    var nome = (cols[idxNome]||"").trim();
+    if (!nome) continue;
+    rows.push({
+      nome: nome,
+      site: (idxSite>=0 ? (cols[idxSite]||"") : "").trim(),
+      linkedin: (idxLink>=0 ? (cols[idxLink]||"") : "").trim(),
+    });
+  }
+  if (!rows.length) return { rows: [], error: "Nenhuma linha valida encontrada. Verifique se ha uma coluna de nome/empresa." };
+  return { rows: rows, error: null };
+}
+
 // -- CONSTANTS ----------------------------------------------------------------
 var STATUS_CONFIG = {
   "prospecting": { label:"Em prospecção", color:"#64748b", bg:"#f8fafc", border:"#e2e8f0" },
@@ -443,6 +555,33 @@ function AccountCard(props) {
   var sc = STATUS_CONFIG[acc.status] || STATUS_CONFIG.prospecting;
   var _st_menuOpen = useState(false); var menuOpen = _st_menuOpen[0]; var setMenuOpen = _st_menuOpen[1];
   function handleStatus(s) { props.onStatusChange(acc.id, s); setMenuOpen(false); }
+
+  // ── Estado NAO MAPEADO ──────────────────────────────────────────────────
+  if (!acc.mapped) {
+    var isMapping = props.mapping;
+    return (
+      <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid "+(props.selected?"#4361EE":"rgba(228,235,244,.8)"),borderRadius:20,padding:"20px 22px",position:"relative",boxShadow:props.selected?"0 4px 16px rgba(67,97,238,.12)":"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,gap:10}}>
+          <div style={{display:"flex",alignItems:"flex-start",gap:10,flex:1,minWidth:0}}>
+            <input type="checkbox" checked={!!props.selected} onChange={function(){props.onToggleSelect(acc.id);}} disabled={isMapping} style={{marginTop:2,width:16,height:16,accentColor:"#4361EE",cursor:"pointer",flexShrink:0}}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+              <div style={{fontSize:11,color:"#94a3b8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.site || "Importada da lista"}</div>
+            </div>
+          </div>
+          <span style={{fontSize:8,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fde68a",borderRadius:6,padding:"3px 8px",flexShrink:0,textTransform:"uppercase",letterSpacing:.5}}>{"Não mapeada"}</span>
+        </div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <button onClick={function(e){e.stopPropagation();if(!isMapping)props.onMap(acc);}} disabled={isMapping} style={{flex:1,background:isMapping?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:isMapping?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"9px 0",fontSize:12,fontWeight:700,cursor:isMapping?"default":"pointer",fontFamily:"inherit",boxShadow:isMapping?"none":"0 4px 12px rgba(67,97,238,.25)"}}>
+            {isMapping ? "Mapeando..." : "Mapear conta"}
+          </button>
+          <button onClick={function(e){e.stopPropagation();props.onDelete(acc.id);}} disabled={isMapping} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"9px 11px",fontSize:11,cursor:isMapping?"default":"pointer",fontFamily:"inherit"}}>x</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Estado MAPEADO (card completo original) ─────────────────────────────
   return (
     <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid rgba(228,235,244,.8)",borderRadius:20,padding:"20px 22px",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",boxShadow:"0 2px 12px rgba(15,23,42,.06)"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-5px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(15,23,42,.14)";e.currentTarget.style.borderColor="rgba(67,97,238,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";e.currentTarget.style.borderColor="rgba(228,235,244,.8)";}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
@@ -1744,6 +1883,151 @@ function HomeView(props) {
   );
 }
 
+// -- SHARED MAPPING HELPERS (module scope so App + SearchView can both use) ---
+function isUrl(v) { return /^https?:\/\//i.test(v) || /^www\./.test(v); }
+function extractDomain(val) {
+  if (!isUrl(val)) return "";
+  try {
+    var url = val.startsWith("http") ? val : "https://" + val;
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch(e) { return ""; }
+}
+function buildData(company, searchResults) {
+  var lower = company.toLowerCase();
+  var tavilyAnswers = [];
+  if (Array.isArray(searchResults)) {
+    searchResults.forEach(function(block) {
+      if (block.answer && block.answer.trim().length > 20) tavilyAnswers.push(block.answer.trim());
+    });
+  }
+  var allText = tavilyAnswers.join(" ");
+  function extractVal(pats) {
+    for (var pi=0;pi<pats.length;pi++) { var m=allText.match(pats[pi]); if(m) return m[0]; }
+    return "";
+  }
+  var faturamento = extractVal([/R$[\s]*[\d,\.]+[\s]*(bilh[oo]es?|milh[oo]es?)/i]);
+  var funcionarios = extractVal([/[\d\.]+[\s]*mil[\s]*funcion[aa]rios?/i, /[\d\.]+([\s])*(funcion[aa]rios?|colaboradores?)/i]);
+  var clientes = extractVal([/[\d,\.]+[\s]*(milh[oo]es?|mil)[\s]*(de[\s]*)?(clientes?|usuarios?)/i]);
+  var isEcomm   = /magalu|americanas|shopee|mercado livre|amazon|via varejo|renner|centauro|dafiti/.test(lower);
+  var isFintech = /nubank|c6|inter|stone|pagseguro|pagbank|picpay|cielo|btg|xp|itau|bradesco|banco/.test(lower);
+  var isSaaS    = /totvs|linx|vtex|rdstation|senior|sankhya|contaazul|omie|piperun|agendor/.test(lower);
+  var isHealth  = /hapvida|amil|unimed|dasa|fleury|einstein|afya|hospital|clinica/.test(lower);
+  var isTelecom = /\bvivo\b|claro|\btim\b|algar|embratel/.test(lower);
+  var setor = isEcomm?"E-commerce / Varejo Digital":isFintech?"Fintech / Servicos Financeiros":isSaaS?"Software / SaaS B2B":isHealth?"Saude / Healthtech":isTelecom?"Telecomunicacoes":"Tecnologia / Mid Market";
+  var tier  = (isEcomm||isFintech||isSaaS||isTelecom) ? "Tier 1" : "Tier 2";
+  function buildResumo() {
+    if (!tavilyAnswers.length) return company+" e uma empresa de "+setor+" com operacao ativa no Brasil.";
+    // Filter to best PT-BR content
+    var ptAnswers = tavilyAnswers.filter(function(a) {
+      return a.length > 80 && /\b(empresa|brasil|compan|serv|produt|clientes|mercado|tecnolog|atend|fundad|operas|setor)\b/i.test(a);
+    });
+    var best = (ptAnswers.length ? ptAnswers : tavilyAnswers).slice(0,3);
+    // Deduplicate: remove sentences that appear in multiple answers
+    var sentences = [];
+    best.forEach(function(a) {
+      a.replace(/([^.!?]+[.!?]+)/g, function(s) {
+        var clean = s.trim();
+        if (clean.length < 30) return;
+        var isDup = sentences.some(function(existing) {
+          return existing.toLowerCase().slice(0,40) === clean.toLowerCase().slice(0,40);
+        });
+        if (!isDup) sentences.push(clean);
+      });
+    });
+    var text = sentences.slice(0,5).join(" ").trim();
+    if (!text) text = best[0].slice(0,500);
+    // Remove any raw URLs, brackets, asterisks
+    text = text.replace(/https?:\/\/\S+/g,"").replace(/\[.*?\]/g,"").replace(/\*+/g,"").replace(/\s+/g," ").trim();
+    return text.slice(0,600) || company+" e uma empresa de "+setor+" no Brasil.";
+  }
+  var resumo = buildResumo();
+  var allSources = [];
+  if (Array.isArray(searchResults)) {
+    searchResults.forEach(function(b) { (b.sources||[]).forEach(function(s){allSources.push(s);}); });
+  }
+  // Build noticias — sources have {title, url, content} from search API
+  var noticiasSources = allSources
+    .filter(function(s){ return s.url && (s.title||s.titulo); })
+    .filter(function(s){ return !/linkedin\.com|facebook\.com|instagram\.com|twitter\.com/.test(s.url||""); })
+    .slice(0,5)
+    .map(function(s){
+      var title = s.title || s.titulo || "";
+      var snippet = (s.content || s.resumo || "").replace(/https?:\/\/\S+/g,"").replace(/\s+/g," ").trim().slice(0,180);
+      return {titulo:title, resumo:snippet, url:s.url, relevancia:"Fonte de contexto"};
+    });
+  var noticias = noticiasSources.length ? noticiasSources : [{titulo:"Buscar noticias recentes de "+company, resumo:"Clique para pesquisar noticias sobre a empresa.", url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX 2024", relevancia:"Pesquisa sugerida"}];
+  return {
+    empresa:{nome:company,setor:setor,resumo:resumo,tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponivel",clientes:clientes||""},
+    fit:{score:"ALTO",justificativa:company+" atua em "+setor+", vertical de alto potencial para Zendesk Suite. Times de atendimento Mid Market com pressao de CSAT e custo por ticket sao nosso ICP principal.",solucoes_zendesk:["Zendesk Support (ticketing omnichannel)","Zendesk Messaging (chat e WhatsApp)","Help Center com IA generativa","Zendesk Explore (analytics e CSAT)","Workforce Management","QA e automacao de qualidade","Zendesk Sell (CRM de vendas)"]},
+    mercado:{competidores_provedor:["Freshdesk","Salesforce Service Cloud","HubSpot Service Hub","ServiceNow CSM","Intercom","LivePerson","TOTVS CRM","sistema interno legado"],concorrentes_mercado:[]},
+    dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rapido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
+    triggers:["Crescimento acelerado do time de atendimento (vagas abertas de agente/CX)","Alto volume de reclamacoes no Reclame Aqui ou redes sociais","Abertura ou expansao de canal digital (WhatsApp, chat, e-commerce)","Contratacao recente de Head de CX, VP de Ops ou Diretor de Atendimento","Insatisfacao com Freshdesk ou sistema legado","Lancamento de novo produto , aumento de demanda de suporte"],
+    stakeholders:[
+      {cargo:"Head de CX / Diretor de Atendimento",angulo:"Decisor principal. Sente pressao de CSAT, SLA e custo. Quer escalar sem contratar mais agentes.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
+      {cargo:"CEO / Diretor Geral",angulo:"Decisor economico. Ve CX como alavanca de retencao. Quer ROI claro e reducao de churn.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
+      {cargo:"VP / Diretor de Operacoes",angulo:"Co-decisor. Olha custo por ticket e eficiencia. Quer reducao de custo e SLA previsivel.",prioridade:"PRIMARIO",urgencia:"Media"},
+      {cargo:"Head de Customer Success",angulo:"Aliado. Quer integracao com CRM e visibilidade de clientes em risco de churn.",prioridade:"SECUNDARIO",urgencia:"Media"},
+      {cargo:"Gerente de TI / CTO",angulo:"Avalia viabilidade tecnica. Precisa de API robusta e suporte no processo de migracao.",prioridade:"SECUNDARIO",urgencia:"Media"},
+      {cargo:"CFO / Diretor Financeiro",angulo:"Aprova budget. Quer ROI mensuravel e comparativo de custo por ticket antes x depois.",prioridade:"TERCIARIO",urgencia:"Baixa"}
+    ],
+    noticias: noticias,
+    estrategia:{
+      tier:tier,
+      emails:[
+        {assunto:company+" + Zendesk , atendimento que escala",corpo:"Ola,\n\nChego ate voce porque "+company+" tem o perfil exato onde a Zendesk gera mais impacto em "+setor+". Empresas similares reduziram TMA em 35% e deflexionaram 28% dos tickets via self-service.\n\nTem disponibilidade para 20 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {assunto:company+": quanto custa um ticket sem resposta?",corpo:"Ola,\n\nCada 1% de queda no CSAT representa 2 a 3% de aumento no churn. Com Zendesk Suite, empresas de "+setor+" reduziram TMA em 35% e deflexionaram 28% dos tickets via self-service.\n\nPosso te mostrar em 20 minutos.\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {assunto:"Case: CSAT 68% para 89% em 90 dias , "+setor,corpo:"Ola,\n\nAjudamos recentemente uma empresa de "+setor+" a unificar todos os canais em 30 dias, aumentar CSAT de 68% para 89% e reduzir TMA em 35%.\n\nFaz sentido eu te contar como? 20 minutos essa semana.\n\nAbraco,\nBDR/SDR | Zendesk"}
+      ],
+      inmails:[
+        {assunto:company+" + Zendesk , vale 20 minutos?",corpo:"Ola!\n\nEmpresas de "+setor+" com o perfil da "+company+" aumentaram CSAT em 25% e reduziram 40% do custo por ticket com Zendesk Suite. Vale um papo?\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {assunto:"Pergunta sobre atendimento na "+company,corpo:"Voces tem visibilidade em tempo real do CSAT e SLA em todos os canais hoje? Se nao, tenho um benchmark do "+setor+" relevante.\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {assunto:company+" esta crescendo , parabens!",corpo:"Vi o crescimento da "+company+" em "+setor+". Esse e o momento em que CX pode ser vantagem ou gargalo. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"}
+      ],
+      whatsapps:[
+        "Oi [Nome], BDR da Zendesk. Vi que "+company+" tem operacao de atendimento em "+setor+". Empresas similares aumentaram CSAT em 25% e reduziram 40% do custo por ticket. Vale 15 minutos?",
+        "Oi [Nome]! BDR da Zendesk. Empresa de "+setor+" com perfil da "+company+" aumentou CSAT de 68% para 89% em 90 dias. Tenho um case. Posso te mandar?",
+        "Oi [Nome], BDR da Zendesk. Voce cuida de CX na "+company+"? Tenho algo sobre CSAT e custo por ticket. 15 minutos essa semana?"
+      ],
+      cold_calls:[
+        "Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos? [PAUSA] Ligo porque "+company+" tem o perfil exato onde geramos impacto em "+setor+". Empresas similares reduziram 40% do custo e aumentaram CSAT em 25% em 90 dias. Quando voce tem 20 minutos?",
+        "[Nome], bom dia! BDR da Zendesk. Pergunta direta: qual o CSAT atual de voces e o que acontece com o SLA quando o volume de tickets sobe?",
+        "Oi [Nome], BDR da Zendesk. Empresa de "+setor+" com perfil da "+company+" aumentou CSAT em 25 pontos em 90 dias. Vale 2 minutos agora?"
+      ],
+      perguntas_spin:[
+        "SITUACAO: Como esta o time de atendimento da "+company+" , quantos agentes, quais canais?",
+        "SITUACAO: Qual a ferramenta de helpdesk que voces usam e ha quanto tempo?",
+        "SITUACAO: Voces visualizam CSAT, SLA e volume em tempo real em todos os canais?",
+        "SITUACAO: Existe self-service ou base de conhecimento para os clientes?",
+        "PROBLEMA: Com que frequencia o SLA e estourado e qual o impacto no CSAT?",
+        "PROBLEMA: Quando o volume cresce, contratam mais agentes ou o SLA piora?",
+        "PROBLEMA: Os clientes precisam repetir o problema quando mudam de canal?",
+        "PROBLEMA: O time de TI gasta tempo mantendo customizacoes na ferramenta atual?",
+        "IMPLICACAO: Qual o impacto no churn quando um cliente fica insatisfeito?",
+        "IMPLICACAO: Se o CSAT continuar caindo, qual o impacto na renovacao e expansao?",
+        "IMPLICACAO: Qual o custo mensal do time e voces tem visibilidade do custo por ticket?",
+        "NECESSIDADE: Se deflexionassem 30% dos tickets com IA, o que isso liberaria?",
+        "NECESSIDADE: O que precisaria para CX subir de prioridade na "+company+"?",
+        "NECESSIDADE: Se eu mostrasse como aumentar CSAT em 25 pontos em 90 dias, valeria 20 minutos?"
+      ],
+      objecoes:[
+        {objecao:"Ja usamos Freshdesk e estamos satisfeitos",resposta:"A diferenca na pratica e na IA nativa, omnichannel real e analytics profundo com Explore. Vale ver lado a lado?"},
+        {objecao:"Nao temos budget para isso agora",resposta:"Posso mostrar o ROI baseado no custo por ticket atual? Clientes de "+setor+" costumam pagar a plataforma com a economia em 4 a 6 meses."},
+        {objecao:"Nossa TI nao tem capacidade",resposta:"Nosso CS conduz toda a implementacao. Empresas de "+setor+" ficaram no ar em media em 4 semanas sem demandar TI interna."},
+        {objecao:"Nao e prioridade agora",resposta:"Quando CX ganha prioridade , e antes ou depois de uma queda de CSAT que impacta churn?"},
+        {objecao:"Ja usamos Salesforce Service Cloud",resposta:"O Salesforce e poderoso. Zendesk e mais rapida para implementar, mais intuitiva para o agente e mais barata para escalar."},
+        {objecao:"Precisamos envolver mais areas",resposta:"Posso te ajudar a preparar o business case com ROI e casos do "+setor+" para facilitar a conversa interna."},
+        {objecao:"Ja tentamos uma ferramenta e o time nao adotou",resposta:"Problema de UX da ferramenta. Zendesk tem NPS de 86 entre agentes. Posso mostrar a interface em 10 minutos?"},
+        {objecao:"Preferimos desenvolver internamente",resposta:"Manter helpdesk interno custa em media 3x mais que a Zendesk em 2 anos. Posso mostrar o calculo?"}
+      ]
+    },
+    proximos_passos:{
+      ae:["Mapear organograma no LinkedIn , foco em Head de CX, CEO e VP de Ops da "+company,"Pesquisar vagas de agente CX e Analista de Atendimento , sinal de crescimento","Verificar "+company+" no Reclame Aqui , alto volume de reclamacoes e oportunidade","Buscar noticias de crescimento ou lancamento de produto da "+company,"Preparar business case com ROI da Zendesk Suite para "+setor,"InMail ao Head de CX ou CEO com contexto do "+setor],
+      bdr:["Cold call focado em Head de CX e CEO","WhatsApp com Loom referenciando Reclame Aqui ou crescimento recente","Sequencia de 3 emails: Custo de Ticket, Case CSAT, FUP Final","Monitorar LinkedIn , posts sobre CX, vagas abertas, mudanca de lideranca","Eventos: Conarec, ExpoRelations, NRF Brasil, summit de CX"],
+      prazo:"Primeira abordagem em ate 48 horas , prioridade Tier 1 se ha sinal de crescimento ou reclamacoes publicas."
+    }
+  };
+}
+
 function SearchView(props) {
   var _st_inputVal = useState(""); var inputVal = _st_inputVal[0]; var setInputVal = _st_inputVal[1];
   var _st_loading = useState(false); var loading = _st_loading[0]; var setLoading = _st_loading[1];
@@ -1752,149 +2036,6 @@ function SearchView(props) {
   var _st_duplicate = useState(null); var duplicate = _st_duplicate[0]; var setDuplicate = _st_duplicate[1];
   var _st_attachment = useState(null); var attachment = _st_attachment[0]; var setAttachment = _st_attachment[1];
   var _st_attachName = useState(""); var attachName = _st_attachName[0]; var setAttachName = _st_attachName[1];
-  function isUrl(v) { return /^https?:\/\//i.test(v) || /^www\./.test(v); }
-  function extractDomain(val) {
-    if (!isUrl(val)) return "";
-    try {
-      var url = val.startsWith("http") ? val : "https://" + val;
-      return new URL(url).hostname.replace(/^www\./, "");
-    } catch(e) { return ""; }
-  }
-  function buildData(company, searchResults) {
-    var lower = company.toLowerCase();
-    var tavilyAnswers = [];
-    if (Array.isArray(searchResults)) {
-      searchResults.forEach(function(block) {
-        if (block.answer && block.answer.trim().length > 20) tavilyAnswers.push(block.answer.trim());
-      });
-    }
-    var allText = tavilyAnswers.join(" ");
-    function extractVal(pats) {
-      for (var pi=0;pi<pats.length;pi++) { var m=allText.match(pats[pi]); if(m) return m[0]; }
-      return "";
-    }
-    var faturamento = extractVal([/R$[\s]*[\d,\.]+[\s]*(bilh[oo]es?|milh[oo]es?)/i]);
-    var funcionarios = extractVal([/[\d\.]+[\s]*mil[\s]*funcion[aa]rios?/i, /[\d\.]+([\s])*(funcion[aa]rios?|colaboradores?)/i]);
-    var clientes = extractVal([/[\d,\.]+[\s]*(milh[oo]es?|mil)[\s]*(de[\s]*)?(clientes?|usuarios?)/i]);
-    var isEcomm   = /magalu|americanas|shopee|mercado livre|amazon|via varejo|renner|centauro|dafiti/.test(lower);
-    var isFintech = /nubank|c6|inter|stone|pagseguro|pagbank|picpay|cielo|btg|xp|itau|bradesco|banco/.test(lower);
-    var isSaaS    = /totvs|linx|vtex|rdstation|senior|sankhya|contaazul|omie|piperun|agendor/.test(lower);
-    var isHealth  = /hapvida|amil|unimed|dasa|fleury|einstein|afya|hospital|clinica/.test(lower);
-    var isTelecom = /\bvivo\b|claro|\btim\b|algar|embratel/.test(lower);
-    var setor = isEcomm?"E-commerce / Varejo Digital":isFintech?"Fintech / Servicos Financeiros":isSaaS?"Software / SaaS B2B":isHealth?"Saude / Healthtech":isTelecom?"Telecomunicacoes":"Tecnologia / Mid Market";
-    var tier  = (isEcomm||isFintech||isSaaS||isTelecom) ? "Tier 1" : "Tier 2";
-    function buildResumo() {
-      if (!tavilyAnswers.length) return company+" e uma empresa de "+setor+" com operacao ativa no Brasil.";
-      // Filter to best PT-BR content
-      var ptAnswers = tavilyAnswers.filter(function(a) {
-        return a.length > 80 && /\b(empresa|brasil|compan|serv|produt|clientes|mercado|tecnolog|atend|fundad|operas|setor)\b/i.test(a);
-      });
-      var best = (ptAnswers.length ? ptAnswers : tavilyAnswers).slice(0,3);
-      // Deduplicate: remove sentences that appear in multiple answers
-      var sentences = [];
-      best.forEach(function(a) {
-        a.replace(/([^.!?]+[.!?]+)/g, function(s) {
-          var clean = s.trim();
-          if (clean.length < 30) return;
-          var isDup = sentences.some(function(existing) {
-            return existing.toLowerCase().slice(0,40) === clean.toLowerCase().slice(0,40);
-          });
-          if (!isDup) sentences.push(clean);
-        });
-      });
-      var text = sentences.slice(0,5).join(" ").trim();
-      if (!text) text = best[0].slice(0,500);
-      // Remove any raw URLs, brackets, asterisks
-      text = text.replace(/https?:\/\/\S+/g,"").replace(/\[.*?\]/g,"").replace(/\*+/g,"").replace(/\s+/g," ").trim();
-      return text.slice(0,600) || company+" e uma empresa de "+setor+" no Brasil.";
-    }
-    var resumo = buildResumo();
-    var allSources = [];
-    if (Array.isArray(searchResults)) {
-      searchResults.forEach(function(b) { (b.sources||[]).forEach(function(s){allSources.push(s);}); });
-    }
-    // Build noticias — sources have {title, url, content} from search API
-    var noticiasSources = allSources
-      .filter(function(s){ return s.url && (s.title||s.titulo); })
-      .filter(function(s){ return !/linkedin\.com|facebook\.com|instagram\.com|twitter\.com/.test(s.url||""); })
-      .slice(0,5)
-      .map(function(s){
-        var title = s.title || s.titulo || "";
-        var snippet = (s.content || s.resumo || "").replace(/https?:\/\/\S+/g,"").replace(/\s+/g," ").trim().slice(0,180);
-        return {titulo:title, resumo:snippet, url:s.url, relevancia:"Fonte de contexto"};
-      });
-    var noticias = noticiasSources.length ? noticiasSources : [{titulo:"Buscar noticias recentes de "+company, resumo:"Clique para pesquisar noticias sobre a empresa.", url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX 2024", relevancia:"Pesquisa sugerida"}];
-    return {
-      empresa:{nome:company,setor:setor,resumo:resumo,tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponivel",clientes:clientes||""},
-      fit:{score:"ALTO",justificativa:company+" atua em "+setor+", vertical de alto potencial para Zendesk Suite. Times de atendimento Mid Market com pressao de CSAT e custo por ticket sao nosso ICP principal.",solucoes_zendesk:["Zendesk Support (ticketing omnichannel)","Zendesk Messaging (chat e WhatsApp)","Help Center com IA generativa","Zendesk Explore (analytics e CSAT)","Workforce Management","QA e automacao de qualidade","Zendesk Sell (CRM de vendas)"]},
-      mercado:{competidores_provedor:["Freshdesk","Salesforce Service Cloud","HubSpot Service Hub","ServiceNow CSM","Intercom","LivePerson","TOTVS CRM","sistema interno legado"],concorrentes_mercado:[]},
-      dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rapido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
-      triggers:["Crescimento acelerado do time de atendimento (vagas abertas de agente/CX)","Alto volume de reclamacoes no Reclame Aqui ou redes sociais","Abertura ou expansao de canal digital (WhatsApp, chat, e-commerce)","Contratacao recente de Head de CX, VP de Ops ou Diretor de Atendimento","Insatisfacao com Freshdesk ou sistema legado","Lancamento de novo produto , aumento de demanda de suporte"],
-      stakeholders:[
-        {cargo:"Head de CX / Diretor de Atendimento",angulo:"Decisor principal. Sente pressao de CSAT, SLA e custo. Quer escalar sem contratar mais agentes.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
-        {cargo:"CEO / Diretor Geral",angulo:"Decisor economico. Ve CX como alavanca de retencao. Quer ROI claro e reducao de churn.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
-        {cargo:"VP / Diretor de Operacoes",angulo:"Co-decisor. Olha custo por ticket e eficiencia. Quer reducao de custo e SLA previsivel.",prioridade:"PRIMARIO",urgencia:"Media"},
-        {cargo:"Head de Customer Success",angulo:"Aliado. Quer integracao com CRM e visibilidade de clientes em risco de churn.",prioridade:"SECUNDARIO",urgencia:"Media"},
-        {cargo:"Gerente de TI / CTO",angulo:"Avalia viabilidade tecnica. Precisa de API robusta e suporte no processo de migracao.",prioridade:"SECUNDARIO",urgencia:"Media"},
-        {cargo:"CFO / Diretor Financeiro",angulo:"Aprova budget. Quer ROI mensuravel e comparativo de custo por ticket antes x depois.",prioridade:"TERCIARIO",urgencia:"Baixa"}
-      ],
-      noticias: noticias,
-      estrategia:{
-        tier:tier,
-        emails:[
-          {assunto:company+" + Zendesk , atendimento que escala",corpo:"Ola,\n\nChego ate voce porque "+company+" tem o perfil exato onde a Zendesk gera mais impacto em "+setor+". Empresas similares reduziram TMA em 35% e deflexionaram 28% dos tickets via self-service.\n\nTem disponibilidade para 20 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
-          {assunto:company+": quanto custa um ticket sem resposta?",corpo:"Ola,\n\nCada 1% de queda no CSAT representa 2 a 3% de aumento no churn. Com Zendesk Suite, empresas de "+setor+" reduziram TMA em 35% e deflexionaram 28% dos tickets via self-service.\n\nPosso te mostrar em 20 minutos.\n\nAbraco,\nBDR/SDR | Zendesk"},
-          {assunto:"Case: CSAT 68% para 89% em 90 dias , "+setor,corpo:"Ola,\n\nAjudamos recentemente uma empresa de "+setor+" a unificar todos os canais em 30 dias, aumentar CSAT de 68% para 89% e reduzir TMA em 35%.\n\nFaz sentido eu te contar como? 20 minutos essa semana.\n\nAbraco,\nBDR/SDR | Zendesk"}
-        ],
-        inmails:[
-          {assunto:company+" + Zendesk , vale 20 minutos?",corpo:"Ola!\n\nEmpresas de "+setor+" com o perfil da "+company+" aumentaram CSAT em 25% e reduziram 40% do custo por ticket com Zendesk Suite. Vale um papo?\n\nAbraco,\nBDR/SDR | Zendesk"},
-          {assunto:"Pergunta sobre atendimento na "+company,corpo:"Voces tem visibilidade em tempo real do CSAT e SLA em todos os canais hoje? Se nao, tenho um benchmark do "+setor+" relevante.\n\nAbraco,\nBDR/SDR | Zendesk"},
-          {assunto:company+" esta crescendo , parabens!",corpo:"Vi o crescimento da "+company+" em "+setor+". Esse e o momento em que CX pode ser vantagem ou gargalo. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"}
-        ],
-        whatsapps:[
-          "Oi [Nome], BDR da Zendesk. Vi que "+company+" tem operacao de atendimento em "+setor+". Empresas similares aumentaram CSAT em 25% e reduziram 40% do custo por ticket. Vale 15 minutos?",
-          "Oi [Nome]! BDR da Zendesk. Empresa de "+setor+" com perfil da "+company+" aumentou CSAT de 68% para 89% em 90 dias. Tenho um case. Posso te mandar?",
-          "Oi [Nome], BDR da Zendesk. Voce cuida de CX na "+company+"? Tenho algo sobre CSAT e custo por ticket. 15 minutos essa semana?"
-        ],
-        cold_calls:[
-          "Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos? [PAUSA] Ligo porque "+company+" tem o perfil exato onde geramos impacto em "+setor+". Empresas similares reduziram 40% do custo e aumentaram CSAT em 25% em 90 dias. Quando voce tem 20 minutos?",
-          "[Nome], bom dia! BDR da Zendesk. Pergunta direta: qual o CSAT atual de voces e o que acontece com o SLA quando o volume de tickets sobe?",
-          "Oi [Nome], BDR da Zendesk. Empresa de "+setor+" com perfil da "+company+" aumentou CSAT em 25 pontos em 90 dias. Vale 2 minutos agora?"
-        ],
-        perguntas_spin:[
-          "SITUACAO: Como esta o time de atendimento da "+company+" , quantos agentes, quais canais?",
-          "SITUACAO: Qual a ferramenta de helpdesk que voces usam e ha quanto tempo?",
-          "SITUACAO: Voces visualizam CSAT, SLA e volume em tempo real em todos os canais?",
-          "SITUACAO: Existe self-service ou base de conhecimento para os clientes?",
-          "PROBLEMA: Com que frequencia o SLA e estourado e qual o impacto no CSAT?",
-          "PROBLEMA: Quando o volume cresce, contratam mais agentes ou o SLA piora?",
-          "PROBLEMA: Os clientes precisam repetir o problema quando mudam de canal?",
-          "PROBLEMA: O time de TI gasta tempo mantendo customizacoes na ferramenta atual?",
-          "IMPLICACAO: Qual o impacto no churn quando um cliente fica insatisfeito?",
-          "IMPLICACAO: Se o CSAT continuar caindo, qual o impacto na renovacao e expansao?",
-          "IMPLICACAO: Qual o custo mensal do time e voces tem visibilidade do custo por ticket?",
-          "NECESSIDADE: Se deflexionassem 30% dos tickets com IA, o que isso liberaria?",
-          "NECESSIDADE: O que precisaria para CX subir de prioridade na "+company+"?",
-          "NECESSIDADE: Se eu mostrasse como aumentar CSAT em 25 pontos em 90 dias, valeria 20 minutos?"
-        ],
-        objecoes:[
-          {objecao:"Ja usamos Freshdesk e estamos satisfeitos",resposta:"A diferenca na pratica e na IA nativa, omnichannel real e analytics profundo com Explore. Vale ver lado a lado?"},
-          {objecao:"Nao temos budget para isso agora",resposta:"Posso mostrar o ROI baseado no custo por ticket atual? Clientes de "+setor+" costumam pagar a plataforma com a economia em 4 a 6 meses."},
-          {objecao:"Nossa TI nao tem capacidade",resposta:"Nosso CS conduz toda a implementacao. Empresas de "+setor+" ficaram no ar em media em 4 semanas sem demandar TI interna."},
-          {objecao:"Nao e prioridade agora",resposta:"Quando CX ganha prioridade , e antes ou depois de uma queda de CSAT que impacta churn?"},
-          {objecao:"Ja usamos Salesforce Service Cloud",resposta:"O Salesforce e poderoso. Zendesk e mais rapida para implementar, mais intuitiva para o agente e mais barata para escalar."},
-          {objecao:"Precisamos envolver mais areas",resposta:"Posso te ajudar a preparar o business case com ROI e casos do "+setor+" para facilitar a conversa interna."},
-          {objecao:"Ja tentamos uma ferramenta e o time nao adotou",resposta:"Problema de UX da ferramenta. Zendesk tem NPS de 86 entre agentes. Posso mostrar a interface em 10 minutos?"},
-          {objecao:"Preferimos desenvolver internamente",resposta:"Manter helpdesk interno custa em media 3x mais que a Zendesk em 2 anos. Posso mostrar o calculo?"}
-        ]
-      },
-      proximos_passos:{
-        ae:["Mapear organograma no LinkedIn , foco em Head de CX, CEO e VP de Ops da "+company,"Pesquisar vagas de agente CX e Analista de Atendimento , sinal de crescimento","Verificar "+company+" no Reclame Aqui , alto volume de reclamacoes e oportunidade","Buscar noticias de crescimento ou lancamento de produto da "+company,"Preparar business case com ROI da Zendesk Suite para "+setor,"InMail ao Head de CX ou CEO com contexto do "+setor],
-        bdr:["Cold call focado em Head de CX e CEO","WhatsApp com Loom referenciando Reclame Aqui ou crescimento recente","Sequencia de 3 emails: Custo de Ticket, Case CSAT, FUP Final","Monitorar LinkedIn , posts sobre CX, vagas abertas, mudanca de lideranca","Eventos: Conarec, ExpoRelations, NRF Brasil, summit de CX"],
-        prazo:"Primeira abordagem em ate 48 horas , prioridade Tier 1 se ha sinal de crescimento ou reclamacoes publicas."
-      }
-    };
-  }
   function doEnrich(nome, domain) {
     fetch("/api/stakeholders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company:nome,domain:domain})})
       .then(function(r){return r.ok?r.json():null;})
@@ -2055,10 +2196,50 @@ function SearchView(props) {
 // -- ACCOUNTS VIEW -------------------------------------------------------------
 function AccountsView(props) {
   var accounts = props.accounts;
+  var usage = props.usage;
   var _st_filter = useState({fit:"",tier:"",status:""}); var filter = _st_filter[0]; var setFilter = _st_filter[1];
   var _st_search = useState(""); var search = _st_search[0]; var setSearch = _st_search[1];
   var _st_viewMode = useState("cards"); var viewMode = _st_viewMode[0]; var setViewMode = _st_viewMode[1];
   var _st_sortOrder = useState("date"); var sortOrder = _st_sortOrder[0]; var setSortOrder = _st_sortOrder[1];
+  var _st_csvPreview = useState(null); var csvPreview = _st_csvPreview[0]; var setCsvPreview = _st_csvPreview[1];
+  var _st_selected = useState({}); var selected = _st_selected[0]; var setSelected = _st_selected[1];
+  var _st_planMenu = useState(false); var planMenu = _st_planMenu[0]; var setPlanMenu = _st_planMenu[1];
+  var fileRef = useRef(null);
+
+  function onCsvPick(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var parsed = parseCSV(String(ev.target.result||""));
+      setCsvPreview(parsed);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+  function confirmImport() {
+    if (csvPreview && csvPreview.rows && csvPreview.rows.length && props.onImport) {
+      props.onImport(csvPreview.rows);
+    }
+    setCsvPreview(null);
+  }
+  function toggleSelect(id) {
+    setSelected(function(prev){ var n=Object.assign({},prev); if(n[id]) delete n[id]; else n[id]=true; return n; });
+  }
+  function mapSelected() {
+    var ids = Object.keys(selected);
+    var toMap = accounts.filter(function(a){ return ids.indexOf(a.id)>=0 && !a.mapped; });
+    if (!toMap.length) return;
+    // Sequential mapping to respect the usage limit one-by-one
+    (function next(i){
+      if (i>=toMap.length) { setSelected({}); return; }
+      props.onMap(toMap[i]).then(function(ok){
+        if (!ok) { setSelected({}); return; } // limite atingido, para
+        next(i+1);
+      });
+    })(0);
+  }
+  var selectedCount = Object.keys(selected).length;
   var filtered = accounts.filter(function(a) {
     if (filter.fit && a.fit !== filter.fit) return false;
     if (filter.tier && a.tier !== filter.tier) return false;
@@ -2082,9 +2263,14 @@ function AccountsView(props) {
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
         <div>
           <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Contas</div>
-          <div style={{fontSize:13,color:"#64748b"}}>{accounts.length + " empresa" + (accounts.length!==1?"s":"") + " mapeada" + (accounts.length!==1?"s":"")}</div>
+          <div style={{fontSize:13,color:"#64748b"}}>{accounts.length + " conta" + (accounts.length!==1?"s":"") + " na lista"}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={onCsvPick} style={{display:"none"}}/>
+          <button onClick={function(){fileRef.current&&fileRef.current.click();}} style={{background:"#fff",border:"1.5px solid #4361EE",color:"#4361EE",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            {"Importar CSV"}
+          </button>
           <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
             <option value="date">Mais recente</option>
             <option value="az">A - Z</option>
@@ -2106,6 +2292,80 @@ function AccountsView(props) {
           </div>
         </div>
       </div>
+      {usage && (
+        <div style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"14px 18px",marginBottom:18}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:8}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{position:"relative"}}>
+                <button onClick={function(){setPlanMenu(!planMenu);}} title="Trocar plano (demo)" style={{display:"flex",alignItems:"center",gap:5,fontSize:9,fontWeight:700,color:"#fff",background:usage.planColor,border:"none",borderRadius:6,padding:"3px 8px",textTransform:"uppercase",letterSpacing:.5,cursor:"pointer",fontFamily:"inherit"}}>
+                  {usage.planLabel}
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                {planMenu && (
+                  <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"#fff",border:"1.5px solid #e8edf4",borderRadius:12,boxShadow:"0 8px 32px rgba(15,23,42,.12)",zIndex:60,minWidth:180,overflow:"hidden"}}>
+                    <div style={{padding:"8px 12px",fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.6,borderBottom:"1px solid #f1f5f9"}}>{"Plano (demo)"}</div>
+                    {["free","starter","professional"].map(function(pid) {
+                      var p = PLANS[pid];
+                      var isCurrent = usage.plan===pid;
+                      return (
+                        <div key={pid} onClick={function(){ if(props.onChangePlan)props.onChangePlan(pid); setPlanMenu(false); }} style={{padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,background:isCurrent?"#f0f3ff":"#fff"}} onMouseEnter={function(e){if(!isCurrent)e.currentTarget.style.background="#f8fafc";}} onMouseLeave={function(e){if(!isCurrent)e.currentTarget.style.background="#fff";}}>
+                          <span style={{width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0}}/>
+                          <span style={{fontSize:12,fontWeight:700,color:"#0f172a",flex:1}}>{p.label}</span>
+                          <span style={{fontSize:10,color:"#64748b"}}>{p.limit + "/mês"}</span>
+                          {isCurrent && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
+            </div>
+            <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mês"}</span>
+          </div>
+          <div style={{height:8,background:"#f1f5f9",borderRadius:8,overflow:"hidden"}}>
+            <div style={{height:"100%",width:Math.min(100,Math.round((usage.used/usage.limit)*100))+"%",background:usage.remaining<=3?"linear-gradient(90deg,#ef4444,#f59e0b)":"linear-gradient(90deg,"+usage.planColor+",#3451d1)",borderRadius:8,transition:"width .4s"}}/>
+          </div>
+        </div>
+      )}
+      {selectedCount>0 && (
+        <div style={{background:"linear-gradient(135deg,rgba(67,97,238,.08),rgba(14,165,233,.05))",border:"1.5px solid rgba(67,97,238,.2)",borderRadius:14,padding:"12px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+          <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{selectedCount + " selecionada" + (selectedCount!==1?"s":"")}</span>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={function(){setSelected({});}} style={{background:"#fff",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Limpar"}</button>
+            <button onClick={mapSelected} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 12px rgba(67,97,238,.25)"}}>{"Mapear selecionadas"}</button>
+          </div>
+        </div>
+      )}
+      {csvPreview && (
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.65)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
+          <div style={{background:"#fff",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.25)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:6}}>{"Importar contas"}</div>
+            {csvPreview.error ? (
+              <div style={{fontSize:13,color:"#ef4444",background:"#fff1f2",border:"1px solid #fecdd3",borderRadius:10,padding:"12px 14px",marginTop:8}}>{csvPreview.error}</div>
+            ) : (
+              <div style={{display:"flex",flexDirection:"column",minHeight:0}}>
+                <div style={{fontSize:12,color:"#64748b",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas como nao mapeadas (sem consumir creditos)."}</div>
+                <div style={{overflowY:"auto",border:"1px solid #f1f5f9",borderRadius:10,marginBottom:16}}>
+                  {csvPreview.rows.slice(0,50).map(function(r,i){
+                    return (
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderBottom:i<csvPreview.rows.length-1?"1px solid #f8fafc":"none"}}>
+                        <span style={{fontSize:12,fontWeight:600,color:"#0f172a",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
+                        {r.site && <span style={{fontSize:10,color:"#94a3b8",flexShrink:0}}>{r.site}</span>}
+                      </div>
+                    );
+                  })}
+                  {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"#94a3b8"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
+                </div>
+              </div>
+            )}
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              {!csvPreview.error && <button onClick={confirmImport} style={{flex:2,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{"Importar " + csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"")}</button>}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="status-chips" style={{display:"flex",gap:10,marginBottom:24,overflowX:"auto",paddingBottom:4}}>
         {STATUS_ORDER.map(function(s) {
           var sc = STATUS_CONFIG[s];
@@ -2142,13 +2402,13 @@ function AccountsView(props) {
       {filtered.length===0 ? (
         <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
           <div style={{fontSize:36,marginBottom:12}}>{"🔍"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{accounts.length===0?"Nenhuma conta mapeada ainda":"Nenhuma conta com esses filtros"}</div>
-          <div style={{fontSize:12,color:"#6b7280"}}>{accounts.length===0?"Va para Busca e analise sua primeira empresa":"Tente limpar os filtros"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{accounts.length===0?"Nenhuma conta ainda":"Nenhuma conta com esses filtros"}</div>
+          <div style={{fontSize:12,color:"#6b7280"}}>{accounts.length===0?"Importe uma lista CSV ou va para Busca para analisar empresas":"Tente limpar os filtros"}</div>
         </div>
       ) : viewMode==="cards" ? (
         <div className="card-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
           {filtered.map(function(acc) {
-            return <AccountCard key={acc.id} acc={acc} onOpen={props.onOpen} onStatusChange={props.onStatusChange} onDelete={props.onDelete}/>;
+            return <AccountCard key={acc.id} acc={acc} onOpen={props.onOpen} onStatusChange={props.onStatusChange} onDelete={props.onDelete} onMap={props.onMap} mapping={props.mappingId===acc.id} selected={!!selected[acc.id]} onToggleSelect={toggleSelect}/>;
           })}
         </div>
       ) : (
@@ -2156,6 +2416,21 @@ function AccountsView(props) {
           {filtered.map(function(acc) {
             var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
             var sc = STATUS_CONFIG[acc.status]||STATUS_CONFIG.prospecting;
+            if (!acc.mapped) {
+              var isMapping = props.mappingId===acc.id;
+              return (
+                <div key={acc.id} style={{background:"#fff",border:"1px solid "+(selected[acc.id]?"#4361EE":"#e8edf4"),borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                  <input type="checkbox" checked={!!selected[acc.id]} onChange={function(){toggleSelect(acc.id);}} disabled={isMapping} style={{width:16,height:16,accentColor:"#4361EE",cursor:"pointer",flexShrink:0}}/>
+                  <div style={{flex:1,minWidth:120}}>
+                    <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                    <div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>{acc.site||"Importada da lista"}</div>
+                  </div>
+                  <span style={{fontSize:8,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fde68a",borderRadius:6,padding:"3px 8px",flexShrink:0,textTransform:"uppercase",letterSpacing:.5}}>{"Não mapeada"}</span>
+                  <button onClick={function(){if(!isMapping)props.onMap(acc);}} disabled={isMapping} style={{background:isMapping?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:isMapping?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:11,fontWeight:700,cursor:isMapping?"default":"pointer",fontFamily:"inherit",flexShrink:0}}>{isMapping?"Mapeando...":"Mapear"}</button>
+                  <button onClick={function(){props.onDelete(acc.id);}} disabled={isMapping} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"6px 9px",fontSize:10,cursor:isMapping?"default":"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
+                </div>
+              );
+            }
             return (
               <div key={acc.id} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
                 <div style={{flex:1,minWidth:0}}>
@@ -2693,11 +2968,16 @@ export default function App() {
   var sidebarExpanded = sidebarPinned || sidebarHover;
   var _st_seqCount = useState(0); var seqCount = _st_seqCount[0]; var setSeqCount = _st_seqCount[1];
   var _st_openSeq = useState(null); var openSeq = _st_openSeq[0]; var setOpenSeq = _st_openSeq[1];
+  var _st_usage = useState(null); var usage = _st_usage[0]; var setUsage = _st_usage[1];
+  var _st_mappingId = useState(null); var mappingId = _st_mappingId[0]; var setMappingId = _st_mappingId[1];
+  function refreshUsage() { getUsage().then(setUsage); }
+  function changePlan(planId) { setPlan(planId).then(function(){ refreshUsage(); }); }
   function showToast(msg, color) {
     setToast({msg:msg,color:color||"#3451d1"});
     setTimeout(function(){setToast(null);}, 3000);
   }
   useEffect(function() {
+    refreshUsage();
     Promise.all([
       storageList("acc:"),
       storageList("seq:")
@@ -2706,14 +2986,14 @@ export default function App() {
       setSeqCount(seqKeys.length);
       if (!accKeys.length) { setLoading(false); return; }
       return Promise.all(accKeys.map(storageGet)).then(function(items) {
-        var valid = items.filter(Boolean).sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
+        var valid = items.filter(Boolean).map(function(a){ if(a.mapped===undefined) a.mapped = !!a.data; return a; }).sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
         setAccounts(valid); setLoading(false);
       });
     }).catch(function(){setLoading(false);});
   }, []);
   function saveAccount(nome, data, liveMode, attachData, attachFileName) {
     var id = "acc:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
-    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estrategia&&data.estrategia.tier)||"Tier 2", status:"prospecting", liveMode:liveMode||false, savedAt:Date.now(), data:data, attachData:attachData||null, attachFileName:attachFileName||"" };
+    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estrategia&&data.estrategia.tier)||"Tier 2", status:"prospecting", mapped:true, liveMode:liveMode||false, savedAt:Date.now(), data:data, attachData:attachData||null, attachFileName:attachFileName||"" };
     storageSet(id, acc).then(function() {
       setAccounts(function(prev){return [acc].concat(prev);});
     });
@@ -2726,6 +3006,80 @@ export default function App() {
       storageSet(cid, contact);
     });
   }
+  // Importa contas da lista CSV como "unmapped" (sem custo, sem IA)
+  function importAccounts(rows) {
+    var existingNames = {};
+    accounts.forEach(function(a){ existingNames[(a.nome||"").toLowerCase().trim()] = true; });
+    var created = [];
+    rows.forEach(function(row) {
+      var key = (row.nome||"").toLowerCase().trim();
+      if (!key || existingNames[key]) return;
+      existingNames[key] = true;
+      var id = "acc:" + Date.now() + "-" + Math.random().toString(36).slice(2,8);
+      var acc = {
+        id:id, nome:row.nome, setor:"Aguardando mapeamento",
+        fit:"-", tier:"-", status:"prospecting",
+        mapped:false, site:row.site||"", linkedin:row.linkedin||"",
+        liveMode:false, savedAt:Date.now(), data:null
+      };
+      created.push(acc);
+      storageSet(id, acc);
+    });
+    if (created.length) {
+      setAccounts(function(prev){ return created.concat(prev); });
+      showToast(created.length + " conta" + (created.length!==1?"s":"") + " importada" + (created.length!==1?"s":"") + " (aguardando mapeamento).", "#10b981");
+    } else {
+      showToast("Nenhuma conta nova (todas ja existem na lista).", "#f59e0b");
+    }
+    return created.length;
+  }
+
+  // Mapeia uma conta sob demanda -> consome 1 credito do plano
+  function mapAccount(acc) {
+    return new Promise(function(resolve) {
+      consumeMapping().then(function(res) {
+        if (!res.ok) {
+          if (res.reason === "limit") {
+            showToast("Limite do plano atingido (" + res.usage.used + "/" + res.usage.limit + "). Faça upgrade para mapear mais.", "#ef4444");
+          } else {
+            showToast("Nao foi possivel registrar o uso.", "#ef4444");
+          }
+          setUsage(res.usage);
+          resolve(false);
+          return;
+        }
+        setUsage(res.usage);
+        setMappingId(acc.id);
+        var nome = acc.nome;
+        var domain = acc.site ? extractDomain(acc.site) : extractDomain(nome);
+        fetch("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company:nome,context:""})})
+          .then(function(r){ if(!r.ok) throw new Error("http"); return r.json(); })
+          .then(function(resp){
+            finishMapping(acc, buildData(nome, resp.results), true, domain);
+            resolve(true);
+          })
+          .catch(function(){
+            finishMapping(acc, buildData(nome, null), false, domain);
+            resolve(true);
+          });
+      });
+    });
+  }
+
+  function finishMapping(acc, data, liveMode, domain) {
+    var updated = Object.assign({}, acc, {
+      mapped:true, liveMode:liveMode, data:data,
+      setor:(data.empresa&&data.empresa.setor)||"Empresa",
+      fit:(data.fit&&data.fit.score)||"ALTO",
+      tier:(data.estrategia&&data.estrategia.tier)||"Tier 2",
+      mappedAt:Date.now()
+    });
+    storageSet(acc.id, updated);
+    setAccounts(function(prev){ return prev.map(function(a){ return a.id===acc.id ? updated : a; }); });
+    setMappingId(null);
+    showToast("Conta mapeada: " + acc.nome, "#10b981");
+  }
+
   function updateStatus(id, status) {
     setAccounts(function(prev) {
       return prev.map(function(a) {
@@ -2842,7 +3196,7 @@ export default function App() {
             <div key={nav} style={{animation:"fadeUp .4s cubic-bezier(.4,0,.2,1) both"}}>
               {nav==="home"      && <HomeView accounts={accounts} onNav={setNav}/>}
               {nav==="search"    && <SearchView accounts={accounts} onSave={saveAccount} onOpenAccount={function(acc){setOpenAcc(acc);}} onUpdateAccount={function(updated){setAccounts(function(prev){return prev.map(function(a){return a.id===updated.id?updated:a;});});}}/>}
-              {nav==="accounts"  && <AccountsView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus} onDelete={deleteAccount}/>}
+              {nav==="accounts"  && <AccountsView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus} onDelete={deleteAccount} usage={usage} onImport={importAccounts} onMap={mapAccount} mappingId={mappingId} onChangePlan={changePlan}/>}
               {nav==="sequences" && <SequenceView accounts={accounts} showToast={showToast}/>}
               {nav==="relatorios"&& <InsightsView accounts={accounts}/>}
               {nav==="biblioteca" && <BibliotecaView showToast={showToast} onCountChange={setSeqCount} onOpenSeq={setOpenSeq}/>}
