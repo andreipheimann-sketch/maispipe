@@ -407,27 +407,27 @@ function SequenceView(props) {
 function SequenceModal(props) {
   var seq = props.seq;
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"24px 16px",overflowY:"auto",backdropFilter:"blur(8px)"}}>
-      <div style={{background:"rgba(255,255,255,.98)",borderRadius:24,width:"100%",maxWidth:680,boxShadow:"0 32px 100px rgba(15,23,42,.28),0 0 0 1px rgba(255,255,255,.8)",marginBottom:24}}>
-        <div style={{padding:"22px 28px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-          <div>
-            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:3}}>{seq.account && seq.account.nome}</div>
-            <div style={{fontSize:12,color:"#6b7280"}}>{seq.profile && seq.profile.label + ", " + fmtDate(seq.createdAt)}</div>
+    <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"12px 8px",overflowY:"auto",overflowX:"hidden",backdropFilter:"blur(8px)",boxSizing:"border-box"}}>
+      <div style={{background:"rgba(255,255,255,.98)",borderRadius:20,width:"100%",maxWidth:680,boxShadow:"0 32px 100px rgba(15,23,42,.28)",marginBottom:16,boxSizing:"border-box",minWidth:0}}>
+        <div style={{padding:"16px 16px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+          <div style={{minWidth:0,flex:1}}>
+            <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account && seq.account.nome}</div>
+            <div style={{fontSize:11,color:"#6b7280"}}>{seq.profile && seq.profile.label + ", " + fmtDate(seq.createdAt)}</div>
           </div>
-          <button onClick={props.onClose} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:10,padding:"8px 12px",cursor:"pointer",color:"#64748b",fontSize:18,lineHeight:1,fontFamily:"inherit"}}>x</button>
+          <button onClick={props.onClose} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:10,padding:"6px 10px",cursor:"pointer",color:"#64748b",fontSize:16,lineHeight:1,fontFamily:"inherit",flexShrink:0}}>x</button>
         </div>
-        <div style={{padding:"22px 28px",display:"flex",flexDirection:"column",gap:14}}>
+        <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:12}}>
           {safeArr(seq.touches).map(function(touch, idx) {
             var tc = TOUCH_TYPES[touch.type] || TOUCH_TYPES.email;
             return (
-              <div key={idx} style={{border:"1.5px solid #e8edf4",borderRadius:14,overflow:"hidden"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 16px",background:"#fafafa",borderBottom:"1px solid #f1f5f9"}}>
-                  <span style={{fontSize:11,fontWeight:700,color:tc.color}}>{tc.label}</span>
-                  <span style={{background:tc.bg,color:tc.color,borderRadius:20,padding:"1px 8px",fontSize:9,fontWeight:700}}>{"Dia " + touch.day}</span>
-                  <div style={{flex:1,fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
+              <div key={idx} style={{border:"1.5px solid #e8edf4",borderRadius:12,overflow:"hidden"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,padding:"9px 12px",background:"#fafafa",borderBottom:"1px solid #f1f5f9",flexWrap:"wrap"}}>
+                  <span style={{fontSize:10,fontWeight:700,color:tc.color,flexShrink:0}}>{tc.label}</span>
+                  <span style={{background:tc.bg,color:tc.color,borderRadius:20,padding:"1px 7px",fontSize:9,fontWeight:700,flexShrink:0}}>{"Dia " + touch.day}</span>
+                  <div style={{flex:1,minWidth:60,fontSize:10,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
                   <CopyBtn text={(touch.type==="email"||touch.type==="linkedin"?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
                 </div>
-                <div style={{padding:"14px 16px",fontSize:12,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.8}}>{touch.body}</div>
+                <div style={{padding:"12px",fontSize:12,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.8,wordBreak:"break-word",overflowWrap:"break-word"}}>{touch.body}</div>
               </div>
             );
           })}
