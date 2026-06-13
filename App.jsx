@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import ReactDOM from "react-dom";
 // -- STORAGE , localStorage (persists across reloads) -------------------------
 var STORAGE_PREFIX = "bdrhelper_";
 function storageGet(key) {
@@ -407,7 +406,7 @@ function SequenceView(props) {
 // -- SEQUENCE MODAL ------------------------------------------------------------
 function SequenceModal(props) {
   var seq = props.seq;
-  var el = (
+  return (
     <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(15,23,42,.75)",zIndex:9999,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"12px 10px",overflowY:"auto",overflowX:"hidden",WebkitOverflowScrolling:"touch"}} onClick={function(e){if(e.target===e.currentTarget)props.onClose();}}>
       <div style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:660,boxShadow:"0 24px 80px rgba(15,23,42,.3)",marginBottom:16,flexShrink:0}} onClick={function(e){e.stopPropagation();}}>
         <div style={{padding:"14px 14px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
@@ -436,7 +435,6 @@ function SequenceModal(props) {
       </div>
     </div>
   );
-  return ReactDOM.createPortal(el, document.body);
 }
 // -- ACCOUNT CARD --------------------------------------------------------------
 function AccountCard(props) {
@@ -1392,31 +1390,33 @@ function ContactsView(props) {
                   {expandedGroups[empresa] && <div style={{display:"flex",flexDirection:"column",gap:8,paddingLeft:8,paddingBottom:4,border:"1px solid rgba(67,97,238,.14)",borderTop:"none",borderRadius:"0 0 12px 12px",background:"#fafbff",padding:"10px 8px 10px 12px"}}>
                     {group.map(function(c) {
                       return (
-                        <div key={c.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
-                          <div style={{width:38,height:38,borderRadius:10,background:"linear-gradient(135deg,#4361EE,#0ea5e9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                            <span style={{fontSize:14,color:"#fff",fontWeight:700}}>{(c.nome||"?")[0].toUpperCase()}</span>
+                        <div key={c.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:14,padding:"12px 14px",display:"flex",flexDirection:"column",gap:10,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
+                          <div style={{display:"flex",alignItems:"center",gap:10}}>
+                            <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#4361EE,#0ea5e9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                              <span style={{fontSize:13,color:"#fff",fontWeight:700}}>{(c.nome||c.cargo||"?")[0].toUpperCase()}</span>
+                            </div>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome||c.cargo}</div>
+                              {c.nome && c.cargo && c.nome!==c.cargo && <div style={{fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo}</div>}
+                            </div>
+                            <div style={{display:"flex",gap:6,flexShrink:0}}>
+                              {c.linkedin && (
+                                <a href={c.linkedin} target="_blank" rel="noreferrer" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0a66c2",borderRadius:8,padding:"5px 8px",fontSize:10,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center"}}>{"in"}</a>
+                              )}
+                              <button onClick={function(){deleteContact(c.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>{"x"}</button>
+                            </div>
                           </div>
-                          <div style={{flex:1,minWidth:0}}>
-                            <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome}</div>
-                            <div style={{fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo}</div>
-                          </div>
-                          <div style={{minWidth:180,flexShrink:0}}>
+                          <div style={{width:"100%"}}>
                             {c.email ? (
-                              <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                                <span style={{fontSize:11,color:c.emailValidated?"#10b981":"#64748b",fontWeight:c.emailValidated?700:400,wordBreak:"break-all"}}>{c.email}</span>
-                                {c.emailValidated && <span style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 6px"}}>{"OK"}</span>}
+                              <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",background:"#f8fafc",borderRadius:8,padding:"6px 10px"}}>
+                                <span style={{fontSize:11,color:c.emailValidated?"#10b981":"#64748b",fontWeight:c.emailValidated?700:400,wordBreak:"break-all",flex:1}}>{c.email}</span>
+                                {c.emailValidated && <span style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 6px",flexShrink:0}}>{"OK"}</span>}
                               </div>
                             ) : (
-                              <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{background:enriching[c.id]?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:enriching[c.id]?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit"}}>
+                              <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{width:"100%",background:enriching[c.id]?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:enriching[c.id]?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:11,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit",boxSizing:"border-box"}}>
                                 {enriching[c.id] ? "Buscando..." : "Buscar e-mail Apollo"}
                               </button>
                             )}
-                          </div>
-                          <div style={{display:"flex",gap:6,flexShrink:0}}>
-                            {c.linkedin && (
-                              <a href={c.linkedin} target="_blank" rel="noreferrer" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0a66c2",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center"}}>{"in"}</a>
-                            )}
-                            <button onClick={function(){deleteContact(c.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>{"x"}</button>
                           </div>
                         </div>
                       );
@@ -2649,7 +2649,7 @@ export default function App() {
     stakeholders.forEach(function(s) {
       if (!s.cargo) return;
       var cid = "contact:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
-      var contact = { id:cid, nome:s.nome||"", cargo:s.cargo||"", empresa:nome, email:s.email||"", emailValidated:false, linkedin:s.linkedin||"", savedAt:Date.now() };
+      var contact = { id:cid, nome:s.nome||(s.cargo||""), cargo:s.cargo||"", empresa:nome, email:s.email||"", emailValidated:false, linkedin:s.linkedin||"", savedAt:Date.now() };
       storageSet(cid, contact);
     });
   }
@@ -2680,7 +2680,7 @@ export default function App() {
     "::-webkit-scrollbar{width:5px;height:5px}",
     "::-webkit-scrollbar-track{background:#f1f5f9}",
     "::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}",
-    "@media(max-width:768px){.main-content{padding:20px!important}.g2{grid-template-columns:1fr!important}.modal-grid{grid-template-columns:1fr!important}.kpi-grid{grid-template-columns:1fr 1fr!important}.chart-grid{grid-template-columns:1fr!important}.card-grid{grid-template-columns:1fr!important}.modal-box{max-width:98vw!important;border-radius:16px!important}.modal-tabs{overflow-x:auto!important}.modal-tabs button{font-size:10px!important;padding:8px 10px!important}.status-chips{overflow-x:auto!important}.fluxo de atendimento-scroll{overflow-x:auto!important}}",
+    "@media(max-width:768px){html,body{overflow-x:hidden!important;max-width:100vw!important}.main-content{padding:16px 12px!important;width:100%!important;box-sizing:border-box!important;min-width:0!important}.g2{grid-template-columns:1fr!important}.modal-grid{grid-template-columns:1fr!important}.kpi-grid{grid-template-columns:1fr 1fr!important}.chart-grid{grid-template-columns:1fr!important}.card-grid{grid-template-columns:1fr!important}.modal-box{max-width:calc(100vw - 16px)!important;border-radius:16px!important;width:100%!important}.modal-tabs{overflow-x:auto!important}.modal-tabs button{font-size:10px!important;padding:8px 10px!important}.status-chips{overflow-x:auto!important}}",
     "@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}",
     "@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}50%{box-shadow:0 0 0 6px rgba(67,97,238,.1)}}",
     "@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}",
@@ -2709,9 +2709,9 @@ export default function App() {
     {id:"integracoes",  emoji:"🔌", label:"Integrações"},
   ];
   return (
-    <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#f8fafc",overflow:"hidden"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#f8fafc",overflowX:"clip",maxWidth:"100vw"}}>
       <BetaBanner/>
-    <div style={{display:"flex",flex:1,overflow:"hidden"}}>
+    <div style={{display:"flex",flex:1,overflowX:"clip",minWidth:0,width:"100%"}}>
       <style>{css}</style>
       <div className="sidebar" onMouseEnter={function(){if(!sidebarPinned)setSidebarHover(true);}} onMouseLeave={function(){if(!sidebarPinned)setSidebarHover(false);}} style={{width:sidebarExpanded?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .35s cubic-bezier(.4,0,.2,1)"}}>
         <div style={{height:3,background:"linear-gradient(90deg,#4361EE,#7B5EA7,#A78BFA)",flexShrink:0}}/>
@@ -2758,8 +2758,8 @@ export default function App() {
           </div>
         )}
       </div>
-      <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
-        <div className="main-content" style={{flex:1,overflowY:"auto",padding:"36px 40px"}}>
+      <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0,minWidth:0,width:0}}>
+        <div className="main-content" style={{flex:1,overflowY:"auto",padding:"24px 28px",boxSizing:"border-box",width:"100%",minWidth:0}}>
           {loading ? (
             <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",gap:12}}>
               <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE"}}/>
