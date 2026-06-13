@@ -917,8 +917,8 @@ function AccountModal(props) {
                     {enrichedContacts.map(function(contact,i){
                       return (
                         <div key={i} style={{background:"linear-gradient(145deg,#f0fdf4,#fff)",border:"1.5px solid rgba(67,97,238,.25)",borderRadius:14,padding:"14px 16px"}}>
-                          <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:2}}>{contact.nome}</div>
-                          <div style={{fontSize:11,color:"#3451d1",marginBottom:10}}>{contact.cargo}</div>
+                          <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:1}}>{contact.nome||contact.name||""}</div>
+                          {(contact.cargo||contact.title)&&<div style={{fontSize:10,color:"#3451d1",marginBottom:6,fontWeight:600}}>{contact.cargo||contact.title}</div>}
                           <div style={{display:"flex",flexDirection:"column",gap:5}}>
                             {contact.email&&(
                               <a href={"mailto:"+contact.email} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"#0ea5e9",textDecoration:"none",background:"rgba(14,165,233,.06)",borderRadius:6,padding:"4px 8px"}}>
@@ -1290,9 +1290,29 @@ function ContactsView(props) {
   var _st_enriching = useState({}); var enriching = _st_enriching[0]; var setEnriching = _st_enriching[1];
   var _st_toast = useState(null); var toastC = _st_toast[0]; var setToastC = _st_toast[1];
   var _st_expanded = useState({}); var expandedGroups = _st_expanded[0]; var setExpandedGroups = _st_expanded[1];
+  var _st_addModal = useState(false); var addModal = _st_addModal[0]; var setAddModal = _st_addModal[1];
+  var _st_newNome = useState(""); var newNome = _st_newNome[0]; var setNewNome = _st_newNome[1];
+  var _st_newCargo = useState(""); var newCargo = _st_newCargo[0]; var setNewCargo = _st_newCargo[1];
+  var _st_newEmpresa = useState(""); var newEmpresa = _st_newEmpresa[0]; var setNewEmpresa = _st_newEmpresa[1];
+  var _st_newEmail = useState(""); var newEmail = _st_newEmail[0]; var setNewEmail = _st_newEmail[1];
+  var _st_newLinkedin = useState(""); var newLinkedin = _st_newLinkedin[0]; var setNewLinkedin = _st_newLinkedin[1];
+  var _st_saving = useState(false); var saving = _st_saving[0]; var setSaving = _st_saving[1];
 
   function toggleGroup(empresa) {
     setExpandedGroups(function(prev) { var n=Object.assign({},prev); n[empresa]=!prev[empresa]; return n; });
+  }
+
+  function addContactManual() {
+    if (!newNome && !newCargo) return;
+    setSaving(true);
+    var cid = "contact:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
+    var c = { id:cid, nome:newNome||(newCargo||""), cargo:newCargo||"", empresa:newEmpresa||"", email:newEmail||"", emailValidated:false, linkedin:newLinkedin||"", savedAt:Date.now() };
+    storageSet(cid, c).then(function() {
+      setContacts(function(prev){ return [c].concat(prev); });
+      setAddModal(false);
+      setNewNome(""); setNewCargo(""); setNewEmpresa(""); setNewEmail(""); setNewLinkedin("");
+      showToastC("Contato adicionado!", "#10b981");
+    }).finally(function(){ setSaving(false); });
   }
 
   useEffect(function() {
@@ -1355,8 +1375,38 @@ function ContactsView(props) {
           <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Contatos"}</div>
           <div style={{fontSize:13,color:"#64748b"}}>{contacts.length + " contato" + (contacts.length!==1?"s":"") + " mapeado" + (contacts.length!==1?"s":"")}</div>
         </div>
-        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder={"Buscar por nome, empresa ou cargo..."} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",minWidth:260}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder={"Buscar..."} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",minWidth:160,flex:1}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+          <button onClick={function(){setAddModal(true);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(67,97,238,.25)"}}>{"+ Novo"}</button>
+        </div>
       </div>
+      {addModal && (
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}} onClick={function(e){if(e.target===e.currentTarget)setAddModal(false);}}>
+          <div style={{background:"#fff",borderRadius:20,width:"100%",maxWidth:440,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.25)"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar Contato"}</div>
+            {[
+              {label:"Nome completo", val:newNome, set:setNewNome, ph:"Ex: Ana Lima"},
+              {label:"Cargo", val:newCargo, set:setNewCargo, ph:"Ex: VP de Operacoes"},
+              {label:"Empresa", val:newEmpresa, set:setNewEmpresa, ph:"Ex: Nubank"},
+              {label:"E-mail", val:newEmail, set:setNewEmail, ph:"Ex: ana@nubank.com"},
+              {label:"LinkedIn URL", val:newLinkedin, set:setNewLinkedin, ph:"Ex: linkedin.com/in/analima"},
+            ].map(function(f) {
+              return (
+                <div key={f.label} style={{marginBottom:10}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#64748b",marginBottom:4,textTransform:"uppercase",letterSpacing:.5}}>{f.label}</div>
+                  <input value={f.val} onChange={function(e){f.set(e.target.value);}} placeholder={f.ph} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 12px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none"}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+                </div>
+              );
+            })}
+            <div style={{display:"flex",gap:8,marginTop:16}}>
+              <button onClick={function(){setAddModal(false);}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={addContactManual} disabled={saving||(!newNome&&!newCargo)} style={{flex:2,background:(saving||(!newNome&&!newCargo))?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:(saving||(!newNome&&!newCargo))?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:(saving||(!newNome&&!newCargo))?"default":"pointer",fontFamily:"inherit"}}>
+                {saving ? "Salvando..." : "Salvar contato"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {loadingC ? (
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}>
           <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE"}}/>
@@ -2645,11 +2695,12 @@ export default function App() {
     storageSet(id, acc).then(function() {
       setAccounts(function(prev){return [acc].concat(prev);});
     });
-    var stakeholders = (data.stakeholders && Array.isArray(data.stakeholders)) ? data.stakeholders : [];
-    stakeholders.forEach(function(s) {
-      if (!s.cargo) return;
+    var enriched = (data.enriched && data.enriched.contacts && Array.isArray(data.enriched.contacts)) ? data.enriched.contacts : [];
+    enriched.forEach(function(s) {
+      var nomeReal = s.nome || s.name || "";
+      if (!nomeReal) return;
       var cid = "contact:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
-      var contact = { id:cid, nome:s.nome||(s.cargo||""), cargo:s.cargo||"", empresa:nome, email:s.email||"", emailValidated:false, linkedin:s.linkedin||"", savedAt:Date.now() };
+      var contact = { id:cid, nome:nomeReal, cargo:s.cargo||s.title||"", empresa:nome, email:s.email||"", emailValidated:false, linkedin:s.linkedin||"", savedAt:Date.now() };
       storageSet(cid, contact);
     });
   }
