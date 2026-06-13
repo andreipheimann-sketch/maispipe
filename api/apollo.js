@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   const { first_name, last_name, organization_name, title } = req.body || {};
 
   try {
-    const apolloRes = await fetch("https://api.apollo.io/v1/people/match", {
+    const apolloRes = await fetch("https://api.apollo.io/api/v1/people/match", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,6 +25,7 @@ export default async function handler(req, res) {
         "X-Api-Key": apiKey,
       },
       body: JSON.stringify({
+        api_key: apiKey,
         first_name: first_name || "",
         last_name: last_name || "",
         organization_name: organization_name || "",
