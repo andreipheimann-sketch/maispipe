@@ -1,5 +1,5 @@
 // api/apollo.js — Vercel serverless
-// Proxy para Apollo.io People Match API (evita CORS do browser)
+// Proxy Apollo.io com duas estratégias: people/match + people/search fallback
 // Variável de ambiente necessária: APOLLO_API_KEY
 
 export default async function handler(req, res) {
@@ -11,37 +11,77 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.APOLLO_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: "APOLLO_API_KEY nao configurada no servidor. Adicione nas variaveis de ambiente do Vercel." });
+    return res.status(500).json({ error: "APOLLO_API_KEY nao configurada. Adicione nas variaveis de ambiente do Vercel." });
   }
 
-  const { first_name, last_name, organization_name, title } = req.body || {};
+  const { first_name, last_name, organization_name, title, linkedin_url } = req.body || {};
 
+  const headers = {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-cache",
+    "X-Api-Key": apiKey,
+  };
+
+  // ── Estratégia 1: people/match (mais preciso, requer nome completo ou LinkedIn)
   try {
-    const apolloRes = await fetch("https://api.apollo.io/api/v1/people/match", {
+    const matchBody = {
+      api_key: apiKey,
+      first_name: first_name || "",
+      last_name: last_name || "",
+      organization_name: organization_name || "",
+      title: title || "",
+      reveal_personal_emails: true,
+    };
+    if (linkedin_url) matchBody.linkedin_url = linkedin_url;
+
+    const matchRes = await fetch("https://api.apollo.io/api/v1/people/match", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache",
-        "X-Api-Key": apiKey,
-      },
-      body: JSON.stringify({
-        api_key: apiKey,
-        first_name: first_name || "",
-        last_name: last_name || "",
-        organization_name: organization_name || "",
-        title: title || "",
-        reveal_personal_emails: true,
-      }),
+      headers,
+      body: JSON.stringify(matchBody),
     });
 
-    if (!apolloRes.ok) {
-      const errText = await apolloRes.text();
-      return res.status(apolloRes.status).json({ error: "Apollo retornou erro: " + apolloRes.status, detail: errText });
+    if (matchRes.ok) {
+      const matchData = await matchRes.json();
+      const email = matchData.person && matchData.person.email;
+      if (email && !email.includes("email_not_unlocked")) {
+        return res.status(200).json(matchData);
+      }
     }
+  } catch (e) {}
 
-    const data = await apolloRes.json();
-    return res.status(200).json(data);
-  } catch (err) {
-    return res.status(500).json({ error: "Erro ao chamar Apollo.io: " + err.message });
-  }
+  // ── Estratégia 2: people/search (busca por título + empresa)
+  try {
+    const searchBody = {
+      api_key: apiKey,
+      q_organization_name: organization_name || "",
+      page: 1,
+      per_page: 5,
+      reveal_personal_emails: true,
+    };
+    if (title) searchBody.person_titles = [title];
+    if (first_name || last_name) searchBody.q_keywords = ((first_name || "") + " " + (last_name || "")).trim();
+
+    const searchRes = await fetch("https://api.apollo.io/api/v1/mixed_people/search", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(searchBody),
+    });
+
+    if (searchRes.ok) {
+      const searchData = await searchRes.json();
+      const people = searchData.people || [];
+      // Find best match by title similarity
+      const target = (title || "").toLowerCase();
+      let best = people[0];
+      for (const p of people) {
+        const t = (p.title || "").toLowerCase();
+        if (target && t.includes(target.split(" ")[0])) { best = p; break; }
+      }
+      if (best) {
+        return res.status(200).json({ person: best });
+      }
+    }
+  } catch (e) {}
+
+  return res.status(200).json({ person: null, message: "Nenhum resultado encontrado para este contato no Apollo." });
 }
