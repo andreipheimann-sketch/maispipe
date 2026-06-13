@@ -1289,6 +1289,11 @@ function ContactsView(props) {
   var _st_search = useState(""); var search = _st_search[0]; var setSearch = _st_search[1];
   var _st_enriching = useState({}); var enriching = _st_enriching[0]; var setEnriching = _st_enriching[1];
   var _st_toast = useState(null); var toastC = _st_toast[0]; var setToastC = _st_toast[1];
+  var _st_expanded = useState({}); var expandedGroups = _st_expanded[0]; var setExpandedGroups = _st_expanded[1];
+
+  function toggleGroup(empresa) {
+    setExpandedGroups(function(prev) { var n=Object.assign({},prev); n[empresa]=!prev[empresa]; return n; });
+  }
 
   useEffect(function() {
     storageList("contact:").then(function(keys) {
@@ -1376,12 +1381,13 @@ function ContactsView(props) {
               var group = grouped[empresa];
               return (
                 <div key={empresa}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,padding:"8px 14px",background:"linear-gradient(135deg,rgba(67,97,238,.06),rgba(14,165,233,.04))",border:"1px solid rgba(67,97,238,.12)",borderRadius:12}}>
+                  <div onClick={function(){toggleGroup(empresa);}} style={{display:"flex",alignItems:"center",gap:8,marginBottom:expandedGroups[empresa]?10:0,padding:"10px 14px",background:"linear-gradient(135deg,rgba(67,97,238,.07),rgba(14,165,233,.04))",border:"1px solid rgba(67,97,238,.14)",borderRadius:expandedGroups[empresa]?"12px 12px 0 0":12,cursor:"pointer",userSelect:"none",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(67,97,238,.12),rgba(14,165,233,.07))";}} onMouseLeave={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(67,97,238,.07),rgba(14,165,233,.04))";}}>
                     <span style={{fontSize:14}}>{"🏢"}</span>
                     <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{empresa}</span>
-                    <span style={{fontSize:10,color:"#6b7280",marginLeft:"auto"}}>{group.length + " contato" + (group.length!==1?"s":"")}</span>
+                    <span style={{fontSize:10,color:"#6b7280",marginLeft:"auto",marginRight:6}}>{group.length + " contato" + (group.length!==1?"s":"")}</span>
+                    <span style={{fontSize:10,color:"#4361EE",fontWeight:700,transition:"transform .2s",display:"inline-block",transform:expandedGroups[empresa]?"rotate(0deg)":"rotate(-90deg)"}}>{"▼"}</span>
                   </div>
-                  <div style={{display:"flex",flexDirection:"column",gap:8,paddingLeft:8}}>
+                  {expandedGroups[empresa] && <div style={{display:"flex",flexDirection:"column",gap:8,paddingLeft:8,paddingBottom:4,border:"1px solid rgba(67,97,238,.14)",borderTop:"none",borderRadius:"0 0 12px 12px",background:"#fafbff",padding:"10px 8px 10px 12px"}}>
                     {group.map(function(c) {
                       return (
                         <div key={c.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
@@ -1413,7 +1419,7 @@ function ContactsView(props) {
                         </div>
                       );
                     })}
-                  </div>
+                  </div>}
                 </div>
               );
             });
