@@ -1897,6 +1897,25 @@ function SearchView(props) {
       .then(function(r){return r.ok?r.json():null;})
       .then(function(stakhData){
         if(!stakhData||!stakhData.contacts||!stakhData.contacts.length) return;
+        // Save real contacts (those with an actual name) into Contatos, avoiding duplicates
+        storageList("contact:").then(function(ckeys){
+          Promise.all(ckeys.map(storageGet)).then(function(existing){
+            var existingSet = {};
+            existing.filter(Boolean).forEach(function(ec){
+              existingSet[((ec.nome||"")+"|"+(ec.empresa||"")).toLowerCase()] = true;
+            });
+            stakhData.contacts.forEach(function(s){
+              var nomeReal = s.nome || s.name || "";
+              if(!nomeReal) return;
+              var dedupKey = (nomeReal+"|"+nome).toLowerCase();
+              if(existingSet[dedupKey]) return;
+              existingSet[dedupKey] = true;
+              var cid = "contact:" + Date.now() + "-" + Math.random().toString(36).slice(2,8);
+              var contact = { id:cid, nome:nomeReal, cargo:s.cargo||s.title||"", empresa:nome, email:s.email||"", emailValidated:!!s.email, linkedin:s.linkedin||"", savedAt:Date.now() };
+              storageSet(cid, contact);
+            });
+          });
+        });
         storageList("acc:").then(function(keys){
           keys.forEach(function(k){
             storageGet(k).then(function(stored){
