@@ -1296,6 +1296,7 @@ function ContactsView(props) {
   var _st_newEmpresa = useState(""); var newEmpresa = _st_newEmpresa[0]; var setNewEmpresa = _st_newEmpresa[1];
   var _st_newEmail = useState(""); var newEmail = _st_newEmail[0]; var setNewEmail = _st_newEmail[1];
   var _st_newLinkedin = useState(""); var newLinkedin = _st_newLinkedin[0]; var setNewLinkedin = _st_newLinkedin[1];
+  var _st_newDomain = useState(""); var newDomain = _st_newDomain[0]; var setNewDomain = _st_newDomain[1];
   var _st_saving = useState(false); var saving = _st_saving[0]; var setSaving = _st_saving[1];
 
   function toggleGroup(empresa) {
@@ -1306,11 +1307,11 @@ function ContactsView(props) {
     if (!newNome && !newCargo) return;
     setSaving(true);
     var cid = "contact:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
-    var c = { id:cid, nome:newNome||(newCargo||""), cargo:newCargo||"", empresa:newEmpresa||"", email:newEmail||"", emailValidated:false, linkedin:newLinkedin||"", savedAt:Date.now() };
+    var c = { id:cid, nome:newNome||(newCargo||""), cargo:newCargo||"", empresa:newEmpresa||"", email:newEmail||"", emailValidated:false, linkedin:newLinkedin||"", domain:newDomain||"", savedAt:Date.now() };
     storageSet(cid, c).then(function() {
       setContacts(function(prev){ return [c].concat(prev); });
       setAddModal(false);
-      setNewNome(""); setNewCargo(""); setNewEmpresa(""); setNewEmail(""); setNewLinkedin("");
+      setNewNome(""); setNewCargo(""); setNewEmpresa(""); setNewEmail(""); setNewLinkedin(""); setNewDomain("");
       showToastC("Contato adicionado!", "#10b981");
     }).finally(function(){ setSaving(false); });
   }
@@ -1340,23 +1341,24 @@ function ContactsView(props) {
 
   function enrichEmail(contact) {
     setEnriching(function(e){ var n=Object.assign({},e); n[contact.id]=true; return n; });
-    fetch("/api/apollo", {
+    fetch("/api/hunter", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({first_name:(contact.nome||"").split(" ")[0], last_name:(contact.nome||"").split(" ").slice(1).join(" "), organization_name:contact.empresa, title:contact.cargo})
+      body: JSON.stringify({first_name:(contact.nome||"").split(" ")[0], last_name:(contact.nome||"").split(" ").slice(1).join(" "), organization_name:contact.empresa, domain:contact.domain||""})
     }).then(function(r){ return r.json(); }).then(function(data) {
       if (data.error) { showToastC(data.error, "#f59e0b"); return; }
       var email = (data.person && data.person.email) || "";
-      if (!email) { showToastC("E-mail nao encontrado no Apollo.", "#f59e0b"); }
+      if (!email) { showToastC(data.message || "E-mail nao encontrado.", "#f59e0b"); }
       else {
-        var updated = Object.assign({}, contact, {email:email, emailValidated:true});
+        var conf = (data.person && data.person.email_confidence) || 0;
+        var updated = Object.assign({}, contact, {email:email, emailValidated:true, emailConfidence:conf, domain:(data.person&&data.person.domain)||contact.domain||""});
         storageSet(contact.id, updated).then(function() {
           setContacts(function(prev){ return prev.map(function(c){ return c.id===contact.id ? updated : c; }); });
-          showToastC("E-mail encontrado: " + email, "#10b981");
+          showToastC("E-mail encontrado (" + conf + "% confianca): " + email, "#10b981");
         });
       }
     }).catch(function() {
-      showToastC("Erro ao consultar Apollo. Verifique a chave APOLLO_API_KEY no servidor.", "#ef4444");
+      showToastC("Erro ao consultar Hunter. Verifique a chave HUNTER_API_KEY no servidor.", "#ef4444");
     }).finally(function() {
       setEnriching(function(e){ var n=Object.assign({},e); delete n[contact.id]; return n; });
     });
@@ -1388,6 +1390,7 @@ function ContactsView(props) {
               {label:"Nome completo", val:newNome, set:setNewNome, ph:"Ex: Ana Lima"},
               {label:"Cargo", val:newCargo, set:setNewCargo, ph:"Ex: VP de Operacoes"},
               {label:"Empresa", val:newEmpresa, set:setNewEmpresa, ph:"Ex: Nubank"},
+              {label:"Dominio (melhora busca de e-mail)", val:newDomain, set:setNewDomain, ph:"Ex: nubank.com.br"},
               {label:"E-mail", val:newEmail, set:setNewEmail, ph:"Ex: ana@nubank.com"},
               {label:"LinkedIn URL", val:newLinkedin, set:setNewLinkedin, ph:"Ex: linkedin.com/in/analima"},
             ].map(function(f) {
@@ -1460,11 +1463,11 @@ function ContactsView(props) {
                             {c.email ? (
                               <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",background:"#f8fafc",borderRadius:8,padding:"6px 10px"}}>
                                 <span style={{fontSize:11,color:c.emailValidated?"#10b981":"#64748b",fontWeight:c.emailValidated?700:400,wordBreak:"break-all",flex:1}}>{c.email}</span>
-                                {c.emailValidated && <span style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 6px",flexShrink:0}}>{"OK"}</span>}
+                                {c.emailValidated && <span style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 6px",flexShrink:0}}>{c.emailConfidence?c.emailConfidence+"%":"OK"}</span>}
                               </div>
                             ) : (
                               <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{width:"100%",background:enriching[c.id]?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:enriching[c.id]?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:11,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit",boxSizing:"border-box"}}>
-                                {enriching[c.id] ? "Buscando..." : "Buscar e-mail Apollo"}
+                                {enriching[c.id] ? "Buscando..." : "Buscar e-mail"}
                               </button>
                             )}
                           </div>
