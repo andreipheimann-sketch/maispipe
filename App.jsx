@@ -51,6 +51,18 @@ var PLANS = {
 };
 var USAGE_KEY = "usage_state";
 
+// Retorna o id do proximo plano acima (ou null se ja for o topo)
+function nextPlanId(planId) {
+  if (planId === "free") return "starter";
+  if (planId === "starter") return "professional";
+  return null;
+}
+function nextPlanMsg(planId) {
+  var np = nextPlanId(planId);
+  if (!np) return "Você já está no plano mais alto. Aguarde a renovação no próximo mês.";
+  return "Migre para o plano " + PLANS[np].label + " e mapeie até " + PLANS[np].limit + " contas por mês.";
+}
+
 function currentPeriod() {
   var d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
@@ -92,7 +104,7 @@ function consumeMapping() {
   });
 }
 
-function setPlan(planId) {
+function setPlan(planId, resetUsage) {
   return new Promise(function(resolve) {
     try {
       var raw = localStorage.getItem(STORAGE_PREFIX + USAGE_KEY);
@@ -100,6 +112,8 @@ function setPlan(planId) {
       st.plan = planId;
       if (!st.period) st.period = currentPeriod();
       if (st.used == null) st.used = 0;
+      // Ao contratar/migrar de plano, a cota e renovada (zera o contador).
+      if (resetUsage) st.used = 0;
       localStorage.setItem(STORAGE_PREFIX + USAGE_KEY, JSON.stringify(st));
       resolve(true);
     } catch(e) { resolve(false); }
@@ -2036,6 +2050,23 @@ function SearchView(props) {
   var _st_duplicate = useState(null); var duplicate = _st_duplicate[0]; var setDuplicate = _st_duplicate[1];
   var _st_attachment = useState(null); var attachment = _st_attachment[0]; var setAttachment = _st_attachment[1];
   var _st_attachName = useState(""); var attachName = _st_attachName[0]; var setAttachName = _st_attachName[1];
+  var _st_csvPreview = useState(null); var csvPreview = _st_csvPreview[0]; var setCsvPreview = _st_csvPreview[1];
+  var _st_planMenu = useState(false); var planMenu = _st_planMenu[0]; var setPlanMenu = _st_planMenu[1];
+  var _st_csvInfo = useState(false); var csvInfo = _st_csvInfo[0]; var setCsvInfo = _st_csvInfo[1];
+  var csvRef = useRef(null);
+  var usage = props.usage;
+  function onCsvPick(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){ setCsvPreview(parseCSV(String(ev.target.result||""))); };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+  function confirmImport() {
+    if (csvPreview && csvPreview.rows && csvPreview.rows.length && props.onImport) props.onImport(csvPreview.rows);
+    setCsvPreview(null);
+  }
   function doEnrich(nome, domain) {
     fetch("/api/stakeholders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company:nome,domain:domain})})
       .then(function(r){return r.ok?r.json():null;})
@@ -2085,6 +2116,17 @@ function SearchView(props) {
       var dup = props.accounts.find(function(a){ return a.nome && a.nome.toLowerCase().trim() === nomeLower; });
       if (dup) { setDuplicate(dup); setInputVal(""); return; }
     }
+    // Consome 1 credito ANTES de mapear. Se estourou o limite, bloqueia.
+    if (props.onRequestCredit) {
+      props.onRequestCredit().then(function(ok){
+        if (!ok) return; // limite atingido -> toast ja exibido pelo App
+        runSearch(nome, domain);
+      });
+    } else {
+      runSearch(nome, domain);
+    }
+  }
+  function runSearch(nome, domain) {
     setLoading(true); setDone(null); setSearchError("");
     fetch("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company:nome,context:""})})
       .then(function(r){if(!r.ok)return r.json().then(function(j){throw new Error(j.error||"HTTP "+r.status);}); return r.json();})
@@ -2110,7 +2152,106 @@ function SearchView(props) {
         <div style={{fontSize:26,fontWeight:800,color:"#0f172a",marginBottom:6,letterSpacing:"-0.5px"}}>
           {"Account "}<span style={{color:"#4361EE"}}>{"Mapping"}</span>
         </div>
-        <div style={{fontSize:13,color:"#64748b",marginBottom:28,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento de CX completo. O resultado é salvo automaticamente em Contas."}</div>
+        <div style={{fontSize:13,color:"#64748b",marginBottom:20,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento de CX completo. O resultado é salvo automaticamente em Contas."}</div>
+
+        {usage && (
+          <div style={{background:"#fff",border:"1.5px solid "+(usage.remaining<=0?"#fecdd3":"#e8edf4"),borderRadius:16,padding:"16px 18px",marginBottom:20}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:10}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <div style={{position:"relative"}}>
+                  <button onClick={function(){setPlanMenu(!planMenu);}} title="Trocar plano (demo)" style={{display:"flex",alignItems:"center",gap:5,fontSize:9,fontWeight:700,color:"#fff",background:usage.planColor,border:"none",borderRadius:6,padding:"4px 9px",textTransform:"uppercase",letterSpacing:.5,cursor:"pointer",fontFamily:"inherit"}}>
+                    {usage.planLabel}
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {planMenu && (
+                    <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"#fff",border:"1.5px solid #e8edf4",borderRadius:12,boxShadow:"0 8px 32px rgba(15,23,42,.12)",zIndex:60,minWidth:200,overflow:"hidden"}}>
+                      <div style={{padding:"8px 12px",fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.6,borderBottom:"1px solid #f1f5f9"}}>{"Plano (demo)"}</div>
+                      {["free","starter","professional"].map(function(pid) {
+                        var p = PLANS[pid]; var isCurrent = usage.plan===pid;
+                        return (
+                          <div key={pid} onClick={function(){ if(props.onChangePlan)props.onChangePlan(pid); setPlanMenu(false); }} style={{padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,background:isCurrent?"#f0f3ff":"#fff"}} onMouseEnter={function(e){if(!isCurrent)e.currentTarget.style.background="#f8fafc";}} onMouseLeave={function(e){if(!isCurrent)e.currentTarget.style.background="#fff";}}>
+                            <span style={{width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0}}/>
+                            <span style={{fontSize:12,fontWeight:700,color:"#0f172a",flex:1}}>{p.label}</span>
+                            <span style={{fontSize:10,color:"#64748b"}}>{p.limit + "/mês"}</span>
+                            {isCurrent && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mês"}</span>
+                <input ref={csvRef} type="file" accept=".csv,text/csv" onChange={onCsvPick} style={{display:"none"}}/>
+                <button onClick={function(){csvRef.current&&csvRef.current.click();}} style={{background:"#fff",border:"1.5px solid #4361EE",color:"#4361EE",borderRadius:9,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  {"Importar CSV"}
+                </button>
+                <div style={{position:"relative",display:"flex"}}>
+                  <button onClick={function(){setCsvInfo(!csvInfo);}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}} title="Modelo do CSV" style={{background:"#f8fafc",border:"1.5px solid #e2e8f0",color:"#64748b",borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,padding:0}}>{"i"}</button>
+                  {csvInfo && (
+                    <div style={{position:"absolute",top:"calc(100% + 8px)",right:0,background:"#0f172a",color:"#fff",borderRadius:12,padding:"14px 16px",width:260,zIndex:70,boxShadow:"0 12px 40px rgba(15,23,42,.3)",fontSize:11,lineHeight:1.6}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}}>
+                      <div style={{fontWeight:700,marginBottom:8,fontSize:12}}>{"Modelo do arquivo CSV"}</div>
+                      <div style={{color:"#cbd5e1",marginBottom:10}}>{"Use as colunas abaixo (nome é obrigatório, as demais opcionais):"}</div>
+                      <div style={{background:"rgba(255,255,255,.08)",borderRadius:8,padding:"10px 12px",fontFamily:"monospace",fontSize:10.5,color:"#e2e8f0",overflowX:"auto",whiteSpace:"nowrap"}}>
+                        <div style={{fontWeight:700,color:"#7dd3fc"}}>{"nome,site,linkedin"}</div>
+                        <div>{"Nubank,nubank.com.br,linkedin.com/company/nubank"}</div>
+                        <div>{"Stone,stone.com.br,"}</div>
+                        <div>{"TOTVS,totvs.com,"}</div>
+                      </div>
+                      <div style={{color:"#94a3b8",marginTop:10,fontSize:10}}>{"Aceita separador vírgula ou ponto-e-vírgula. A ordem das colunas não importa."}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div style={{height:8,background:"#f1f5f9",borderRadius:8,overflow:"hidden"}}>
+              <div style={{height:"100%",width:Math.min(100,Math.round((usage.used/usage.limit)*100))+"%",background:usage.remaining<=3?"linear-gradient(90deg,#ef4444,#f59e0b)":"linear-gradient(90deg,"+usage.planColor+",#3451d1)",borderRadius:8,transition:"width .4s"}}/>
+            </div>
+            {usage.remaining<=0 && (
+              <div style={{marginTop:14,background:"linear-gradient(135deg,#fff7ed,#fef2f2)",border:"1.5px solid #fed7aa",borderRadius:12,padding:"14px 16px"}}>
+                <div style={{fontSize:13,fontWeight:800,color:"#9a3412",marginBottom:4}}>{"Limite do plano " + usage.planLabel + " atingido"}</div>
+                <div style={{fontSize:12,color:"#7c2d12",lineHeight:1.6,marginBottom:12}}>{"Você usou os " + usage.limit + " mapeamentos deste mês. " + (nextPlanMsg(usage.plan))}</div>
+                {nextPlanId(usage.plan) && (
+                  <button onClick={function(){ if(props.onChangePlan)props.onChangePlan(nextPlanId(usage.plan)); }} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"10px 18px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(67,97,238,.3)"}}>
+                    {"Migrar para " + PLANS[nextPlanId(usage.plan)].label + " (" + PLANS[nextPlanId(usage.plan)].limit + "/mês)"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        {csvPreview && (
+          <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.65)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
+            <div style={{background:"#fff",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.25)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
+              <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:6}}>{"Importar contas"}</div>
+              {csvPreview.error ? (
+                <div style={{fontSize:13,color:"#ef4444",background:"#fff1f2",border:"1px solid #fecdd3",borderRadius:10,padding:"12px 14px",marginTop:8}}>{csvPreview.error}</div>
+              ) : (
+                <div style={{display:"flex",flexDirection:"column",minHeight:0}}>
+                  <div style={{fontSize:12,color:"#64748b",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas para Contas como nao mapeadas (sem consumir creditos)."}</div>
+                  <div style={{overflowY:"auto",border:"1px solid #f1f5f9",borderRadius:10,marginBottom:16}}>
+                    {csvPreview.rows.slice(0,50).map(function(r,i){
+                      return (
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderBottom:i<csvPreview.rows.length-1?"1px solid #f8fafc":"none"}}>
+                          <span style={{fontSize:12,fontWeight:600,color:"#0f172a",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
+                          {r.site && <span style={{fontSize:10,color:"#94a3b8",flexShrink:0}}>{r.site}</span>}
+                        </div>
+                      );
+                    })}
+                    {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"#94a3b8"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
+                  </div>
+                </div>
+              )}
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+                {!csvPreview.error && <button onClick={confirmImport} style={{flex:2,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{"Importar " + csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"")}</button>}
+              </div>
+            </div>
+          </div>
+        )}
         <div style={{display:"flex",gap:10}}>
           <input value={inputVal} onChange={function(e){setInputVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleSearch();}} placeholder="Ex: Nubank, TOTVS, Stone..." style={{flex:1,background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"14px 18px",fontSize:13.5,color:"#0f172a",fontFamily:"inherit",outline:"none",boxShadow:"0 1px 3px rgba(15,23,42,.06)",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
           <button onClick={handleSearch} disabled={loading||!inputVal.trim()} style={{background:loading||!inputVal.trim()?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:loading||!inputVal.trim()?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 28px",fontSize:13,fontWeight:600,cursor:loading||!inputVal.trim()?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:loading||!inputVal.trim()?"none":"0 4px 14px rgba(67,97,238,.35)",transition:"all .2s",whiteSpace:"nowrap"}}>
@@ -2266,11 +2407,6 @@ function AccountsView(props) {
           <div style={{fontSize:13,color:"#64748b"}}>{accounts.length + " conta" + (accounts.length!==1?"s":"") + " na lista"}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={onCsvPick} style={{display:"none"}}/>
-          <button onClick={function(){fileRef.current&&fileRef.current.click();}} style={{background:"#fff",border:"1.5px solid #4361EE",color:"#4361EE",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            {"Importar CSV"}
-          </button>
           <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
             <option value="date">Mais recente</option>
             <option value="az">A - Z</option>
@@ -2296,29 +2432,7 @@ function AccountsView(props) {
         <div style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"14px 18px",marginBottom:18}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:8}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <div style={{position:"relative"}}>
-                <button onClick={function(){setPlanMenu(!planMenu);}} title="Trocar plano (demo)" style={{display:"flex",alignItems:"center",gap:5,fontSize:9,fontWeight:700,color:"#fff",background:usage.planColor,border:"none",borderRadius:6,padding:"3px 8px",textTransform:"uppercase",letterSpacing:.5,cursor:"pointer",fontFamily:"inherit"}}>
-                  {usage.planLabel}
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                {planMenu && (
-                  <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"#fff",border:"1.5px solid #e8edf4",borderRadius:12,boxShadow:"0 8px 32px rgba(15,23,42,.12)",zIndex:60,minWidth:180,overflow:"hidden"}}>
-                    <div style={{padding:"8px 12px",fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.6,borderBottom:"1px solid #f1f5f9"}}>{"Plano (demo)"}</div>
-                    {["free","starter","professional"].map(function(pid) {
-                      var p = PLANS[pid];
-                      var isCurrent = usage.plan===pid;
-                      return (
-                        <div key={pid} onClick={function(){ if(props.onChangePlan)props.onChangePlan(pid); setPlanMenu(false); }} style={{padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,background:isCurrent?"#f0f3ff":"#fff"}} onMouseEnter={function(e){if(!isCurrent)e.currentTarget.style.background="#f8fafc";}} onMouseLeave={function(e){if(!isCurrent)e.currentTarget.style.background="#fff";}}>
-                          <span style={{width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0}}/>
-                          <span style={{fontSize:12,fontWeight:700,color:"#0f172a",flex:1}}>{p.label}</span>
-                          <span style={{fontSize:10,color:"#64748b"}}>{p.limit + "/mês"}</span>
-                          {isCurrent && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              <span style={{fontSize:9,fontWeight:700,color:"#fff",background:usage.planColor,borderRadius:6,padding:"3px 8px",textTransform:"uppercase",letterSpacing:.5}}>{usage.planLabel}</span>
               <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
             </div>
             <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mês"}</span>
@@ -2971,7 +3085,28 @@ export default function App() {
   var _st_usage = useState(null); var usage = _st_usage[0]; var setUsage = _st_usage[1];
   var _st_mappingId = useState(null); var mappingId = _st_mappingId[0]; var setMappingId = _st_mappingId[1];
   function refreshUsage() { getUsage().then(setUsage); }
-  function changePlan(planId) { setPlan(planId).then(function(){ refreshUsage(); }); }
+  function changePlan(planId) {
+    var isDifferent = !usage || usage.plan !== planId;
+    setPlan(planId, isDifferent).then(function(){ refreshUsage(); });
+  }
+  // Verifica e consome 1 credito para uma busca manual. Retorna Promise<bool>.
+  function requestMapCredit() {
+    return new Promise(function(resolve) {
+      consumeMapping().then(function(res) {
+        setUsage(res.usage);
+        if (!res.ok) {
+          if (res.reason === "limit") {
+            showToast("Limite do plano atingido (" + res.usage.used + "/" + res.usage.limit + "). Faça upgrade para mapear mais.", "#ef4444");
+          } else {
+            showToast("Nao foi possivel registrar o uso.", "#ef4444");
+          }
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  }
   function showToast(msg, color) {
     setToast({msg:msg,color:color||"#3451d1"});
     setTimeout(function(){setToast(null);}, 3000);
@@ -3195,7 +3330,7 @@ export default function App() {
           ) : (
             <div key={nav} style={{animation:"fadeUp .4s cubic-bezier(.4,0,.2,1) both"}}>
               {nav==="home"      && <HomeView accounts={accounts} onNav={setNav}/>}
-              {nav==="search"    && <SearchView accounts={accounts} onSave={saveAccount} onOpenAccount={function(acc){setOpenAcc(acc);}} onUpdateAccount={function(updated){setAccounts(function(prev){return prev.map(function(a){return a.id===updated.id?updated:a;});});}}/>}
+              {nav==="search"    && <SearchView accounts={accounts} onSave={saveAccount} onOpenAccount={function(acc){setOpenAcc(acc);}} onUpdateAccount={function(updated){setAccounts(function(prev){return prev.map(function(a){return a.id===updated.id?updated:a;});});}} usage={usage} onRequestCredit={requestMapCredit} onImport={importAccounts} onChangePlan={changePlan}/>}
               {nav==="accounts"  && <AccountsView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus} onDelete={deleteAccount} usage={usage} onImport={importAccounts} onMap={mapAccount} mappingId={mappingId} onChangePlan={changePlan}/>}
               {nav==="sequences" && <SequenceView accounts={accounts} showToast={showToast}/>}
               {nav==="relatorios"&& <InsightsView accounts={accounts}/>}
