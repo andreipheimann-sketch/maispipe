@@ -294,6 +294,7 @@ function SequenceView(props) {
   var _st_saved = useState([]); var saved = _st_saved[0]; var setSaved = _st_saved[1];
   var _st_view = useState("builder"); var view = _st_view[0]; var setView = _st_view[1];
   var _st_openSeq = useState(null); var openSeq = _st_openSeq[0]; var setOpenSeq = _st_openSeq[1];
+  var _st_genLoading = useState(false); var genLoading = _st_genLoading[0]; var setGenLoading = _st_genLoading[1];
 
   useEffect(function() {
     storageList("seq:").then(function(keys) {
@@ -347,9 +348,25 @@ function SequenceView(props) {
     if (!generated || !selProfile) return;
     var p = selProfile.id === "custom" ? selProfile : (STAKEHOLDER_PROFILES.find(function(x){return x.id===selProfile.id;}) || STAKEHOLDER_PROFILES[0]);
     var touch = generated.touches[idx];
-    var newTouch = buildOneTouchVariant(touch, p, selAcc);
-    var newTouches = generated.touches.map(function(t,i){return i===idx?newTouch:t;});
-    setGenerated(Object.assign({},generated,{touches:newTouches}));
+    var setor = (selAcc.data && selAcc.data.empresa && selAcc.data.empresa.setor) || selAcc.setor || "tecnologia";
+    function localFB() {
+      var newTouch = buildOneTouchVariant(touch, p, selAcc);
+      var nt = generated.touches.map(function(t,i){return i===idx?newTouch:t;});
+      setGenerated(Object.assign({},generated,{touches:nt}));
+    }
+    fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      empresa:selAcc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, touches:[{day:touch.day,type:touch.type}]
+    })})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if (data && data.touches && data.touches.length) {
+          var t0 = data.touches[0];
+          var newTouch = Object.assign({}, touch, {subject:t0.subject||touch.subject, body:t0.body||touch.body});
+          var nt = generated.touches.map(function(t,i){return i===idx?newTouch:t;});
+          setGenerated(Object.assign({},generated,{touches:nt}));
+        } else { localFB(); }
+      })
+      .catch(localFB);
   }
 
     function buildCustomTemplate(profile, acc) {
@@ -367,13 +384,37 @@ function SequenceView(props) {
   }
 
   function generate() {
-    if (!selAcc || !selProfile) return;
+    if (!selAcc || !selProfile || genLoading) return;
     var p = selProfile.id === "custom" ? selProfile : (STAKEHOLDER_PROFILES.find(function(x){return x.id===selProfile.id;}) || STAKEHOLDER_PROFILES[0]);
-    var template = (p.id === "custom") ? buildCustomTemplate(p, selAcc) : (SEQUENCE_TEMPLATES[p.id] || SEQUENCE_TEMPLATES.headcx);
-    var touches = template.map(function(t) {
-      return Object.assign({}, t, {body:applyVars(t.body, selAcc), subject:applyVars(t.subject||"", selAcc)});
-    });
-    setGenerated({account:selAcc, profile:p, touches:touches, createdAt:Date.now()});
+    var setor = (selAcc.data && selAcc.data.empresa && selAcc.data.empresa.setor) || selAcc.setor || "tecnologia";
+    var cadencia = [
+      {day:1,type:"linkedin"},{day:3,type:"email"},{day:6,type:"call"},
+      {day:10,type:"email"},{day:15,type:"whatsapp"},{day:21,type:"breakup"}
+    ];
+
+    function localFallback() {
+      var template = (p.id === "custom") ? buildCustomTemplate(p, selAcc) : (SEQUENCE_TEMPLATES[p.id] || SEQUENCE_TEMPLATES.headcx);
+      var touches = template.map(function(t) {
+        return Object.assign({}, t, {body:applyVars(t.body, selAcc), subject:applyVars(t.subject||"", selAcc)});
+      });
+      setGenerated({account:selAcc, profile:p, touches:touches, createdAt:Date.now()});
+    }
+
+    setGenLoading(true);
+    fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      empresa:selAcc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, touches:cadencia
+    })})
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data && data.touches && data.touches.length) {
+          var norm = data.touches.map(function(t){ return {day:t.day, type:t.type||"email", subject:t.subject||"", body:t.body||""}; });
+          setGenerated({account:selAcc, profile:p, touches:norm, createdAt:Date.now(), engine:"openai"});
+        } else {
+          localFallback();
+        }
+      })
+      .catch(function(){ localFallback(); })
+      .finally(function(){ setGenLoading(false); });
   }
 
   function saveSeq() {
@@ -495,7 +536,7 @@ function SequenceView(props) {
         </div>
       </div>
       <div style={{display:"flex",gap:10,marginBottom:24}}>
-        <button onClick={generate} disabled={!selAcc||!selProfile} style={{flex:1,background:(!selAcc||!selProfile)?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:(!selAcc||!selProfile)?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 0",fontSize:14,fontWeight:700,cursor:(!selAcc||!selProfile)?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s"}}>Gerar Sequencia de 6 Toques</button>
+        <button onClick={generate} disabled={!selAcc||!selProfile||genLoading} style={{flex:1,background:(!selAcc||!selProfile||genLoading)?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:(!selAcc||!selProfile||genLoading)?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 0",fontSize:14,fontWeight:700,cursor:(!selAcc||!selProfile||genLoading)?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s"}}>{genLoading?"Gerando com IA...":"Gerar Sequencia de 6 Toques"}</button>
         {generated && <button onClick={saveSeq} style={{background:"#fff",color:"#3451d1",border:"1.5px solid #10b981",borderRadius:12,padding:"14px 18px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Salvar</button>}
       </div>
       {generated && (
@@ -924,13 +965,6 @@ function exportAccountPDF(acc, d) {
       html += "</div>";
     });
   }
-  if (emails.length) {
-    html += "<h2>Mensagens</h2>";
-    emails.forEach(function(m,i) {
-      html += "<p style='font-size:10px;color:#64748b;margin:8px 0 4px'><strong>Template "+(i+1)+"</strong> - Assunto: "+m.assunto+"</p>";
-      html += "<div class='msg'>"+m.corpo+"</div>";
-    });
-  }
   if (spin.length) { html += "<h2>Perguntas SPIN</h2><ul>"+spin.map(function(q){return "<li>"+q+"</li>";}).join("")+"</ul>"; }
   if (objecoes.length) {
     html += "<h2>Objecoes e Respostas</h2>";
@@ -991,7 +1025,7 @@ function AccountModal(props) {
     }
     return null;
   }
-  var tabs=[{id:"overview",label:"Visão Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"messages",label:"Mensagens"},{id:"spin",label:"SPIN & Objeções"},{id:"plan",label:"Plano de Ação"}].concat(acc.attachData?[{id:"attachment",label:"Conteudo Anexado"}]:[]);
+  var tabs=[{id:"overview",label:"Visão Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"spin",label:"SPIN & Objeções"},{id:"plan",label:"Plano de Ação"}].concat(acc.attachData?[{id:"attachment",label:"Conteudo Anexado"}]:[]);
   var empresa=sd("empresa")||{};
   var stakeholders=safeArr(sd("stakeholders"));
   var dores=safeArr(sd("dores.principais"));
@@ -1124,34 +1158,6 @@ function AccountModal(props) {
                 })}
               </div>
               </Sec>
-            </div>
-          )}
-          {activeTab==="messages"&&(
-            <div>
-              {CHANNELS.map(function(cfg){
-                var items=safeArr(sd("estrategia."+cfg.key));
-                if(!items.length)return null;
-                return (
-                  <Sec key={cfg.key} title={cfg.label}>
-                    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                      {items.map(function(item,i){
-                        var text=cfg.isObj?item.corpo:item;
-                        var ck=cfg.key+"-"+i;
-                        return (
-                          <div key={i} style={{border:"1.5px solid #e8edf4",borderRadius:14,overflow:"hidden"}}>
-                            <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:cfg.bg,borderBottom:"1px solid #e8edf4"}}>
-                              <span style={{fontSize:10,fontWeight:700,color:cfg.color}}>{"Template "+(i+1)}</span>
-                              {cfg.isObj&&item.assunto&&<span style={{fontSize:11,color:"#64748b",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{"- "+item.assunto}</span>}
-                              <CopyBtn text={(cfg.isObj&&item.assunto?"Assunto: "+item.assunto+"\n\n":"")+text}/>
-                            </div>
-                            <div style={{padding:"14px 16px",fontSize:12.5,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+cfg.color}}>{text}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </Sec>
-                );
-              })}
             </div>
           )}
           {activeTab==="spin"&&(
