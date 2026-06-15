@@ -1094,7 +1094,7 @@ function AccountModal(props) {
         <div style={{padding:"22px 28px",maxHeight:"60vh",overflowY:"auto"}}>
           {activeTab==="overview"&&(
             <div>
-              {empresa.resumo&&<Sec title="Resumo da Empresa"><p style={{fontSize:13,lineHeight:1.8,color:"#334155",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["Estágio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"#e8ecfd",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#2d3a8c",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"#0f172a",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
+              {empresa.resumo&&<Sec title={empresa.resumoAI?"Resumo da Empresa · IA":"Resumo da Empresa"}><p style={{fontSize:13,lineHeight:1.8,color:"#334155",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["Estágio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"#e8ecfd",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#2d3a8c",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"#0f172a",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
               {fitJust&&<Sec title="Fit Zendesk"><p style={{fontSize:13,lineHeight:1.7,color:"#334155",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(67,97,238,.08)",border:"1px solid rgba(67,97,238,.25)",color:"#3451d1",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
               {useCases.length>0&&<Sec title="Use Cases Prioritários">{useCases.map(function(u,i){return <R key={i} icon=">" color="#4361EE">{u}</R>;})}</Sec>}
               {dores.length>0&&<Sec title="Possiveis dores para mapear">{dores.map(function(d2,i){return <R key={i} icon="!" color="#ef4444">{d2}</R>;})} {exposicao.length>0&&<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>{exposicao.map(function(r,i){return <span key={i} style={{background:"#fef3c7",border:"1px solid #f59e0b",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{r}</span>;})}</div>}</Sec>}
@@ -1990,7 +1990,7 @@ function buildData(company, searchResults) {
     });
   var noticias = noticiasSources.length ? noticiasSources : [{titulo:"Buscar noticias recentes de "+company, resumo:"Clique para pesquisar noticias sobre a empresa.", url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX 2024", relevancia:"Pesquisa sugerida"}];
   return {
-    empresa:{nome:company,setor:setor,resumo:resumo,tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponivel",clientes:clientes||""},
+    empresa:{nome:company,setor:setor,resumo:resumo,rawContext:allText.slice(0,4000),tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponivel",clientes:clientes||""},
     fit:{score:"ALTO",justificativa:company+" atua em "+setor+", vertical de alto potencial para Zendesk Suite. Times de atendimento Mid Market com pressao de CSAT e custo por ticket sao nosso ICP principal.",solucoes_zendesk:["Zendesk Support (ticketing omnichannel)","Zendesk Messaging (chat e WhatsApp)","Help Center com IA generativa","Zendesk Explore (analytics e CSAT)","Workforce Management","QA e automacao de qualidade","Zendesk Sell (CRM de vendas)"]},
     mercado:{competidores_provedor:["Freshdesk","Salesforce Service Cloud","HubSpot Service Hub","ServiceNow CSM","Intercom","LivePerson","TOTVS CRM","sistema interno legado"],concorrentes_mercado:[]},
     dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rapido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
@@ -2086,7 +2086,37 @@ function SearchView(props) {
     if (csvPreview && csvPreview.rows && csvPreview.rows.length && props.onImport) props.onImport(csvPreview.rows);
     setCsvPreview(null);
   }
+  // Reescreve o resumo da conta com IA (especialista em outbound), depois atualiza no storage
+  function enhanceResumo(nome) {
+    storageList("acc:").then(function(keys){
+      keys.forEach(function(k){
+        storageGet(k).then(function(stored){
+          if(!stored || stored.nome.toLowerCase()!==nome.toLowerCase()) return;
+          var emp = (stored.data && stored.data.empresa) || {};
+          var raw = emp.rawContext || emp.resumo || "";
+          fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+            mode:"resumo", empresa:nome, setor:emp.setor||stored.setor||"tecnologia", rawContext:raw
+          })})
+            .then(function(r){return r.json();})
+            .then(function(d){
+              if(!d || !d.resumo) return;
+              storageGet(k).then(function(cur){
+                if(!cur) return;
+                var updated = Object.assign({},cur,{
+                  data:Object.assign({},cur.data,{empresa:Object.assign({},(cur.data&&cur.data.empresa)||{},{resumo:d.resumo,resumoAI:true})})
+                });
+                storageSet(k, updated);
+                if(props.onUpdateAccount) props.onUpdateAccount(updated);
+              });
+            })
+            .catch(function(){});
+        });
+      });
+    });
+  }
+
   function doEnrich(nome, domain) {
+    enhanceResumo(nome);
     fetch("/api/stakeholders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company:nome,domain:domain})})
       .then(function(r){return r.ok?r.json():null;})
       .then(function(stakhData){
