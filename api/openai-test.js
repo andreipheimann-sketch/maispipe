@@ -6,12 +6,15 @@ export default async function handler(req, res) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
 
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || "gpt-4o";
+  const modelResumo = process.env.OPENAI_MODEL_RESUMO || process.env.OPENAI_MODEL || "gpt-5.4-mini";
+  const modelSequencia = process.env.OPENAI_MODEL_SEQUENCIA || process.env.OPENAI_MODEL || "gpt-5.4";
+  const model = modelSequencia; // testa com o modelo das sequencias (o mais exigente)
 
   const diag = {
     keyConfigurada: !!apiKey,
     keyPrefixo: apiKey ? apiKey.slice(0, 7) + "..." : null,
-    model: model,
+    modelResumo: modelResumo,
+    modelSequencia: modelSequencia,
     timestamp: new Date().toISOString(),
   };
 
@@ -45,7 +48,7 @@ export default async function handler(req, res) {
       // dicas comuns
       if (r.status === 401) diag.dica = "Key invalida ou revogada. Gere uma nova em platform.openai.com/api-keys.";
       if (r.status === 429) diag.dica = "Sem creditos ou limite de uso atingido. Verifique o billing em platform.openai.com.";
-      if (r.status === 404) diag.dica = "O modelo '" + model + "' nao esta disponivel para sua conta. Tente definir OPENAI_MODEL=gpt-4o-mini.";
+      if (r.status === 404) diag.dica = "O modelo '" + model + "' nao esta disponivel para sua conta. Ajuste OPENAI_MODEL_SEQUENCIA e OPENAI_MODEL_RESUMO (ex: gpt-5.4-mini).";
       return res.status(200).json(diag);
     }
 
