@@ -354,7 +354,7 @@ function SequenceView(props) {
       var nt = generated.touches.map(function(t,i){return i===idx?newTouch:t;});
       setGenerated(Object.assign({},generated,{touches:nt}));
     }
-    fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+    fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
       empresa:selAcc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, touches:[{day:touch.day,type:touch.type}]
     })})
       .then(function(r){return r.json();})
@@ -401,7 +401,7 @@ function SequenceView(props) {
     }
 
     setGenLoading(true);
-    fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+    fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
       empresa:selAcc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, touches:cadencia
     })})
       .then(function(r){ return r.json().then(function(d){ return {status:r.status, data:d}; }); })
@@ -409,8 +409,8 @@ function SequenceView(props) {
         var data = res.data;
         if (data && data.touches && data.touches.length) {
           var norm = data.touches.map(function(t){ return {day:(t&&t.day)||1, type:(t&&t.type)||"email", subject:String((t&&t.subject)||""), body:String((t&&t.body!=null)?t.body:"")}; });
-          setGenerated({account:selAcc, profile:p, touches:norm, createdAt:Date.now(), engine:"openai"});
-          props.showToast("Sequencia gerada com IA (OpenAI).", "#10b981");
+          setGenerated({account:selAcc, profile:p, touches:norm, createdAt:Date.now(), engine:"ai"});
+          props.showToast("Sequencia gerada com IA (Gemini).", "#10b981");
         } else {
           var reason = (data && (data.error || data.message)) || ("HTTP " + res.status);
           props.showToast("IA indisponivel, usando templates. Motivo: " + reason, "#f59e0b");
@@ -546,10 +546,10 @@ function SequenceView(props) {
       {generated && (
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
-            {generated.engine==="openai" ? (
+            {generated.engine==="ai" ? (
               <span style={{fontSize:10,fontWeight:700,color:"#fff",background:"linear-gradient(135deg,#10b981,#059669)",borderRadius:7,padding:"4px 10px",display:"flex",alignItems:"center",gap:5}}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21l2.3-7.4-6-4.6h7.6z"/></svg>
-                {"Gerado por IA (OpenAI)"}
+                {"Gerado por IA (Gemini)"}
               </span>
             ) : (
               <span style={{fontSize:10,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fde68a",borderRadius:7,padding:"4px 10px"}}>{"Template local (IA indisponivel)"}</span>
@@ -2089,7 +2089,7 @@ function SearchView(props) {
           if(!stored || stored.nome.toLowerCase()!==nome.toLowerCase()) return;
           var emp = (stored.data && stored.data.empresa) || {};
           var raw = emp.rawContext || emp.resumo || "";
-          fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+          fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
             mode:"resumo", empresa:nome, setor:emp.setor||stored.setor||"tecnologia", rawContext:raw
           })})
             .then(function(r){return r.json();})
