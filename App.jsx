@@ -404,16 +404,20 @@ function SequenceView(props) {
     fetch("/api/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
       empresa:selAcc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, touches:cadencia
     })})
-      .then(function(r){ return r.json(); })
-      .then(function(data){
+      .then(function(r){ return r.json().then(function(d){ return {status:r.status, data:d}; }); })
+      .then(function(res){
+        var data = res.data;
         if (data && data.touches && data.touches.length) {
           var norm = data.touches.map(function(t){ return {day:t.day, type:t.type||"email", subject:t.subject||"", body:t.body||""}; });
           setGenerated({account:selAcc, profile:p, touches:norm, createdAt:Date.now(), engine:"openai"});
+          props.showToast("Sequencia gerada com IA (OpenAI).", "#10b981");
         } else {
+          var reason = (data && (data.error || data.message)) || ("HTTP " + res.status);
+          props.showToast("IA indisponivel, usando templates. Motivo: " + reason, "#f59e0b");
           localFallback();
         }
       })
-      .catch(function(){ localFallback(); })
+      .catch(function(err){ props.showToast("Falha de rede ao chamar IA, usando templates.", "#f59e0b"); localFallback(); })
       .finally(function(){ setGenLoading(false); });
   }
 
@@ -541,7 +545,16 @@ function SequenceView(props) {
       </div>
       {generated && (
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {safeArr(generated.touches).map(function(touch,i) {
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
+            {generated.engine==="openai" ? (
+              <span style={{fontSize:10,fontWeight:700,color:"#fff",background:"linear-gradient(135deg,#10b981,#059669)",borderRadius:7,padding:"4px 10px",display:"flex",alignItems:"center",gap:5}}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21l2.3-7.4-6-4.6h7.6z"/></svg>
+                {"Gerado por IA (OpenAI)"}
+              </span>
+            ) : (
+              <span style={{fontSize:10,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fde68a",borderRadius:7,padding:"4px 10px"}}>{"Template local (IA indisponivel)"}</span>
+            )}
+          </div>
             var tc = TOUCH_TYPES[touch.type]||TOUCH_TYPES.email;
             return (
               <div key={i} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:14,overflow:"hidden"}}>
