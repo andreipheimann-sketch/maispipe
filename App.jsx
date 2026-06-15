@@ -841,29 +841,23 @@ function AttachmentAnalysis(props) {
   useEffect(function() {
     if (!acc.attachData || analysis) return;
     setLoading(true);
-    var b64 = acc.attachData.split(",")[1] || acc.attachData;
-    var mediaType = acc.attachData.indexOf("pdf") > -1 ? "application/pdf" :
-                    acc.attachData.indexOf("sheet") > -1 ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" :
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-    fetch("https://api.anthropic.com/v1/messages", {
+    fetch("/api/analyze", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:1500,
-        messages:[{role:"user",content:[
-          {type:"document",source:{type:"base64",media_type:mediaType,data:b64}},
-                    {type:"text",text:"Analise este documento e retorne APENAS um JSON (sem markdown) com: {resumo, insights: array de 5 strings, oportunidades: array de 3 strings, alertas: array}. Foque em informacoes uteis para um BDR de Zendesk abordando esta empresa. Responda somente o JSON."}        ]}]
-      })
+      body:JSON.stringify({ attachData:acc.attachData, attachFileName:acc.attachFileName||"", company:acc.nome||"" })
     })
-    .then(function(r){return r.json();})
-    .then(function(resp){
-      var text = (resp.content||[]).map(function(b){return b.text||"";}).join("");
-      try { setAnalysis(JSON.parse(text.replace(/json|---/g,"").trim())); }
-      catch(e) { setAnalysis({resumo:text,insights:[],oportunidades:[],alertas:[]}); }
+    .then(function(r){ return r.json().then(function(d){ return {status:r.status, data:d}; }); })
+    .then(function(res){
+      var d = res.data;
+      if (d && (d.resumo || (d.insights&&d.insights.length))) {
+        setAnalysis({resumo:d.resumo||"", insights:d.insights||[], oportunidades:d.oportunidades||[], alertas:d.alertas||[]});
+      } else {
+        var reason = (d && d.error) || ("HTTP " + res.status);
+        setAnalysis({resumo:"Erro ao analisar o documento: " + reason, insights:[], oportunidades:[], alertas:[]});
+      }
       setLoading(false);
     })
-    .catch(function(){ setLoading(false); setAnalysis({resumo:"Erro ao analisar o documento.",insights:[],oportunidades:[],alertas:[]}); });
+    .catch(function(err){ setLoading(false); setAnalysis({resumo:"Erro de rede ao analisar o documento.",insights:[],oportunidades:[],alertas:[]}); });
   }, [acc.attachData]);
 
   if (!acc.attachData) return null;
@@ -3127,9 +3121,7 @@ export default function App() {
   var _st_openAcc = useState(null); var openAcc = _st_openAcc[0]; var setOpenAcc = _st_openAcc[1];
   var _st_toast = useState(null); var toast = _st_toast[0]; var setToast = _st_toast[1];
   var _st_sidebarOpen = useState(false); var sidebarOpen = _st_sidebarOpen[0]; var setSidebarOpen = _st_sidebarOpen[1];
-  var _st_sidebarPinned = useState(false); var sidebarPinned = _st_sidebarPinned[0]; var setSidebarPinned = _st_sidebarPinned[1];
-  var _st_sidebarHover = useState(false); var sidebarHover = _st_sidebarHover[0]; var setSidebarHover = _st_sidebarHover[1];
-  var sidebarExpanded = sidebarPinned || sidebarHover;
+  var _st_sidebarExpanded = useState(true); var sidebarExpanded = _st_sidebarExpanded[0]; var setSidebarExpanded = _st_sidebarExpanded[1];
   var _st_seqCount = useState(0); var seqCount = _st_seqCount[0]; var setSeqCount = _st_seqCount[1];
   var _st_openSeq = useState(null); var openSeq = _st_openSeq[0]; var setOpenSeq = _st_openSeq[1];
   var _st_usage = useState(null); var usage = _st_usage[0]; var setUsage = _st_usage[1];
@@ -3325,7 +3317,7 @@ export default function App() {
       <BetaBanner/>
     <div style={{display:"flex",flex:1,overflowX:"clip",minWidth:0,width:"100%"}}>
       <style>{css}</style>
-      <div className="sidebar" onMouseEnter={function(){if(!sidebarPinned)setSidebarHover(true);}} onMouseLeave={function(){if(!sidebarPinned)setSidebarHover(false);}} style={{width:sidebarExpanded?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .35s cubic-bezier(.4,0,.2,1)"}}>
+      <div className="sidebar" style={{width:sidebarExpanded?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .35s cubic-bezier(.4,0,.2,1)"}}>
         <div style={{height:3,background:"linear-gradient(90deg,#4361EE,#7B5EA7,#A78BFA)",flexShrink:0}}/>
         {sidebarExpanded ? (
           <div style={{padding:"14px 14px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
@@ -3336,14 +3328,14 @@ export default function App() {
                 <div style={{fontSize:7.5,color:"#6b7280",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
               </div>
             </div>
-            <button onClick={function(){setSidebarPinned(function(v){return !v;});}} title={sidebarPinned?"Desafixar":"Fixar menu"} style={{width:26,height:26,borderRadius:7,border:"none",background:sidebarPinned?"rgba(67,97,238,.2)":"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:sidebarPinned?"#4361EE":"#6b7280",flexShrink:0,padding:0,transition:"all .2s"}}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
+            <button onClick={function(){setSidebarExpanded(false);}} title="Recolher menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",flexShrink:0,padding:0,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#6b7280";}}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
           </div>
         ) : (
           <div style={{padding:"14px 0 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
                       <img src="data:image/png;base64,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" alt="+pipe" style={{width:40,height:40,borderRadius:12,objectFit:"contain"}}/>
-            <button onClick={function(){setSidebarPinned(true);setSidebarHover(true);}} title="Fixar menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",padding:0}}>
+            <button onClick={function(){setSidebarExpanded(true);}} title="Expandir menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",padding:0}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#6b7280";}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
