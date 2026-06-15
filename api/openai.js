@@ -1,7 +1,10 @@
 // api/openai.js — Vercel serverless
 // Geracao criativa de sequencias de prospeccao via OpenAI.
 // Variavel de ambiente necessaria: OPENAI_API_KEY
-// Opcional: OPENAI_MODEL (default: gpt-4o)
+// Opcional:
+//   OPENAI_MODEL_RESUMO    (default: gpt-5.4-mini)  — tarefa simples, mais barato
+//   OPENAI_MODEL_SEQUENCIA (default: gpt-5.4)       — copy criativa, mais qualidade
+//   OPENAI_MODEL           (fallback geral, opcional)
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -15,7 +18,9 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "OPENAI_API_KEY nao configurada nas variaveis de ambiente do Vercel." });
   }
 
-  const model = process.env.OPENAI_MODEL || "gpt-4o";
+  const fallbackModel = process.env.OPENAI_MODEL || "gpt-5.4";
+  const modelResumo = process.env.OPENAI_MODEL_RESUMO || process.env.OPENAI_MODEL || "gpt-5.4-mini";
+  const modelSequencia = process.env.OPENAI_MODEL_SEQUENCIA || fallbackModel;
   const { mode, empresa, setor, cargo, angulo, pain, touches, rawContext } = req.body || {};
 
   // ── MODO RESUMO: gera um resumo profissional de outbound da conta ──────────
@@ -44,7 +49,7 @@ export default async function handler(req, res) {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + apiKey },
         body: JSON.stringify({
-          model: model,
+          model: modelResumo,
           messages: [{ role: "system", content: sysR }, { role: "user", content: usrR }],
           temperature: 0.7,
           max_tokens: 400,
@@ -115,7 +120,7 @@ export default async function handler(req, res) {
         Authorization: "Bearer " + apiKey,
       },
       body: JSON.stringify({
-        model: model,
+        model: modelSequencia,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
