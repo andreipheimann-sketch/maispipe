@@ -1,6 +1,7 @@
 // api/analyze.js — Vercel serverless
-// Analyzes an attached document using Anthropic Claude API
-// Required env var: ANTHROPIC_API_KEY
+// Analisa um documento anexado (RI, relatorios) usando OpenAI.
+// Variavel de ambiente necessaria: OPENAI_API_KEY
+// Opcional: OPENAI_MODEL_ANALYZE (default: gpt-5.4-mini)
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -12,93 +13,72 @@ export default async function handler(req, res) {
   const { attachData, attachFileName, company } = req.body || {};
   if (!attachData) return res.status(400).json({ error: "Nenhum arquivo enviado." });
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "ANTHROPIC_API_KEY nao configurada no servidor." });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: "OPENAI_API_KEY nao configurada no servidor." });
 
-  // Detect media type from data URI or filename
-  let mediaType = "application/pdf";
-  if (attachData.includes("data:")) {
-    const mime = attachData.split(";")[0].replace("data:", "").trim();
-    if (mime) mediaType = mime;
-  } else if (attachFileName) {
-    const ext = (attachFileName.split(".").pop() || "").toLowerCase();
-    const mimeMap = {
-      pdf: "application/pdf",
-      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      xls: "application/vnd.ms-excel",
-      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      doc: "application/msword",
-      txt: "text/plain",
-      csv: "text/csv",
-    };
-    mediaType = mimeMap[ext] || "application/pdf";
-  }
+  const model = process.env.OPENAI_MODEL_ANALYZE || process.env.OPENAI_MODEL_RESUMO || "gpt-5.4-mini";
 
-  // Extract raw base64 (strip data URI prefix if present)
-  const b64 = attachData.includes(",") ? attachData.split(",")[1] : attachData;
+  // Detecta tipo do arquivo
+  const ext = (attachFileName || "").split(".").pop().toLowerCase();
+  const isPdf = ext === "pdf" || (attachData.indexOf("application/pdf") >= 0);
+
+  // Extrai base64 puro
+  const b64 = attachData.indexOf(",") >= 0 ? attachData.split(",")[1] : attachData;
   if (!b64 || b64.length < 100) {
     return res.status(400).json({ error: "Arquivo invalido ou muito pequeno." });
   }
 
-  const prompt = `Voce e um analista de inteligencia comercial B2B especializado em vendas SaaS no Brasil.
-Analise este documento e retorne um JSON valido com exatamente esta estrutura (sem markdown, sem texto fora do JSON):
-{
-  "resumo": "Resumo executivo em 3-4 frases descrevendo o que a empresa faz, seu porte, mercado e destaques financeiros ou operacionais relevantes",
-  "insights": ["insight comercial relevante 1", "insight comercial relevante 2", "insight comercial relevante 3", "insight comercial relevante 4", "insight comercial relevante 5"],
-  "oportunidades": ["oportunidade de venda Zendesk 1", "oportunidade de venda Zendesk 2", "oportunidade de venda Zendesk 3"],
-  "alertas": ["risco ou ponto de atencao 1", "risco ou ponto de atencao 2"]
-}
-Empresa sendo analisada: ${company || "não informada"}
-Foque em informacoes uteis para um BDR da Zendesk que quer vender Suite de CX para esta empresa.
-Responda SOMENTE o JSON, sem nenhum texto antes ou depois.`;
+  const prompt = [
+    "Voce e um analista de inteligencia comercial B2B especializado em vendas SaaS de CX (Zendesk) no Brasil.",
+    "Analise o documento e retorne APENAS um JSON valido (sem markdown, sem texto fora do JSON) nesta estrutura exata:",
+    '{"resumo":"Resumo executivo em 3-4 frases: o que a empresa faz, porte, mercado e destaques financeiros/operacionais relevantes","insights":["insight 1","insight 2","insight 3","insight 4","insight 5"],"oportunidades":["oportunidade Zendesk 1","oportunidade Zendesk 2","oportunidade Zendesk 3"],"alertas":["risco 1","risco 2"]}',
+    "Empresa: " + (company || "nao informada") + ".",
+    "Foque no que ajuda um BDR da Zendesk a vender Suite de CX para esta empresa. Responda SOMENTE o JSON.",
+  ].join("\n");
+
+  // Monta o conteudo da mensagem conforme o tipo
+  let userContent;
+  if (isPdf) {
+    userContent = [
+      { type: "file", file: { filename: attachFileName || "documento.pdf", file_data: "data:application/pdf;base64," + b64 } },
+      { type: "text", text: prompt },
+    ];
+  } else {
+    // Para nao-PDF (txt/csv), decodifica e manda como texto
+    let textContent = "";
+    try { textContent = Buffer.from(b64, "base64").toString("utf-8").slice(0, 12000); } catch (e) {}
+    userContent = [{ type: "text", text: prompt + "\n\nConteudo do documento:\n" + textContent }];
+  }
 
   try {
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + apiKey },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1200,
-        messages: [{
-          role: "user",
-          content: [
-            {
-              type: "document",
-              source: { type: "base64", media_type: mediaType, data: b64 },
-            },
-            { type: "text", text: prompt },
-          ],
-        }],
+        model: model,
+        messages: [{ role: "user", content: userContent }],
+        max_tokens: 1400,
+        response_format: { type: "json_object" },
       }),
     });
 
-    if (!anthropicRes.ok) {
-      const errText = await anthropicRes.text();
-      console.error("Anthropic error:", anthropicRes.status, errText.slice(0, 300));
-      return res.status(502).json({ error: "Erro na API de IA: " + anthropicRes.status + ". Verifique ANTHROPIC_API_KEY." });
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      let detail = errText.slice(0, 300);
+      let hint = "";
+      if (aiRes.status === 400 && errText.indexOf("file") >= 0) hint = " (O modelo pode nao aceitar PDF; tente converter para texto ou use outro modelo.)";
+      return res.status(502).json({ error: "OpenAI erro " + aiRes.status + hint, detail: detail });
     }
 
-    const data = await anthropicRes.json();
-    const rawText = (data.content || []).map(function(b) { return b.text || ""; }).join("").trim();
+    const data = await aiRes.json();
+    const rawText = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "";
 
-    // Parse JSON — strip any accidental markdown fences
-    const cleaned = rawText.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    const cleaned = rawText.replace(/```json|```/gi, "").trim();
     let parsed;
     try {
       parsed = JSON.parse(cleaned);
     } catch (parseErr) {
-      // Fallback: return raw as resumo
-      console.warn("JSON parse failed, raw:", rawText.slice(0, 200));
-      parsed = {
-        resumo: rawText.slice(0, 600) || "Nao foi possivel estruturar a analise.",
-        insights: [],
-        oportunidades: [],
-        alertas: [],
-      };
+      parsed = { resumo: rawText.slice(0, 600) || "Nao foi possivel estruturar a analise.", insights: [], oportunidades: [], alertas: [] };
     }
 
     return res.status(200).json({
@@ -108,7 +88,6 @@ Responda SOMENTE o JSON, sem nenhum texto antes ou depois.`;
       alertas: Array.isArray(parsed.alertas) ? parsed.alertas : [],
     });
   } catch (e) {
-    console.error("analyze error:", e.message);
     return res.status(500).json({ error: "Erro interno ao processar o documento: " + e.message });
   }
 }
