@@ -16,7 +16,51 @@ export default async function handler(req, res) {
   }
 
   const model = process.env.OPENAI_MODEL || "gpt-4o";
-  const { empresa, setor, cargo, angulo, pain, touches } = req.body || {};
+  const { mode, empresa, setor, cargo, angulo, pain, touches, rawContext } = req.body || {};
+
+  // ── MODO RESUMO: gera um resumo profissional de outbound da conta ──────────
+  if (mode === "resumo") {
+    const sysR = [
+      "Voce e um especialista senior em outbound B2B e account research, no nivel de um SDR/AE de alta performance.",
+      "Sua tarefa: ler informacoes cruas (possivelmente desconexas, de varias fontes) sobre uma empresa e escrever um RESUMO EXECUTIVO de conta, claro, fluido e acionavel — do jeito que um vendedor experiente escreveria antes de abordar a conta.",
+      "REGRAS:",
+      "- Portugues do Brasil, tom profissional e direto, sem jargao vazio.",
+      "- 1 paragrafo unico, 3 a 5 frases, coeso e bem encadeado (nada de frases soltas ou repetidas).",
+      "- Foque no que importa para vender CX/atendimento: o que a empresa faz, porte/momento, base de clientes, e por que CX e relevante para ela.",
+      "- Se a informacao crua for pobre ou contraditoria, NAO invente numeros. Generalize com elegancia.",
+      "- Nunca cite URLs, nao use bullet points, nao use markdown. Apenas o paragrafo.",
+    ].join("\n");
+    const usrR = [
+      "Empresa: " + (empresa || "a empresa"),
+      "Setor (classificado): " + (setor || "tecnologia"),
+      "",
+      "Informacoes cruas coletadas (podem estar desorganizadas):",
+      (rawContext || "Sem dados adicionais.").slice(0, 4000),
+      "",
+      "Escreva o resumo executivo da conta agora. Responda apenas com o paragrafo, sem aspas.",
+    ].join("\n");
+    try {
+      const rr = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + apiKey },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: "system", content: sysR }, { role: "user", content: usrR }],
+          temperature: 0.7,
+          max_tokens: 400,
+        }),
+      });
+      if (!rr.ok) {
+        const e = await rr.text();
+        return res.status(rr.status).json({ error: "OpenAI erro " + rr.status, detail: e });
+      }
+      const rd = await rr.json();
+      const resumo = rd.choices && rd.choices[0] && rd.choices[0].message && rd.choices[0].message.content;
+      return res.status(200).json({ resumo: (resumo || "").trim() || null });
+    } catch (err) {
+      return res.status(500).json({ error: "Erro ao chamar OpenAI: " + err.message });
+    }
+  }
 
   // touches = [{day, type}] — define a cadencia que o front quer
   const cadencia = Array.isArray(touches) && touches.length
