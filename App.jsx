@@ -408,7 +408,7 @@ function SequenceView(props) {
       .then(function(res){
         var data = res.data;
         if (data && data.touches && data.touches.length) {
-          var norm = data.touches.map(function(t){ return {day:t.day, type:t.type||"email", subject:t.subject||"", body:t.body||""}; });
+          var norm = data.touches.map(function(t){ return {day:(t&&t.day)||1, type:(t&&t.type)||"email", subject:String((t&&t.subject)||""), body:String((t&&t.body!=null)?t.body:"")}; });
           setGenerated({account:selAcc, profile:p, touches:norm, createdAt:Date.now(), engine:"openai"});
           props.showToast("Sequencia gerada com IA (OpenAI).", "#10b981");
         } else {
@@ -555,6 +555,7 @@ function SequenceView(props) {
               <span style={{fontSize:10,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fde68a",borderRadius:7,padding:"4px 10px"}}>{"Template local (IA indisponivel)"}</span>
             )}
           </div>
+          {safeArr(generated.touches).map(function(touch,i) {
             var tc = TOUCH_TYPES[touch.type]||TOUCH_TYPES.email;
             return (
               <div key={i} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:14,overflow:"hidden"}}>
