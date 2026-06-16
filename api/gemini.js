@@ -13,7 +13,8 @@ async function callGemini(model, apiKey, systemText, userText, temperature, json
     contents: [{ role: "user", parts: [{ text: userText }] }],
     generationConfig: {
       temperature: temperature,
-      maxOutputTokens: 2400,
+      maxOutputTokens: 8192,
+      thinkingConfig: { thinkingBudget: 0 },
     },
   };
   if (systemText) body.systemInstruction = { parts: [{ text: systemText }] };
@@ -29,11 +30,15 @@ async function callGemini(model, apiKey, systemText, userText, temperature, json
     const msg = (data && data.error && data.error.message) || ("HTTP " + r.status);
     return { ok: false, status: r.status, error: msg };
   }
+  const cand = data.candidates && data.candidates[0];
+  const finish = cand && cand.finishReason;
   const text =
-    (data.candidates && data.candidates[0] && data.candidates[0].content &&
-      data.candidates[0].content.parts || [])
+    ((cand && cand.content && cand.content.parts) || [])
       .map(function (p) { return p.text || ""; })
       .join("");
+  if (!text && finish === "MAX_TOKENS") {
+    return { ok: false, status: 200, error: "Resposta vazia (MAX_TOKENS). Tente novamente." };
+  }
   return { ok: true, text: text };
 }
 
@@ -55,25 +60,27 @@ export default async function handler(req, res) {
   // ── MODO RESUMO ────────────────────────────────────────────────────────────
   if (mode === "resumo") {
     const sysR = [
-      "Voce e um especialista senior em outbound B2B e account research, no nivel de um SDR/AE de alta performance.",
-      "Sua tarefa: ler informacoes cruas (possivelmente desconexas, de varias fontes) sobre uma empresa e escrever um RESUMO EXECUTIVO de conta, claro, fluido e acionavel.",
+      "Voce e um especialista senior em ACCOUNT MAPPING e outbound B2B enterprise, no nivel dos melhores AEs de Salesforce e Zendesk.",
+      "Sua tarefa: transformar informacoes cruas e desorganizadas sobre uma empresa em um RESUMO DE CONTA acionavel — o tipo de briefing que um vendedor le 5 minutos antes de uma call e ja sabe como atacar.",
+      "ESTRUTURA OBRIGATORIA (escreva em 2 paragrafos curtos e densos, em prosa fluida, sem bullets nem markdown):",
+      "Paragrafo 1 (a empresa): o que ela faz de fato, modelo de negocio, porte e momento (crescimento, M&A, IPO, expansao), e posicao no mercado. Seja especifico sobre o setor.",
+      "Paragrafo 2 (o angulo de venda CX): por que atendimento/CX e relevante PARA ESTA empresa especificamente — volume de clientes, canais, operacao, sinais de dor (reclamacoes, escala, regulacao). Termine com o gancho comercial: qual a porta de entrada mais provavel para uma conversa.",
       "REGRAS:",
-      "- Portugues do Brasil, tom profissional e direto, sem jargao vazio.",
-      "- 1 paragrafo unico, 3 a 5 frases, coeso e bem encadeado (nada de frases soltas ou repetidas).",
-      "- Foque no que importa para vender CX/atendimento: o que a empresa faz, porte/momento, base de clientes, e por que CX e relevante.",
-      "- Se a informacao crua for pobre ou contraditoria, NAO invente numeros. Generalize com elegancia.",
-      "- Nunca cite URLs, nao use bullet points, nao use markdown. Apenas o paragrafo.",
+      "- Portugues do Brasil, tom de quem entende de vendas enterprise. Direto, sem encheção.",
+      "- NUNCA invente numeros, nomes ou fatos. Se a info crua for pobre, trabalhe com o que da para inferir do setor, sem fabricar dados especificos.",
+      "- Nada de frases genericas tipo 'empresa inovadora e lider de mercado'. Cada frase precisa carregar informacao real ou insight de venda.",
+      "- Sem URLs, sem markdown, sem aspas alrededor do texto.",
     ].join("\n");
     const usrR = [
-      "Empresa: " + (empresa || "a empresa"),
-      "Setor (classificado): " + (setor || "tecnologia"),
+      "EMPRESA: " + (empresa || "a empresa"),
+      "SETOR (classificado): " + (setor || "tecnologia"),
       "",
-      "Informacoes cruas coletadas (podem estar desorganizadas):",
-      (rawContext || "Sem dados adicionais.").slice(0, 4000),
+      "INFORMACOES CRUAS COLETADAS (podem estar desorganizadas, com ruido ou fora de ordem):",
+      (rawContext || "Sem dados adicionais.").slice(0, 5000),
       "",
-      "Escreva o resumo executivo da conta agora. Responda apenas com o paragrafo, sem aspas.",
+      "Escreva o resumo de conta agora, seguindo a estrutura de 2 paragrafos. Responda apenas com o texto.",
     ].join("\n");
-    const out = await callGemini(modelResumo, apiKey, sysR, usrR, 0.7, false);
+    const out = await callGemini(modelResumo, apiKey, sysR, usrR, 0.6, false);
     if (!out.ok) return res.status(502).json({ error: "Gemini erro: " + out.error });
     return res.status(200).json({ resumo: (out.text || "").trim() || null });
   }
