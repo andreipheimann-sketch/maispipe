@@ -481,8 +481,8 @@ function SequenceView(props) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:22,fontWeight:800,color:"#0f172a",marginBottom:3}}>{"Gerador de Sequencias"}</div>
-          <div style={{fontSize:13,color:"#64748b"}}>Selecione a conta e o perfil para gerar uma cadencia de 6 toques.</div>
+          <div style={{fontSize:22,fontWeight:800,color:"#0f172a",marginBottom:3}}>{"Gerador de Sequências"}</div>
+          <div style={{fontSize:13,color:"#64748b"}}>Selecione a conta e o perfil para gerar uma cadência de 6 toques.</div>
         </div>
         <button onClick={function(){setView("library");}} style={{background:"#f8fafc",color:"#475569",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Biblioteca ("+saved.length+")"}</button>
       </div>
@@ -712,15 +712,18 @@ function PipelineView(props) {
     });
     return found;
   }
+  var grabOffset = useRef({x:80, y:30});
   function startMouseDrag(e, acc, fromCol) {
     e.preventDefault();
+    var rect = e.currentTarget.getBoundingClientRect();
+    grabOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     dragFrom.current = fromCol;
     setDragId(acc.id);
     setDragAcc(acc);
-    setGhostPos({x:e.clientX-80, y:e.clientY-30});
+    setGhostPos({x:e.clientX-grabOffset.current.x, y:e.clientY-grabOffset.current.y});
     setOverCol(fromCol);
     function onMove(ev) {
-      setGhostPos({x:ev.clientX-80, y:ev.clientY-30});
+      setGhostPos({x:ev.clientX-grabOffset.current.x, y:ev.clientY-grabOffset.current.y});
       var col = getColAtPoint(ev.clientX, ev.clientY);
       if (col) setOverCol(col);
     }
@@ -739,16 +742,18 @@ function PipelineView(props) {
   }
   function startTouchDrag(e, acc, fromCol) {
     var t0 = e.touches[0];
+    var rect = e.currentTarget.getBoundingClientRect();
+    grabOffset.current = { x: t0.clientX - rect.left, y: t0.clientY - rect.top };
     dragFrom.current = fromCol;
     setDragId(acc.id);
     setDragAcc(acc);
-    setGhostPos({x:t0.clientX-80, y:t0.clientY-30});
+    setGhostPos({x:t0.clientX-grabOffset.current.x, y:t0.clientY-grabOffset.current.y});
     setOverCol(fromCol);
     function onTouchMove(ev) {
       ev.preventDefault();
       var t = ev.touches[0];
       if (!t) return;
-      setGhostPos({x:t.clientX-80, y:t.clientY-30});
+      setGhostPos({x:t.clientX-grabOffset.current.x, y:t.clientY-grabOffset.current.y});
       var col = getColAtPoint(t.clientX, t.clientY);
       if (col) setOverCol(col);
     }
@@ -789,7 +794,7 @@ function PipelineView(props) {
                     var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
                     var isDragging = dragId===acc.id;
                     return (
-                      <div key={acc.id} onMouseDown={function(e){startMouseDrag(e,acc,col);}} onTouchStart={function(e){startTouchDrag(e,acc,col);}} onClick={function(){if(!dragId)props.onOpen(acc);}} style={{background:"#fff",border:"1px solid "+(isDragging?"#4361EE":"#edf0f7"),borderRadius:14,padding:"12px 14px",cursor:isDragging?"grabbing":"grab",touchAction:"none",opacity:isDragging?0.25:1,transition:"opacity .1s",position:"relative"}}>
+                      <div key={acc.id} onMouseDown={function(e){startMouseDrag(e,acc,col);}} onTouchStart={function(e){startTouchDrag(e,acc,col);}} style={{background:"#fff",border:"1px solid "+(isDragging?"#4361EE":"#edf0f7"),borderRadius:14,padding:"12px 14px",cursor:isDragging?"grabbing":"grab",touchAction:"none",opacity:isDragging?0.25:1,transition:"opacity .1s",position:"relative"}}>
                         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:3}}>
                           <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{acc.nome}</div>
                           <div style={{fontSize:11,color:"#cbd5e1",marginLeft:6,flexShrink:0,letterSpacing:2}}>{"..."}</div>
@@ -973,6 +978,20 @@ function exportAccountPDF(acc, d) {
       html += "</div>";
     });
   }
+  var realContacts = (acc.enriched && Array.isArray(acc.enriched.contacts)) ? acc.enriched.contacts.filter(function(c){return c.nome||c.name;}) : [];
+  if (realContacts.length) {
+    html += "<h2>Contatos Reais Encontrados</h2>";
+    realContacts.forEach(function(c) {
+      var cnome = c.nome || c.name || "";
+      var ccargo = c.cargo || c.title || "";
+      html += "<div class='sk'><strong>"+cnome+"</strong>";
+      if (ccargo) html += " <span style='color:#64748b;font-size:11px'>, "+ccargo+"</span>";
+      if (c.cidade || c.pais) html += "<br/><span style='font-size:10px;color:#94a3b8'>"+[c.cidade,c.pais].filter(Boolean).join(", ")+"</span>";
+      if (c.email) html += "<br/><a href='mailto:"+c.email+"' style='color:#0ea5e9;font-size:10px'>"+c.email+"</a>";
+      if (c.linkedin) html += " <a href='"+c.linkedin+"' style='color:#0a66c2;font-size:10px'>LinkedIn</a>";
+      html += "</div>";
+    });
+  }
   if (spin.length) { html += "<h2>Perguntas SPIN</h2><ul>"+spin.map(function(q){return "<li>"+q+"</li>";}).join("")+"</ul>"; }
   if (objecoes.length) {
     html += "<h2>Objecoes e Respostas</h2>";
@@ -1033,7 +1052,7 @@ function AccountModal(props) {
     }
     return null;
   }
-  var tabs=[{id:"overview",label:"Visão Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"spin",label:"SPIN & Objeções"},{id:"plan",label:"Plano de Ação"}].concat(acc.attachData?[{id:"attachment",label:"Conteudo Anexado"}]:[]);
+  var tabs=[{id:"overview",label:"Visão Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"spin",label:"SPIN & Objeções"},{id:"plan",label:"Plano de Ação"}].concat(acc.attachData?[{id:"attachment",label:"Conteúdo Anexado"}]:[]);
   var empresa=sd("empresa")||{};
   var stakeholders=safeArr(sd("stakeholders"));
   var dores=safeArr(sd("dores.principais"));
@@ -1453,6 +1472,7 @@ function LoadingStatus() {
 function ContactsView(props) {
   var _st_contacts = useState([]); var contacts = _st_contacts[0]; var setContacts = _st_contacts[1];
   var _st_loading = useState(true); var loadingC = _st_loading[0]; var setLoadingC = _st_loading[1];
+  var _st_csort = useState("az"); var csort = _st_csort[0]; var setCsort = _st_csort[1];
   var _st_search = useState(""); var search = _st_search[0]; var setSearch = _st_search[1];
   var _st_enriching = useState({}); var enriching = _st_enriching[0]; var setEnriching = _st_enriching[1];
   var _st_toast = useState(null); var toastC = _st_toast[0]; var setToastC = _st_toast[1];
@@ -1512,10 +1532,11 @@ function ContactsView(props) {
       method: "POST",
       headers: {"Content-Type":"application/json"},
       body: JSON.stringify({first_name:(contact.nome||"").split(" ")[0], last_name:(contact.nome||"").split(" ").slice(1).join(" "), organization_name:contact.empresa, domain:contact.domain||""})
-    }).then(function(r){ return r.json(); }).then(function(data) {
+    }).then(function(r){ return r.json().then(function(d){ return {status:r.status, data:d}; }); }).then(function(res) {
+      var data = res.data || {};
       if (data.error) { showToastC(data.error, "#f59e0b"); return; }
       var email = (data.person && data.person.email) || "";
-      if (!email) { showToastC(data.message || "E-mail nao encontrado.", "#f59e0b"); }
+      if (!email) { showToastC(data.message || ("Nenhum e-mail encontrado para este contato (HTTP " + res.status + ")."), "#f59e0b"); }
       else {
         var conf = (data.person && data.person.email_confidence) || 0;
         var updated = Object.assign({}, contact, {email:email, emailValidated:true, emailConfidence:conf, domain:(data.person&&data.person.domain)||contact.domain||""});
@@ -1546,6 +1567,10 @@ function ContactsView(props) {
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
           <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder={"Buscar..."} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",minWidth:160,flex:1}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+          <select value={csort} onChange={function(e){setCsort(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+            <option value="az">A - Z</option>
+            <option value="za">Z - A</option>
+          </select>
           <button onClick={function(){setAddModal(true);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(67,97,238,.25)"}}>{"+ Novo"}</button>
         </div>
       </div>
@@ -1597,8 +1622,8 @@ function ContactsView(props) {
               if (!grouped[key]) grouped[key] = [];
               grouped[key].push(c);
             });
-            return Object.keys(grouped).sort().map(function(empresa) {
-              var group = grouped[empresa];
+            return Object.keys(grouped).sort(function(a,b){ return csort==="za" ? b.localeCompare(a) : a.localeCompare(b); }).map(function(empresa) {
+              var group = grouped[empresa].slice().sort(function(a,b){ var an=(a.nome||"").toLowerCase(), bn=(b.nome||"").toLowerCase(); return csort==="za" ? bn.localeCompare(an) : an.localeCompare(bn); });
               return (
                 <div key={empresa}>
                   <div onClick={function(){toggleGroup(empresa);}} style={{display:"flex",alignItems:"center",gap:8,marginBottom:expandedGroups[empresa]?10:0,padding:"10px 14px",background:"linear-gradient(135deg,rgba(67,97,238,.07),rgba(14,165,233,.04))",border:"1px solid rgba(67,97,238,.14)",borderRadius:expandedGroups[empresa]?"12px 12px 0 0":12,cursor:"pointer",userSelect:"none",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(67,97,238,.12),rgba(14,165,233,.07))";}} onMouseLeave={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(67,97,238,.07),rgba(14,165,233,.04))";}}>
@@ -1834,33 +1859,46 @@ function HomeView(props) {
   ];
 
   var visible = CARDS.filter(function(c2){ return !hidden[c2.id]; });
+  var now = new Date();
+  var hr = now.getHours();
+  var greet = hr<12?"Bom dia":hr<18?"Boa tarde":"Boa noite";
 
   return (
     <div>
-      <div style={{marginBottom:32}}>
-        <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:8}}>
-          <div>
-            <div style={{fontSize:30,fontWeight:900,color:"#0f172a",letterSpacing:"-0.8px",lineHeight:1.15}}><span style={{color:"#4361EE"}}>{"+"}</span>{"pipe"}<span style={{fontSize:13,fontWeight:500,color:"#94a3b8",letterSpacing:0,marginLeft:10}}>{"Beta"}</span></div>
-            <div style={{fontSize:14,color:"#64748b",marginTop:4}}>{"pipeline inteligente, resultados previsíveis"}</div>
+      <div style={{position:"relative",borderRadius:28,overflow:"hidden",marginBottom:28,background:"linear-gradient(135deg,#0A0A0F 0%,#171430 45%,#1e1b4b 100%)",padding:"40px 40px 36px"}}>
+        <div style={{position:"absolute",top:-80,right:-60,width:320,height:320,borderRadius:"50%",background:"radial-gradient(circle,rgba(67,97,238,.35),transparent 70%)",filter:"blur(20px)"}}/>
+        <div style={{position:"absolute",bottom:-100,left:-40,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(124,58,167,.25),transparent 70%)",filter:"blur(20px)"}}/>
+        <div style={{position:"relative",zIndex:2}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:18}}>
+            <span style={{fontSize:10,fontWeight:700,color:"#a5b4fc",background:"rgba(99,102,241,.15)",border:"1px solid rgba(129,140,248,.3)",borderRadius:20,padding:"4px 12px",letterSpacing:.5}}>{"BETA"}</span>
+            <span style={{fontSize:12,color:"#94a3b8"}}>{greet + ", vamos gerar pipeline"}</span>
           </div>
-          <div style={{display:"flex",gap:16}}>
+          <div style={{fontSize:38,fontWeight:900,letterSpacing:"-1.2px",lineHeight:1.05,color:"#fff",marginBottom:10}}>
+            <span style={{color:"#818cf8"}}>{"+"}</span>{"pipe"}
+            <span style={{display:"block",fontSize:18,fontWeight:600,color:"#cbd5e1",letterSpacing:"-.3px",marginTop:6}}>{"Account mapping com IA para times de vendas"}</span>
+          </div>
+          <div style={{fontSize:13.5,color:"#94a3b8",maxWidth:520,lineHeight:1.7,marginBottom:26}}>{"Pesquise qualquer empresa, gere inteligencia de conta completa e cadencias de prospeccao em segundos. Chegue preparado, feche mais rapido."}</div>
+          <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
             {[
-              {label:"Contas mapeadas", value:total, color:"#4361EE"},
-              {label:"Convertidas", value:converted, color:"#059669"},
-              {label:"Taxa de conversao", value:taxa+"%", color:"#7c3aed"},
+              {label:"Contas mapeadas", value:total, accent:"#818cf8"},
+              {label:"Convertidas", value:converted, accent:"#34d399"},
+              {label:"Taxa de conversao", value:taxa+"%", accent:"#c084fc"},
             ].map(function(m){return (
-              <div key={m.label} style={{textAlign:"center",background:"#fff",border:"1px solid #e8edf4",borderRadius:14,padding:"14px 20px",boxShadow:"0 2px 8px rgba(15,23,42,.05)"}}>
-                <div style={{fontSize:26,fontWeight:800,color:m.color,lineHeight:1}}>{m.value}</div>
-                <div style={{fontSize:10,color:"#94a3b8",fontWeight:500,marginTop:4,whiteSpace:"nowrap"}}>{m.label}</div>
+              <div key={m.label} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:16,padding:"16px 22px",minWidth:128}}>
+                <div style={{fontSize:30,fontWeight:800,color:m.accent,lineHeight:1,letterSpacing:"-.5px"}}>{m.value}</div>
+                <div style={{fontSize:10.5,color:"#94a3b8",fontWeight:500,marginTop:6,whiteSpace:"nowrap"}}>{m.label}</div>
               </div>
             );})}
+            <button onClick={function(){onNav("search");}} style={{marginLeft:"auto",alignSelf:"center",background:"linear-gradient(135deg,#4361EE,#6366f1)",color:"#fff",border:"none",borderRadius:14,padding:"14px 26px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 8px 28px rgba(67,97,238,.45)",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 12px 36px rgba(67,97,238,.55)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 8px 28px rgba(67,97,238,.45)";}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+              {"Nova busca"}
+            </button>
           </div>
         </div>
-        <div style={{height:2,background:"linear-gradient(90deg,#4361EE,#7B5EA7,rgba(67,97,238,0))",borderRadius:2}}/>
       </div>
 
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-        <div style={{fontSize:12,color:"#94a3b8"}}>{"Clique nos cards para navegar. Use os controles para personalizar a Home."}</div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:10}}>
+        <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Acesso rapido"}</div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           {CARDS.map(function(c2){
             var isHidden = hidden[c2.id];
@@ -1876,19 +1914,18 @@ function HomeView(props) {
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:18}}>
         {visible.map(function(card){
           return (
-            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:20,padding:"24px",cursor:"pointer",transition:"all .25s",position:"relative",overflow:"hidden"}}
-              onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 12px 40px rgba(67,97,238,.12)";}}
-              onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
-              <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#4361EE,#7B5EA7)",borderRadius:"20px 20px 0 0"}}/>
-              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14}}>
-                <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#4361EE,#3451d1)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 12px rgba(67,97,238,.3)",flexShrink:0}}>
-                  <span style={{fontSize:20}}>{card.emoji}</span>
+            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"24px",cursor:"pointer",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",overflow:"hidden",boxShadow:"0 1px 3px rgba(15,23,42,.04)"}}
+              onMouseEnter={function(e){e.currentTarget.style.borderColor="#c7d0fa";e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(67,97,238,.14)";}}
+              onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 1px 3px rgba(15,23,42,.04)";}}>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
+                <div style={{width:48,height:48,borderRadius:14,background:"linear-gradient(135deg,#4361EE,#6366f1)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 16px rgba(67,97,238,.28)",flexShrink:0}}>
+                  <span style={{fontSize:22}}>{card.emoji}</span>
                 </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
               </div>
-              <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:8}}>{card.label}</div>
-              <div style={{fontSize:12,color:"#64748b",lineHeight:1.65,marginBottom:16}}>{card.desc}</div>
-              <div style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",background:"#f8fafc",borderRadius:8,border:"1px solid #f1f5f9",width:"fit-content"}}>
+              <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:8,letterSpacing:"-.3px"}}>{card.label}</div>
+              <div style={{fontSize:12.5,color:"#64748b",lineHeight:1.65,marginBottom:16,minHeight:48}}>{card.desc}</div>
+              <div style={{display:"flex",alignItems:"center",gap:7,paddingTop:14,borderTop:"1px solid #f1f5f9"}}>
                 <div style={{width:6,height:6,borderRadius:"50%",background:card.statColor,flexShrink:0}}/>
                 <span style={{fontSize:11,color:card.statColor,fontWeight:600}}>{card.stat}</span>
               </div>
@@ -1898,7 +1935,7 @@ function HomeView(props) {
       </div>
 
       {total === 0 && (
-        <div style={{marginTop:32,background:"linear-gradient(135deg,#f0f3ff,#fff)",border:"1.5px solid #c7d0fa",borderRadius:20,padding:"32px",textAlign:"center"}}>
+        <div style={{marginTop:28,background:"linear-gradient(135deg,#f0f3ff,#fff)",border:"1.5px solid #c7d0fa",borderRadius:20,padding:"32px",textAlign:"center"}}>
           <div style={{fontSize:40,marginBottom:12}}>{"🚀"}</div>
           <div style={{fontSize:18,fontWeight:700,color:"#0f172a",marginBottom:8}}>{"Bem-vindo ao +pipe Beta"}</div>
           <div style={{fontSize:13,color:"#64748b",marginBottom:20,lineHeight:1.7,maxWidth:400,margin:"0 auto 20px"}}>{"Comece mapeando sua primeira conta. Digite o nome de uma empresa na Busca e deixe a IA gerar o account mapping completo."}</div>
