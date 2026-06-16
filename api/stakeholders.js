@@ -65,6 +65,7 @@ export default async function handler(req, res) {
       const body = {
         api_key: apolloKey,
         person_titles: titles.slice(0,6),
+        person_locations: ["Brazil"],
         page: 1,
         per_page: 10,
       };
@@ -82,6 +83,9 @@ export default async function handler(req, res) {
           const existingEmails = results.contacts.map(c => c.email).filter(Boolean);
           const email = p.email || "";
           if (email && existingEmails.includes(email)) continue;
+          const country = (p.country || (p.organization && p.organization.country) || "").toLowerCase();
+          const isBrazil = !country || country.includes("brazil") || country.includes("brasil");
+          if (!isBrazil) continue;
           addContact({
             nome: p.name || [p.first_name, p.last_name].filter(Boolean).join(" "),
             cargo: p.title || "",
@@ -90,6 +94,7 @@ export default async function handler(req, res) {
             linkedin: p.linkedin_url || "",
             phone: p.sanitized_phone || "",
             cidade: p.city || "",
+            pais: p.country || "",
             is_senior: true,
             source: "Apollo.io",
           });
