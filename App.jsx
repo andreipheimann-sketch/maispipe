@@ -143,7 +143,7 @@ function parseCSV(text) {
 
   var header = splitLine(lines[0]).map(norm);
   var idxNome = header.findIndex(function(h){ return h==="nome"||h==="empresa"||h==="company"||h==="name"||h==="conta"||h==="account"; });
-  var idxSite = header.findIndex(function(h){ return h==="site"||h==="website"||h==="url"||h==="dominio"||h==="domain"||h==="web"; });
+  var idxSite = header.findIndex(function(h){ return h==="site"||h==="website"||h==="url"||h==="domínio"||h==="domain"||h==="web"; });
   var idxLink = header.findIndex(function(h){ return h.indexOf("linkedin")>=0||h==="li"; });
 
   var hasHeader = idxNome >= 0;
@@ -190,11 +190,11 @@ var TOUCH_TYPES = {
   breakup:  { label:"Breakup",      icon:"B", color:"#64748b", bg:"#f8fafc" },
 };
 var STAKEHOLDER_PROFILES = [
-  { id:"headcx", label:"Head de CX / Diretor de Atendimento", angle:"CSAT, SLA e escala do time",    pain:"volume crescendo mais rapido que headcount, CSAT caindo" },
+  { id:"headcx", label:"Head de CX / Diretor de Atendimento", angle:"CSAT, SLA e escala do time",    pain:"volume crescendo mais rápido que headcount, CSAT caindo" },
   { id:"ceo",    label:"CEO / Diretor Geral",                  angle:"retencao e crescimento",        pain:"churn por atendimento ruim travando expansao da base" },
-  { id:"ops",    label:"VP / Diretor de Operacoes",            angle:"custo por ticket e eficiencia", pain:"budget de CX estourado sem visibilidade de ROI" },
+  { id:"ops",    label:"VP / Diretor de Operações",            angle:"custo por ticket e eficiencia", pain:"budget de CX estourado sem visibilidade de ROI" },
   { id:"cs",     label:"Head de Customer Success",             angle:"health score e retencao",       pain:"sem visibilidade de clientes em risco antes de churnarem" },
-  { id:"ti",     label:"Gerente de TI / CTO",                  angle:"integracao e migracao",         pain:"sistema atual sem API robusta, customizacoes caras" },
+  { id:"ti",     label:"Gerente de TI / CTO",                  angle:"integração e migracao",         pain:"sistema atual sem API robusta, customizacoes caras" },
   { id:"cfo",    label:"CFO / Diretor Financeiro",             angle:"ROI e reducao de custo",        pain:"custo por ticket alto sem benchmark claro do mercado" },
 ];
 var SEQUENCE_TEMPLATES = {
@@ -307,10 +307,10 @@ function SequenceView(props) {
 
   function buildOneTouchVariant(touch, profile, acc) {
     var cargo = profile.label || "Decisor";
-    var angulo = profile.angle || "impacto no negocio";
+    var angulo = profile.angle || "impacto no negócio";
     var nome = acc.nome || "a empresa";
     var setor = (acc.data && acc.data.empresa && acc.data.empresa.setor) || acc.setor || "tecnologia";
-    var pain = profile.pain || "dores do negocio";
+    var pain = profile.pain || "dores do negócio";
 
     var variants = {
       email: [
@@ -387,7 +387,7 @@ function SequenceView(props) {
     if (!selAcc || !selProfile || genLoading) return;
     var p = selProfile.id === "custom" ? selProfile : (STAKEHOLDER_PROFILES.find(function(x){return x.id===selProfile.id;}) || STAKEHOLDER_PROFILES[0]);
     var setor = (selAcc.data && selAcc.data.empresa && selAcc.data.empresa.setor) || selAcc.setor || "tecnologia";
-    var cadencia = [
+    var cadência = [
       {day:1,type:"linkedin"},{day:3,type:"email"},{day:6,type:"call"},
       {day:10,type:"email"},{day:15,type:"whatsapp"},{day:21,type:"breakup"}
     ];
@@ -402,7 +402,7 @@ function SequenceView(props) {
 
     setGenLoading(true);
     fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-      empresa:selAcc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, touches:cadencia
+      empresa:selAcc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, touches:cadência
     })})
       .then(function(r){ return r.json().then(function(d){ return {status:r.status, data:d}; }); })
       .then(function(res){
@@ -435,14 +435,14 @@ function SequenceView(props) {
     return (
       <div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-          <div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{"Sequencias Salvas"}</div>
+          <div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{"Sequências Salvas"}</div>
           <button onClick={function(){setView("builder");}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Nova Sequencia"}</button>
         </div>
         {saved.length === 0 ? (
           <div style={{textAlign:"center",padding:"48px 0",background:"#f8fafc",borderRadius:16,border:"1.5px dashed #e2e8f0"}}>
             <div style={{fontSize:32,marginBottom:10}}>{"📬"}</div>
-            <div style={{fontSize:14,fontWeight:700,color:"#334155"}}>Nenhuma sequencia salva</div>
-            <div style={{fontSize:12,color:"#6b7280",marginTop:4}}>Gere uma sequencia e clique em Salvar</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#334155"}}>Nenhuma sequência salva</div>
+            <div style={{fontSize:12,color:"#6b7280",marginTop:4}}>Gere uma sequência e clique em Salvar</div>
           </div>
         ) : (
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
@@ -714,18 +714,38 @@ function PipelineView(props) {
     return found;
   }
   var grabOffset = useRef({x:80, y:30});
+  var rootRef = useRef(null);
+  // overflow:clip nos ancestrais cria containing block para position:fixed.
+  // Medimos o offset real do nosso container para compensar e o ghost ficar sob o cursor.
+  function cbOffset() {
+    if (!rootRef.current) return {x:0, y:0};
+    // Descobre o offsetParent real do ghost (que e filho do rootRef) e mede
+    // sua posicao na viewport. Funciona independente do motivo do containing block.
+    var node = rootRef.current;
+    while (node) {
+      var st = window.getComputedStyle(node);
+      var tf = st.transform, fl = st.filter, pp = st.perspective, wc = st.willChange, ct = st.contain, ox = st.overflowX, oy = st.overflowY;
+      if ((tf&&tf!=="none")||(fl&&fl!=="none")||(pp&&pp!=="none")||(wc&&wc.indexOf("transform")>=0)||(ct&&(ct.indexOf("paint")>=0||ct.indexOf("layout")>=0||ct==="strict"||ct==="content"))||ox==="clip"||oy==="clip"||ox==="hidden"||oy==="hidden") {
+        var r = node.getBoundingClientRect();
+        return {x:r.left, y:r.top};
+      }
+      node = node.parentElement;
+    }
+    return {x:0, y:0};
+  }
   function startMouseDrag(e, acc, fromCol) {
     e.preventDefault();
     var rect = e.currentTarget.getBoundingClientRect();
     grabOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    var cb = cbOffset();
     setGhostW(rect.width);
     dragFrom.current = fromCol;
     setDragId(acc.id);
     setDragAcc(acc);
-    setGhostPos({x:e.clientX-grabOffset.current.x, y:e.clientY-grabOffset.current.y});
+    setGhostPos({x:e.clientX-grabOffset.current.x-cb.x, y:e.clientY-grabOffset.current.y-cb.y});
     setOverCol(fromCol);
     function onMove(ev) {
-      setGhostPos({x:ev.clientX-grabOffset.current.x, y:ev.clientY-grabOffset.current.y});
+      setGhostPos({x:ev.clientX-grabOffset.current.x-cb.x, y:ev.clientY-grabOffset.current.y-cb.y});
       var col = getColAtPoint(ev.clientX, ev.clientY);
       if (col) setOverCol(col);
     }
@@ -746,17 +766,18 @@ function PipelineView(props) {
     var t0 = e.touches[0];
     var rect = e.currentTarget.getBoundingClientRect();
     grabOffset.current = { x: t0.clientX - rect.left, y: t0.clientY - rect.top };
+    var cb = cbOffset();
     setGhostW(rect.width);
     dragFrom.current = fromCol;
     setDragId(acc.id);
     setDragAcc(acc);
-    setGhostPos({x:t0.clientX-grabOffset.current.x, y:t0.clientY-grabOffset.current.y});
+    setGhostPos({x:t0.clientX-grabOffset.current.x-cb.x, y:t0.clientY-grabOffset.current.y-cb.y});
     setOverCol(fromCol);
     function onTouchMove(ev) {
       ev.preventDefault();
       var t = ev.touches[0];
       if (!t) return;
-      setGhostPos({x:t.clientX-grabOffset.current.x, y:t.clientY-grabOffset.current.y});
+      setGhostPos({x:t.clientX-grabOffset.current.x-cb.x, y:t.clientY-grabOffset.current.y-cb.y});
       var col = getColAtPoint(t.clientX, t.clientY);
       if (col) setOverCol(col);
     }
@@ -778,7 +799,7 @@ function PipelineView(props) {
   }
   var ghostFc = dragAcc ? (FIT_CONFIG[dragAcc.fit]||FIT_CONFIG.ALTO) : null;
   return (
-    <div style={{position:"relative"}}>
+    <div ref={rootRef} style={{position:"relative"}}>
       <div className="fluxo de atendimento-scroll" style={{overflowX:"auto",paddingBottom:16,userSelect:"none"}}>
         <div style={{display:"flex",gap:14,minWidth:900}}>
           {STATUS_ORDER.map(function(col) {
@@ -827,8 +848,8 @@ function PipelineView(props) {
         )}
       </div>
       {dragId && dragAcc && (
-        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:ghostW,zIndex:9999,pointerEvents:"none",transform:"rotate(2deg)",boxShadow:"0 20px 60px rgba(15,23,42,.2),0 4px 16px rgba(67,97,238,.2)",borderRadius:14}}>
-          <div style={{background:"#fff",border:"1.5px solid #10b981",borderRadius:14,padding:"12px 14px"}}>
+        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:ghostW,boxSizing:"border-box",zIndex:9999,pointerEvents:"none",boxShadow:"0 12px 32px rgba(15,23,42,.22)",borderRadius:14,opacity:.95}}>
+          <div style={{background:"#fff",border:"1.5px solid #4361EE",borderRadius:14,padding:"12px 14px",boxSizing:"border-box"}}>
             <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{dragAcc.nome}</div>
             <div style={{fontSize:10,color:"#6b7280",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{dragAcc.setor}</div>
             {ghostFc&&(
@@ -946,7 +967,7 @@ function exportAccountPDF(acc, d) {
   var triggers = safeA("triggers");
   var stakeholders = safeA("stakeholders");
   var spin = safeA("estrategia.perguntas_spin");
-  var objecoes = safeA("estrategia.objecoes");
+  var objeções = safeA("estrategia.objecoes");
   var ae = safeA("proximos_passos.ae");
   var bdr = safeA("proximos_passos.bdr");
   var prazo = safe("proximos_passos.prazo") || "";
@@ -996,14 +1017,14 @@ function exportAccountPDF(acc, d) {
     });
   }
   if (spin.length) { html += "<h2>Perguntas SPIN</h2><ul>"+spin.map(function(q){return "<li>"+q+"</li>";}).join("")+"</ul>"; }
-  if (objecoes.length) {
+  if (objeções.length) {
     html += "<h2>Objecoes e Respostas</h2>";
-    objecoes.forEach(function(o) {
+    objeções.forEach(function(o) {
       html += "<div class='sk'><strong style='color:#92400e'>\""+o.objecao+"\"</strong><br/><span style='font-size:11px'>-> "+o.resposta+"</span></div>";
     });
   }
   if (ae.length || bdr.length) {
-    html += "<h2>Plano de Acao</h2><div style='display:flex;gap:20px'>";
+    html += "<h2>Plano de Ação</h2><div style='display:flex;gap:20px'>";
     if (ae.length) { html += "<div style='flex:1'><strong style='font-size:10px;color:#4361EE'>AE</strong><ul style='margin-top:6px'>"+ae.map(function(a){return "<li>"+a+"</li>";}).join("")+"</ul></div>"; }
     if (bdr.length) { html += "<div style='flex:1'><strong style='font-size:10px;color:#f59e0b'>BDR</strong><ul style='margin-top:6px'>"+bdr.map(function(a){return "<li>"+a+"</li>";}).join("")+"</ul></div>"; }
     html += "</div>";
@@ -1043,15 +1064,39 @@ function AccountModal(props) {
   function sd(path) {
     try { var parts=path.split("."); var cur=d; for(var i=0;i<parts.length;i++){cur=cur[parts[i]];if(cur==null)return null;} return cur; } catch(e){return null;}
   }
-  // Merge enriched contacts into stakeholder profiles for display
+  // Merge enriched contacts into stakeholder profiles for display.
+  // Match preciso: exige sobreposicao de palavras ESPECIFICAS do cargo (ignora
+  // genericas como "diretor"/"de"), e cada contato real e usado uma unica vez.
+  var usedContactKeys = useRef({});
+  function resetMatches() { usedContactKeys.current = {}; }
+  // Palavras genericas que NAO devem sozinhas determinar um match
+  var GENERIC_ROLE_WORDS = {"diretor":1,"director":1,"head":1,"gerente":1,"manager":1,"vp":1,"vice":1,"chief":1,"lider":1,"líder":1,"de":1,"da":1,"do":1,"e":1,"of":1,"the":1,"coordenador":1,"executivo":1};
+  function roleTokens(s) {
+    return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .split(/[\s\/,\-|]+/).filter(function(w){ return w.length > 2; });
+  }
   function getEnrichedStakeholder(cargo) {
     if (!enrichedContacts.length) return null;
-    var cargoLow = cargo.toLowerCase();
-    var keywords = cargoLow.split(/[\s\/,]+/).filter(function(w){ return w.length > 3; });
+    var target = roleTokens(cargo);
+    var specificTarget = target.filter(function(w){ return !GENERIC_ROLE_WORDS[w]; });
+    var best = null, bestScore = 0, bestIdx = -1;
     for (var i = 0; i < enrichedContacts.length; i++) {
       var c = enrichedContacts[i];
-      var cLow = (c.cargo || "").toLowerCase();
-      if (keywords.some(function(w){ return cLow.includes(w); })) return c;
+      var key = (c.nome||"") + "|" + (c.cargo||"");
+      if (usedContactKeys.current[key]) continue; // ja usado por outro cargo
+      var ct = roleTokens(c.cargo || "");
+      var ctSpecific = ct.filter(function(w){ return !GENERIC_ROLE_WORDS[w]; });
+      // pontua sobreposicao de palavras ESPECIFICAS
+      var specHits = specificTarget.filter(function(w){ return ctSpecific.indexOf(w) >= 0; }).length;
+      // bonus pequeno por palavra generica coincidente (so desempate)
+      var genHits = target.filter(function(w){ return GENERIC_ROLE_WORDS[w] && ct.indexOf(w) >= 0; }).length;
+      var score = specHits * 10 + genHits;
+      // exige pelo menos 1 palavra especifica em comum para considerar match valido
+      if (specHits >= 1 && score > bestScore) { bestScore = score; best = c; bestIdx = i; }
+    }
+    if (best) {
+      usedContactKeys.current[(best.nome||"") + "|" + (best.cargo||"")] = true;
+      return best;
     }
     return null;
   }
@@ -1063,8 +1108,8 @@ function AccountModal(props) {
   var sinais=safeArr(sd("dores.sinais_ativos"));
   var triggers=safeArr(sd("triggers"));
   var noticias=safeArr(sd("noticias"));
-  var spin=safeArr(sd("estrategia.perguntas_spin"));
-  var objecoes=safeArr(sd("estrategia.objecoes"));
+  var spin=safeArr(sd("estratégia.perguntas_spin"));
+  var objecoes=safeArr(sd("estratégia.objeções"));
   var ae=safeArr(sd("proximos_passos.ae"));
   var bdr=safeArr(sd("proximos_passos.bdr"));
   var prazo=sd("proximos_passos.prazo")||"";
@@ -1160,9 +1205,9 @@ function AccountModal(props) {
               )}
               <Sec title="Mapeamento Estratégico de Cargos">
               <div className="modal-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                {stakeholders.map(function(s,i){
+                {(resetMatches(), stakeholders).map(function(s,i){
                   var pc=s.prioridade==="PRIMARIO"?"#2d3a8c":s.prioridade==="SECUNDARIO"?"#92400e":"#475569";
-                  var uc=s.urgencia==="Alta"?"#991b1b":s.urgencia==="Media"||s.urgencia==="Média"?"#92400e":"#64748b";
+                  var uc=s.urgencia==="Alta"?"#991b1b":s.urgencia==="Média"||s.urgencia==="Média"?"#92400e":"#64748b";
                   var match=getEnrichedStakeholder(s.cargo);
                   return (
                     <div key={i} style={{background:match?"linear-gradient(145deg,#f0fdf4,#fff)":"#f8fafc",border:"1.5px solid "+(match?"rgba(67,97,238,.3)":"#e8edf4"),borderRadius:14,padding:"14px 16px",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 4px 16px rgba(67,97,238,.1)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor=match?"rgba(67,97,238,.3)":"#e8edf4";e.currentTarget.style.boxShadow="";}}>
@@ -1212,8 +1257,8 @@ function AccountModal(props) {
                     return (
                       <div key={i} style={{background:"#f8fafc",border:"1.5px solid #e8edf4",borderRadius:14,padding:"14px 16px",marginBottom:10}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8,gap:8}}>
-                          <div style={{fontSize:12,fontWeight:700,color:"#92400e",lineHeight:1.4,flex:1}}>{'"'+o.objecao+'"'}</div>
-                          <CopyBtn text={'"'+o.objecao+'"\n-> '+o.resposta}/>
+                          <div style={{fontSize:12,fontWeight:700,color:"#92400e",lineHeight:1.4,flex:1}}>{'"'+o.objeção+'"'}</div>
+                          <CopyBtn text={'"'+o.objeção+'"\n-> '+o.resposta}/>
                         </div>
                         <div style={{fontSize:12,color:"#334155",lineHeight:1.65}}>{"-> "+o.resposta}</div>
                       </div>
@@ -1251,7 +1296,7 @@ function CollapsibleChannels(props) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:10}}>
       {CHANNELS.map(function(cfg){
-        var items=safeArr(sd("estrategia."+cfg.key));
+        var items=safeArr(sd("estratégia."+cfg.key));
         if(!items.length)return null;
         var isOpen=open[cfg.key];
         return (
@@ -1790,7 +1835,7 @@ function IntegrationsView() {
         })}
         <button onClick={function(){setCustomModal(true);}} style={{background:"#f8fafc",border:"2px dashed #e2e8f0",borderRadius:20,padding:"24px",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,transition:"all .2s",minHeight:180}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.background="#eff6ff";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.background="#f8fafc";}}>
           <span style={{fontSize:32}}>{"+"}</span>
-          <span style={{fontSize:13,fontWeight:600,color:"#64748b"}}>{"Adicionar integracao"}</span>
+          <span style={{fontSize:13,fontWeight:600,color:"#64748b"}}>{"Adicionar integração"}</span>
           <span style={{fontSize:11,color:"#94a3b8"}}>{"Via webhook ou API key"}</span>
         </button>
       </div>
@@ -1810,7 +1855,7 @@ function IntegrationsView() {
       {customModal && (
         <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
           <div style={{background:"#fff",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(15,23,42,.28)"}}>
-            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar integracao personalizada"}</div>
+            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar integração personalizada"}</div>
             <input value={customName} onChange={function(e){setCustomName(e.target.value);}} placeholder={"Nome da ferramenta (ex: RD Station)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
             <input value={customURL} onChange={function(e){setCustomURL(e.target.value);}} placeholder={"Webhook URL (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
             <input value={customKey} onChange={function(e){setCustomKey(e.target.value);}} placeholder={"API Key (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
@@ -1845,20 +1890,20 @@ function HomeView(props) {
      desc:"Analise qualquer empresa Mid Market e gere account mapping completo com fit, dores, stakeholders e mensagens personalizadas.",
      stat:total+" conta"+(total!==1?"s":"")+" mapeada"+(total!==1?"s":""), statColor:"#4361EE"},
     {id:"contas",   label:"Contas",              emoji:"📁", nav:"accounts",
-     desc:"Todas as empresas mapeadas organizadas por fit, tier e estagio. Visualize em cards ou lista com filtros avancados.",
+     desc:"Todas as empresas mapeadas organizadas por fit, tier e estágio. Visualize em cards ou lista com filtros avançados.",
      stat:total+" no total", statColor:"#0369a1"},
-    {id:"seqs",     label:"Sequencias",          emoji:"📬", nav:"sequences",
-     desc:"Gere cadencias de 6 toques personalizadas por stakeholder com e-mail, InMail, WhatsApp e cold call.",
+    {id:"seqs",     label:"Sequências",          emoji:"📬", nav:"sequences",
+     desc:"Gere cadências de 6 toques personalizadas por stakeholder com e-mail, InMail, WhatsApp e cold call.",
      stat:"6 perfis de stakeholder", statColor:"#7c3aed"},
     {id:"biblio",   label:"Biblioteca",          emoji:"📚", nav:"biblioteca",
-     desc:"Todas as sequencias salvas organizadas. Exporte qualquer cadencia em PDF com um clique.",
-     stat:"Sequencias salvas", statColor:"#059669"},
+     desc:"Todas as sequências salvas organizadas. Exporte qualquer cadência em PDF com um clique.",
+     stat:"Sequências salvas", statColor:"#059669"},
     {id:"pipe",     label:"Pipeline Kanban",     emoji:"📊", nav:"pipeline",
-     desc:"Visualize todas as contas por estagio da prospeccao. Arraste os cards entre colunas para atualizar o status.",
+     desc:"Visualize todas as contas por estágio da prospecção. Arraste os cards entre colunas para atualizar o status.",
      stat:converted+" convertida"+(converted!==1?"s":""), statColor:"#065f46"},
-    {id:"relat",    label:"Relatorios",          emoji:"📈", nav:"relatorios",
-     desc:"Dashboard com funil de conversao, distribuicao por fit e tier, graficos donut e semicirculo e export em PDF.",
-     stat:taxa+"% taxa de conversao", statColor:"#92400e"},
+    {id:"relat",    label:"Relatórios",          emoji:"📈", nav:"relatorios",
+     desc:"Dashboard com funil de conversão, distribuição por fit e tier, gráficos donut e semicírculo e export em PDF.",
+     stat:taxa+"% taxa de conversão", statColor:"#92400e"},
   ];
 
   var visible = CARDS.filter(function(c2){ return !hidden[c2.id]; });
@@ -1880,12 +1925,12 @@ function HomeView(props) {
             <span style={{color:"#818cf8"}}>{"+"}</span>{"pipe"}
             <span style={{display:"block",fontSize:18,fontWeight:600,color:"#cbd5e1",letterSpacing:"-.3px",marginTop:6}}>{"Account mapping com IA para times de vendas"}</span>
           </div>
-          <div style={{fontSize:13.5,color:"#94a3b8",maxWidth:520,lineHeight:1.7,marginBottom:26}}>{"Pesquise qualquer empresa, gere inteligencia de conta completa e cadencias de prospeccao em segundos. Chegue preparado, feche mais rapido."}</div>
+          <div style={{fontSize:13.5,color:"#94a3b8",maxWidth:520,lineHeight:1.7,marginBottom:26}}>{"Pesquise qualquer empresa, gere inteligência de conta completa e cadências de prospecção em segundos. Chegue preparado, feche mais rápido."}</div>
           <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
             {[
               {label:"Contas mapeadas", value:total, accent:"#818cf8"},
               {label:"Convertidas", value:converted, accent:"#34d399"},
-              {label:"Taxa de conversao", value:taxa+"%", accent:"#c084fc"},
+              {label:"Taxa de conversão", value:taxa+"%", accent:"#c084fc"},
             ].map(function(m){return (
               <div key={m.label} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:16,padding:"16px 22px",minWidth:128}}>
                 <div style={{fontSize:30,fontWeight:800,color:m.accent,lineHeight:1,letterSpacing:"-.5px"}}>{m.value}</div>
@@ -1901,7 +1946,7 @@ function HomeView(props) {
       </div>
 
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:10}}>
-        <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Acesso rapido"}</div>
+        <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Acesso rápido"}</div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           {CARDS.map(function(c2){
             var isHidden = hidden[c2.id];
@@ -1984,7 +2029,7 @@ function buildData(company, searchResults) {
   var setor = isEcomm?"E-commerce / Varejo Digital":isFintech?"Fintech / Servicos Financeiros":isSaaS?"Software / SaaS B2B":isHealth?"Saude / Healthtech":isTelecom?"Telecomunicacoes":"Tecnologia / Mid Market";
   var tier  = (isEcomm||isFintech||isSaaS||isTelecom) ? "Tier 1" : "Tier 2";
   function buildResumo() {
-    if (!tavilyAnswers.length) return company+" e uma empresa de "+setor+" com operacao ativa no Brasil.";
+    if (!tavilyAnswers.length) return company+" e uma empresa de "+setor+" com operação ativa no Brasil.";
     // Filter to best PT-BR content
     var ptAnswers = tavilyAnswers.filter(function(a) {
       return a.length > 80 && /\b(empresa|brasil|compan|serv|produt|clientes|mercado|tecnolog|atend|fundad|operas|setor)\b/i.test(a);
@@ -2025,17 +2070,17 @@ function buildData(company, searchResults) {
     });
   var noticias = noticiasSources.length ? noticiasSources : [{titulo:"Buscar noticias recentes de "+company, resumo:"Clique para pesquisar noticias sobre a empresa.", url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX 2024", relevancia:"Pesquisa sugerida"}];
   return {
-    empresa:{nome:company,setor:setor,resumo:resumo,rawContext:allText.slice(0,4000),tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponivel",clientes:clientes||""},
+    empresa:{nome:company,setor:setor,resumo:resumo,rawContext:allText.slice(0,4000),tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponível",clientes:clientes||""},
     fit:{score:"ALTO",justificativa:company+" atua em "+setor+", vertical de alto potencial para Zendesk Suite. Times de atendimento Mid Market com pressao de CSAT e custo por ticket sao nosso ICP principal.",solucoes_zendesk:["Zendesk Support (ticketing omnichannel)","Zendesk Messaging (chat e WhatsApp)","Help Center com IA generativa","Zendesk Explore (analytics e CSAT)","Workforce Management","QA e automacao de qualidade","Zendesk Sell (CRM de vendas)"]},
     mercado:{competidores_provedor:["Freshdesk","Salesforce Service Cloud","HubSpot Service Hub","ServiceNow CSM","Intercom","LivePerson","TOTVS CRM","sistema interno legado"],concorrentes_mercado:[]},
-    dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rapido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
+    dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rápido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
     triggers:["Crescimento acelerado do time de atendimento (vagas abertas de agente/CX)","Alto volume de reclamacoes no Reclame Aqui ou redes sociais","Abertura ou expansao de canal digital (WhatsApp, chat, e-commerce)","Contratacao recente de Head de CX, VP de Ops ou Diretor de Atendimento","Insatisfacao com Freshdesk ou sistema legado","Lancamento de novo produto , aumento de demanda de suporte"],
     stakeholders:[
       {cargo:"Head de CX / Diretor de Atendimento",angulo:"Decisor principal. Sente pressao de CSAT, SLA e custo. Quer escalar sem contratar mais agentes.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
       {cargo:"CEO / Diretor Geral",angulo:"Decisor economico. Ve CX como alavanca de retencao. Quer ROI claro e reducao de churn.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
-      {cargo:"VP / Diretor de Operacoes",angulo:"Co-decisor. Olha custo por ticket e eficiencia. Quer reducao de custo e SLA previsivel.",prioridade:"PRIMARIO",urgencia:"Media"},
-      {cargo:"Head de Customer Success",angulo:"Aliado. Quer integracao com CRM e visibilidade de clientes em risco de churn.",prioridade:"SECUNDARIO",urgencia:"Media"},
-      {cargo:"Gerente de TI / CTO",angulo:"Avalia viabilidade tecnica. Precisa de API robusta e suporte no processo de migracao.",prioridade:"SECUNDARIO",urgencia:"Media"},
+      {cargo:"VP / Diretor de Operações",angulo:"Co-decisor. Olha custo por ticket e eficiencia. Quer reducao de custo e SLA previsivel.",prioridade:"PRIMARIO",urgencia:"Média"},
+      {cargo:"Head de Customer Success",angulo:"Aliado. Quer integração com CRM e visibilidade de clientes em risco de churn.",prioridade:"SECUNDARIO",urgencia:"Média"},
+      {cargo:"Gerente de TI / CTO",angulo:"Avalia viabilidade técnica. Precisa de API robusta e suporte no processo de migracao.",prioridade:"SECUNDARIO",urgencia:"Média"},
       {cargo:"CFO / Diretor Financeiro",angulo:"Aprova budget. Quer ROI mensuravel e comparativo de custo por ticket antes x depois.",prioridade:"TERCIARIO",urgencia:"Baixa"}
     ],
     noticias: noticias,
@@ -2077,15 +2122,15 @@ function buildData(company, searchResults) {
         "NECESSIDADE: O que precisaria para CX subir de prioridade na "+company+"?",
         "NECESSIDADE: Se eu mostrasse como aumentar CSAT em 25 pontos em 90 dias, valeria 20 minutos?"
       ],
-      objecoes:[
-        {objecao:"Ja usamos Freshdesk e estamos satisfeitos",resposta:"A diferenca na pratica e na IA nativa, omnichannel real e analytics profundo com Explore. Vale ver lado a lado?"},
-        {objecao:"Nao temos budget para isso agora",resposta:"Posso mostrar o ROI baseado no custo por ticket atual? Clientes de "+setor+" costumam pagar a plataforma com a economia em 4 a 6 meses."},
-        {objecao:"Nossa TI nao tem capacidade",resposta:"Nosso CS conduz toda a implementacao. Empresas de "+setor+" ficaram no ar em media em 4 semanas sem demandar TI interna."},
-        {objecao:"Nao e prioridade agora",resposta:"Quando CX ganha prioridade , e antes ou depois de uma queda de CSAT que impacta churn?"},
-        {objecao:"Ja usamos Salesforce Service Cloud",resposta:"O Salesforce e poderoso. Zendesk e mais rapida para implementar, mais intuitiva para o agente e mais barata para escalar."},
-        {objecao:"Precisamos envolver mais areas",resposta:"Posso te ajudar a preparar o business case com ROI e casos do "+setor+" para facilitar a conversa interna."},
-        {objecao:"Ja tentamos uma ferramenta e o time nao adotou",resposta:"Problema de UX da ferramenta. Zendesk tem NPS de 86 entre agentes. Posso mostrar a interface em 10 minutos?"},
-        {objecao:"Preferimos desenvolver internamente",resposta:"Manter helpdesk interno custa em media 3x mais que a Zendesk em 2 anos. Posso mostrar o calculo?"}
+      objeções:[
+        {objeção:"Ja usamos Freshdesk e estamos satisfeitos",resposta:"A diferenca na pratica e na IA nativa, omnichannel real e analytics profundo com Explore. Vale ver lado a lado?"},
+        {objeção:"Nao temos budget para isso agora",resposta:"Posso mostrar o ROI baseado no custo por ticket atual? Clientes de "+setor+" costumam pagar a plataforma com a economia em 4 a 6 meses."},
+        {objeção:"Nossa TI nao tem capacidade",resposta:"Nosso CS conduz toda a implementacao. Empresas de "+setor+" ficaram no ar em media em 4 semanas sem demandar TI interna."},
+        {objeção:"Nao e prioridade agora",resposta:"Quando CX ganha prioridade , e antes ou depois de uma queda de CSAT que impacta churn?"},
+        {objeção:"Ja usamos Salesforce Service Cloud",resposta:"O Salesforce e poderoso. Zendesk e mais rapida para implementar, mais intuitiva para o agente e mais barata para escalar."},
+        {objeção:"Precisamos envolver mais areas",resposta:"Posso te ajudar a preparar o business case com ROI e casos do "+setor+" para facilitar a conversa interna."},
+        {objeção:"Ja tentamos uma ferramenta e o time nao adotou",resposta:"Problema de UX da ferramenta. Zendesk tem NPS de 86 entre agentes. Posso mostrar a interface em 10 minutos?"},
+        {objeção:"Preferimos desenvolver internamente",resposta:"Manter helpdesk interno custa em media 3x mais que a Zendesk em 2 anos. Posso mostrar o calculo?"}
       ]
     },
     proximos_passos:{
@@ -2200,7 +2245,7 @@ function SearchView(props) {
       var dup = props.accounts.find(function(a){ return a.nome && a.nome.toLowerCase().trim() === nomeLower; });
       if (dup) { setDuplicate(dup); setInputVal(""); return; }
     }
-    // Consome 1 credito ANTES de mapear. Se estourou o limite, bloqueia.
+    // Consome 1 crédito ANTES de mapear. Se estourou o limite, bloqueia.
     if (props.onRequestCredit) {
       props.onRequestCredit().then(function(ok){
         if (!ok) return; // limite atingido -> toast ja exibido pelo App
@@ -2582,7 +2627,7 @@ function AccountsView(props) {
         <select value={filter.fit} onChange={function(e){changeFit(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.fit?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
           <option value="">Fit</option>
           <option value="ALTO">Fit Alto</option>
-          <option value="MEDIO">Fit Medio</option>
+          <option value="MEDIO">Fit Médio</option>
           <option value="BAIXO">Fit Baixo</option>
         </select>
         <select value={filter.tier} onChange={function(e){changeTier(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.tier?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
@@ -2832,239 +2877,177 @@ function InsightsView(props) {
         <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
           <div style={{fontSize:36,marginBottom:12}}>{"📊"}</div>
           <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>Nenhum dado ainda</div>
-          <div style={{fontSize:12,color:"#6b7280"}}>Mapeie sua primeira empresa em Busca para comecar a ver insights.</div>
+          <div style={{fontSize:12,color:"#6b7280"}}>Mapeie sua primeira empresa em Busca para começar a ver insights.</div>
         </div>
       </div>
     );
   }
+  // -- Animation keyframes (injected once)
+  var animCss = "@keyframes repBarGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}@keyframes repFunnelGrow{from{width:0;opacity:0}to{opacity:1}}@keyframes repFadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes repDonut{from{stroke-dashoffset:var(--circ)}to{stroke-dashoffset:var(--off)}}@keyframes repLineDraw{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}";
+
+  // -- Line chart (velocity) points
+  var lineW = 560, lineH = 160, lpad = 30;
+  var linePts = weeks.map(function(wk, i) {
+    var x = lpad + (i * (lineW - lpad*2) / (weeks.length - 1));
+    var y = lineH - 24 - (wk.count / maxWeek) * (lineH - 50);
+    return { x: x, y: y, label: wk.label, count: wk.count };
+  });
+  var linePath = linePts.map(function(p, i) { return (i===0?"M":"L") + " " + p.x.toFixed(1) + " " + p.y.toFixed(1); }).join(" ");
+  var areaPath = linePath + " L " + linePts[linePts.length-1].x.toFixed(1) + " " + (lineH-24) + " L " + linePts[0].x.toFixed(1) + " " + (lineH-24) + " Z";
+
+  // Pie data for fit (using DonutChart segments)
+  var FITCOL = {ALTO:"#4361EE", MEDIO:"#0ea5e9", "MÉDIO":"#0ea5e9", BAIXO:"#94a3b8"};
+  var fitSeg = byFit.map(function(f){ return {label:f.fit, value:f.count, color:FITCOL[f.fit]||"#7c3aed"}; });
+  var TIERCOL = {"Tier 1":"#4361EE","Tier 2":"#7c3aed","Tier 3":"#c084fc"};
+  var tierSeg = byTier.map(function(t){ return {label:t.tier, value:t.count, color:TIERCOL[t.tier]||"#94a3b8"}; });
+
   return (
     <div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:28,flexWrap:"wrap",gap:12}}>
+      <style>{animCss}</style>
+      {/* HEADER */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:24,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
-          <div style={{fontSize:13,color:"#64748b"}}>{"Performance da sua prospecção baseada nas contas mapeadas."}</div>
+          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
+          <div style={{fontSize:13,color:"#64748b",marginTop:2}}>{"Dashboard de performance da sua prospecção."}</div>
         </div>
-        <button onClick={function(){exportRelatoriosPDF(accounts,pdfFilters);}} style={{display:"flex",alignItems:"center",gap:7,background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"10px 18px",fontSize:12,fontWeight:600,color:"#475569",cursor:"pointer",fontFamily:"inherit",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.color="#3451d1";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.color="#475569";}}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <button onClick={function(){exportRelatoriosPDF(accounts,pdfFilters);}} style={{display:"flex",alignItems:"center",gap:7,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:11,padding:"10px 18px",fontSize:12.5,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(67,97,238,.3)"}}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           {"Exportar PDF"}
         </button>
       </div>
-      <div style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"16px 20px",marginBottom:24,display:"flex",gap:12,flexWrap:"wrap",alignItems:"center"}}>
-        <span style={{fontSize:10,fontWeight:700,color:"#6b7280",letterSpacing:1,textTransform:"uppercase"}}>Filtros PDF:</span>
-        <select value={pdfFilters.fit} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{fit:e.target.value});});}} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
-          <option value="">Todos os fits</option>
-          <option value="ALTO">Fit Alto</option>
-          <option value="MEDIO">{"Fit Médio"}</option>
-          <option value="BAIXO">Fit Baixo</option>
-        </select>
-        <select value={pdfFilters.tier} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{tier:e.target.value});});}} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
-          <option value="">Todos os tiers</option>
-          <option value="Tier 1">Tier 1</option>
-          <option value="Tier 2">Tier 2</option>
-          <option value="Tier 3">Tier 3</option>
-        </select>
-        <input value={pdfFilters.nome} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{nome:e.target.value});});}} placeholder="Filtrar por nome..." style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#0f172a",fontFamily:"inherit",outline:"none",minWidth:130}}/>
-        <input type="date" value={pdfFilters.from} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{from:e.target.value});});}} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#0f172a",fontFamily:"inherit",outline:"none"}}/>
-        <span style={{fontSize:10,color:"#6b7280"}}>{"até"}</span>
-        <input type="date" value={pdfFilters.to} onChange={function(e){setPdfFilters(function(f){return Object.assign({},f,{to:e.target.value});});}} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#0f172a",fontFamily:"inherit",outline:"none"}}/>
-      </div>
-      <div className="kpi-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:14,marginBottom:24}}>
-        {kpis.map(function(k) {
+
+      {/* KPI ROW */}
+      <div className="kpi-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:18}}>
+        {kpis.map(function(k, i) {
           return (
-            <div key={k.label} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:18,padding:"20px 22px",boxShadow:"0 4px 20px rgba(15,23,42,.06)",position:"relative",overflow:"hidden"}}>
-              <div style={{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>{k.label}</div>
-              <div style={{fontSize:32,fontWeight:800,color:k.color,lineHeight:1,marginBottom:6}}>{k.value}</div>
-              <div style={{fontSize:11,color:"#6b7280"}}>{k.sub}</div>
+            <div key={k.label} style={{background:"linear-gradient(145deg,#fff,#fbfcff)",border:"1px solid #e8edf4",borderRadius:18,padding:"20px 22px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.08)+"s",position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",top:-20,right:-20,width:80,height:80,borderRadius:"50%",background:"radial-gradient(circle,"+k.color+"14,transparent 70%)"}}/>
+              <div style={{fontSize:11,color:"#94a3b8",fontWeight:600,marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>{k.label}</div>
+              <div style={{fontSize:34,fontWeight:900,color:k.color,lineHeight:1,letterSpacing:"-1px"}}>{k.value}</div>
+              <div style={{fontSize:11,color:"#64748b",marginTop:6}}>{k.sub}</div>
             </div>
           );
         })}
       </div>
-      <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginBottom:18}}>
-        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:20,display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-            {"Funil de Conversão"}
-          </div>
+
+      {/* ROW: Funnel + Conversion */}
+      <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1.4fr 1fr",gap:16,marginBottom:16}}>
+        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .1s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Funil de Conversão"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"Jornada do mapeamento ao ganho"}</div>
           {convSteps.map(function(step, i) {
-            var colors = ["#0f172a","#0369a1","#7c3aed","#b45309","#2d3a8c"];
+            var grad = ["#4361EE","#5566f0","#6a6ef0","#8b6ee8","#a855f7"][i] || "#4361EE";
             return (
-              <div key={step.label} style={{marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                  <span style={{fontSize:12,fontWeight:600,color:colors[i]}}>{step.label}</span>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{fontSize:11,color:"#6b7280"}}>{step.count}</span>
-                    <span style={{fontSize:11,fontWeight:700,color:colors[i],minWidth:32,textAlign:"right"}}>{step.pct+"%"}</span>
-                  </div>
+              <div key={step.label} style={{marginBottom:14}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                  <span style={{fontSize:12,fontWeight:600,color:"#334155"}}>{step.label}</span>
+                  <span style={{fontSize:12,color:"#64748b"}}>{step.count + " · " + step.pct + "%"}</span>
                 </div>
-                <div style={{height:6,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:step.pct+"%",background:colors[i],borderRadius:4,transition:"width .8s cubic-bezier(.22,1,.36,1)"}}/>
+                <div style={{height:26,background:"#f1f5f9",borderRadius:8,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:Math.max(step.pct,3)+"%",background:"linear-gradient(90deg,"+grad+","+grad+"cc)",borderRadius:8,animation:"repFunnelGrow .8s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.12+0.2)+"s",display:"flex",alignItems:"center",paddingLeft:10}}>
+                    <span style={{fontSize:10,fontWeight:700,color:"#fff"}}>{step.pct+"%"}</span>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
-        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:20,display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-            {"Contas por Semana"}
+        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .18s both",display:"flex",flexDirection:"column"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Distribuição por Fit"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:10}}>{"Qualidade dos prospects"}</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
+            <DonutChart segments={fitSeg} size={150} centerLabel={String(total)} centerSub="contas"/>
           </div>
-          <div style={{display:"flex",alignItems:"flex-end",gap:6,height:120}}>
-            {weeks.map(function(w, i) {
-              var h = Math.round((w.count/maxWeek)*100);
-              var isLast = i===weeks.length-1;
+          <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:12}}>
+            {fitSeg.map(function(s){return (
+              <div key={s.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:11.5}}>
+                <span style={{width:10,height:10,borderRadius:3,background:s.color,flexShrink:0}}/>
+                <span style={{color:"#475569",fontWeight:600,flex:1}}>{"Fit "+s.label}</span>
+                <span style={{color:"#94a3b8"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
+              </div>
+            );})}
+          </div>
+        </div>
+      </div>
+
+      {/* ROW: Velocity line + Tier donut */}
+      <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1.4fr 1fr",gap:16,marginBottom:16}}>
+        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .24s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Velocidade de Mapeamento"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:16}}>{"Contas mapeadas nas últimas 8 semanas"}</div>
+          <svg width="100%" viewBox={"0 0 "+lineW+" "+lineH} style={{display:"block"}}>
+            <defs>
+              <linearGradient id="repArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#4361EE" stopOpacity="0.25"/>
+                <stop offset="100%" stopColor="#4361EE" stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            {[0,0.5,1].map(function(g,gi){var gy=lineH-24-g*(lineH-50);return <line key={gi} x1={lpad} y1={gy} x2={lineW-lpad} y2={gy} stroke="#f1f5f9" strokeWidth="1"/>;})}
+            <path d={areaPath} fill="url(#repArea)"/>
+            <path d={linePath} fill="none" stroke="#4361EE" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1000" style={{animation:"repLineDraw 1.4s ease .3s both"}}/>
+            {linePts.map(function(p,i){return (
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#4361EE" strokeWidth="2.5" style={{animation:"repFadeUp .4s ease both",animationDelay:(0.6+i*0.08)+"s"}}/>
+                <text x={p.x} y={p.y-10} textAnchor="middle" fontSize="10" fontWeight="700" fill="#4361EE">{p.count>0?p.count:""}</text>
+                <text x={p.x} y={lineH-8} textAnchor="middle" fontSize="9" fill="#94a3b8">{p.label}</text>
+              </g>
+            );})}
+          </svg>
+        </div>
+        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .3s both",display:"flex",flexDirection:"column"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Distribuição por Tier"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:10}}>{"Prioridade estratégica"}</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
+            <DonutChart segments={tierSeg} size={150} centerLabel={String(byTier.length)} centerSub="tiers"/>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:12}}>
+            {tierSeg.map(function(s){return (
+              <div key={s.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:11.5}}>
+                <span style={{width:10,height:10,borderRadius:3,background:s.color,flexShrink:0}}/>
+                <span style={{color:"#475569",fontWeight:600,flex:1}}>{s.label}</span>
+                <span style={{color:"#94a3b8"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
+              </div>
+            );})}
+          </div>
+        </div>
+      </div>
+
+      {/* ROW: Sector bar chart + Status pipeline */}
+      <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .36s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Top Setores"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"Concentração da carteira"}</div>
+          <div style={{display:"flex",alignItems:"flex-end",gap:10,height:160,paddingTop:10}}>
+            {bySetor.slice(0,6).map(function(s,i){
+              var h = Math.max((s.count/maxSetor)*130, 8);
+              var grad = ["#4361EE","#5566f0","#6a6ef0","#8b6ee8","#a855f7","#c084fc"][i]||"#4361EE";
               return (
-                <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-                  <div style={{fontSize:9,fontWeight:700,color:isLast?"#3451d1":"#94a3b8"}}>{w.count||""}</div>
-                  <div style={{width:"100%",height:h+"%",minHeight:w.count?4:2,background:isLast?"linear-gradient(180deg,#4361EE,#3451d1)":"#e2e8f0",borderRadius:"4px 4px 0 0",transition:"height .6s ease"}}/>
+                <div key={s.setor} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+                  <span style={{fontSize:12,fontWeight:700,color:"#334155"}}>{s.count}</span>
+                  <div style={{width:"100%",maxWidth:40,height:h,background:"linear-gradient(180deg,"+grad+","+grad+"99)",borderRadius:"7px 7px 0 0",transformOrigin:"bottom",animation:"repBarGrow .7s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.1+0.3)+"s"}}/>
+                  <span style={{fontSize:9,color:"#94a3b8",textAlign:"center",lineHeight:1.2,maxWidth:54,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",width:"100%"}} title={s.setor}>{s.setor}</span>
                 </div>
               );
             })}
           </div>
-          <div style={{display:"flex",alignItems:"flex-end",gap:6,marginTop:6}}>
-            {weeks.map(function(w,i){
-              return <div key={i} style={{flex:1,textAlign:"center",fontSize:8,color:i===weeks.length-1?"#3451d1":"#cbd5e1",overflow:"hidden"}}>{i===weeks.length-1?"Agora":"S-"+i}</div>;
+        </div>
+        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .42s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Pipeline por Status"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"Distribuição atual das contas"}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {funnel.map(function(f,i){
+              var pct = total?Math.round(f.count/total*100):0;
+              return (
+                <div key={f.status} style={{display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{fontSize:11,fontWeight:600,color:"#475569",width:90,flexShrink:0}}>{f.label}</span>
+                  <div style={{flex:1,height:18,background:"#f1f5f9",borderRadius:6,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:Math.max(pct,2)+"%",background:f.color,borderRadius:6,animation:"repFunnelGrow .7s ease both",animationDelay:(i*0.08+0.4)+"s"}}/>
+                  </div>
+                  <span style={{fontSize:11,fontWeight:700,color:f.color,width:32,textAlign:"right",flexShrink:0}}>{f.count}</span>
+                </div>
+              );
             })}
           </div>
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:18,marginBottom:18}}>
-        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-            {"Distribuição por Fit"}
-          </div>
-          {byFit.map(function(f) {
-            return (
-              <div key={f.fit} style={{marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                  <span style={{fontSize:12,fontWeight:700,color:f.color,background:f.bg,border:"1px solid "+f.border,borderRadius:6,padding:"2px 8px"}}>{"FIT "+f.fit}</span>
-                  <span style={{fontSize:12,fontWeight:700,color:f.color}}>{f.count+" ("+f.pct+"%)"}</span>
-                </div>
-                <div style={{height:6,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:f.pct+"%",background:f.color,borderRadius:4}}/>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-            {"Distribuição por Tier"}
-          </div>
-          {byTier.map(function(t) {
-            return (
-              <div key={t.tier} style={{marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                  <span style={{fontSize:12,fontWeight:700,color:t.color}}>{t.tier}</span>
-                  <span style={{fontSize:12,fontWeight:700,color:t.color}}>{t.count+" ("+t.pct+"%)"}</span>
-                </div>
-                <div style={{height:6,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:t.pct+"%",background:t.color,borderRadius:4}}/>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-            {"Top Setores"}
-          </div>
-          {bySetor.length===0 ? (
-            <div style={{fontSize:12,color:"#6b7280"}}>Sem dados</div>
-          ) : bySetor.map(function(s, i) {
-            var barColors = ["#4361EE","#0ea5e9","#7c3aed","#f59e0b","#ef4444","#64748b"];
-            var w = Math.round(s.count/maxSetor*100);
-            return (
-              <div key={s.setor} style={{marginBottom:10}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                  <span style={{fontSize:11,fontWeight:600,color:"#334155",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:"70%"}}>{s.setor}</span>
-                  <span style={{fontSize:11,fontWeight:700,color:barColors[i]||"#94a3b8",flexShrink:0}}>{s.count}</span>
-                </div>
-                <div style={{height:5,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:w+"%",background:barColors[i]||"#94a3b8",borderRadius:3}}/>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
-        <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
-          <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-          {"Status Completo,"}
-          {total} Contas
-        </div>
-        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-          {funnel.map(function(f) {
-            var barH = f.count ? Math.round(f.count/maxFunnel*60)+16 : 8;
-            return (
-              <div key={f.status} style={{flex:1,minWidth:80,display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-                <div style={{fontSize:22,fontWeight:800,color:f.color}}>{f.count}</div>
-                <div style={{width:"100%",height:barH,background:f.bg,border:"1.5px solid "+f.border,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:f.color}}/>
-                </div>
-                <div style={{fontSize:9,fontWeight:600,color:f.color,textTransform:"uppercase",letterSpacing:.6,textAlign:"center"}}>{f.label}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginTop:18}}>
-        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-            {"Fit Score, Visão Donut"}
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:24}}>
-            <DonutChart size={120} hole={0.62} segments={byFit.map(function(f){return {value:f.count,color:f.color};})} centerLabel={total} centerSub="contas"/>
-            <div style={{flex:1}}>
-              {byFit.map(function(f){return (
-                <div key={f.fit} style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <div style={{width:10,height:10,borderRadius:"50%",background:f.color,flexShrink:0}}/>
-                  <div style={{fontSize:11,color:"#334155",flex:1}}>{"FIT "+f.fit}</div>
-                  <div style={{fontSize:12,fontWeight:700,color:f.color}}>{f.count}</div>
-                  <div style={{fontSize:10,color:"#6b7280"}}>{f.pct+"%"}</div>
-                </div>
-              );})}
-            </div>
-          </div>
-        </div>
-        <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)"}}>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-            {"Funil, Semicírculo"}
-          </div>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
-            <SemiCircleChart convSteps={convSteps}/>
-          </div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center"}}>
-            {convSteps.map(function(step,i){
-              var colors=["#0f172a","#0369a1","#7c3aed","#2d3a8c","#991b1b"];
-              return <div key={step.label} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:"50%",background:colors[i]}}/><span style={{fontSize:10,color:"#64748b"}}>{step.label+": "+step.pct+"%"}</span></div>;
-            })}
-          </div>
-        </div>
-      </div>
-      <div style={{background:"rgba(255,255,255,.95)",border:"1px solid rgba(228,235,244,.8)",borderRadius:20,padding:"22px 24px",boxShadow:"0 4px 24px rgba(15,23,42,.07)",marginTop:18}}>
-        <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:18,display:"flex",alignItems:"center",gap:6}}>
-          <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
-          {"Métricas de Velocidade"}
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:14}}>
-          {[
-            {label:"Média por Semana", value:total?(weeks.reduce(function(s,w){return s+w.count;},0)/Math.max(1,weeks.filter(function(w){return w.count>0;}).length)).toFixed(1):0, sub:"contas mapeadas", color:"#0369a1"},
-            {label:"Melhor Semana",    value:Math.max.apply(null,weeks.map(function(w){return w.count;})), sub:"contas em uma semana", color:"#7c3aed"},
-            {label:"Taxa de Avanço",   value:total?Math.round(contacted/total*100)+"%":"0%", sub:"mapeado para contatado", color:"#3451d1"},
-            {label:"Taxa de Reunião",  value:contacted?Math.round(meeting/contacted*100)+"%":"0%", sub:"contatado para reunião", color:"#2d3a8c"},
-          ].map(function(m){return (
-            <div key={m.label} style={{background:"#f8fafc",border:"1px solid #e8edf4",borderRadius:14,padding:"16px 18px"}}>
-              <div style={{fontSize:9,color:"#6b7280",fontWeight:600,marginBottom:8,textTransform:"uppercase",letterSpacing:.8}}>{m.label}</div>
-              <div style={{fontSize:28,fontWeight:800,color:m.color,lineHeight:1,marginBottom:4}}>{m.value}</div>
-              <div style={{fontSize:11,color:"#6b7280"}}>{m.sub}</div>
-            </div>
-          );})}
         </div>
       </div>
     </div>
@@ -3171,7 +3154,7 @@ export default function App() {
     var isDifferent = !usage || usage.plan !== planId;
     setPlan(planId, isDifferent).then(function(){ refreshUsage(); });
   }
-  // Verifica e consome 1 credito para uma busca manual. Retorna Promise<bool>.
+  // Verifica e consome 1 crédito para uma busca manual. Retorna Promise<bool>.
   function requestMapCredit() {
     return new Promise(function(resolve) {
       consumeMapping().then(function(res) {
@@ -3210,7 +3193,7 @@ export default function App() {
   }, []);
   function saveAccount(nome, data, liveMode, attachData, attachFileName) {
     var id = "acc:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
-    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estrategia&&data.estrategia.tier)||"Tier 2", status:"prospecting", mapped:true, liveMode:liveMode||false, savedAt:Date.now(), data:data, attachData:attachData||null, attachFileName:attachFileName||"" };
+    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estratégia&&data.estratégia.tier)||"Tier 2", status:"prospecting", mapped:true, liveMode:liveMode||false, savedAt:Date.now(), data:data, attachData:attachData||null, attachFileName:attachFileName||"" };
     storageSet(id, acc).then(function() {
       setAccounts(function(prev){return [acc].concat(prev);});
     });
@@ -3251,7 +3234,7 @@ export default function App() {
     return created.length;
   }
 
-  // Mapeia uma conta sob demanda -> consome 1 credito do plano
+  // Mapeia uma conta sob demanda -> consome 1 crédito do plano
   function mapAccount(acc) {
     return new Promise(function(resolve) {
       consumeMapping().then(function(res) {
@@ -3288,7 +3271,7 @@ export default function App() {
       mapped:true, liveMode:liveMode, data:data,
       setor:(data.empresa&&data.empresa.setor)||"Empresa",
       fit:(data.fit&&data.fit.score)||"ALTO",
-      tier:(data.estrategia&&data.estrategia.tier)||"Tier 2",
+      tier:(data.estratégia&&data.estratégia.tier)||"Tier 2",
       mappedAt:Date.now()
     });
     storageSet(acc.id, updated);
