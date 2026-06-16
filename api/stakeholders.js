@@ -111,36 +111,76 @@ export default async function handler(req, res) {
   // ── LAYER 3: Tavily — LinkedIn public profiles ──────────────────────────────
   if (tavilyKey) {
     const queries = [
-      `"${company}" CISO OR CTO OR "Head of Security" OR "VP Engineering" site:linkedin.com/in`,
-      `"${company}" diretor segurança OR engenharia liderança executivo`,
+      `"${company}" ("Head of CX" OR "Diretor de Operacoes" OR "VP" OR "Gerente de Atendimento" OR CEO OR COO) site:linkedin.com/in`,
+      `"${company}" (diretor OR gerente OR head OR lideranca) atendimento OR operacoes OR customer site:linkedin.com/in`,
     ];
+
+    // Extrai o cargo do titulo do LinkedIn ou, como fallback, do snippet.
+    function extractRole(title, snippet, name, companyName) {
+      var parts = (title || "").split(/\s*[-–|]\s*/).map(function(s){ return s.trim(); }).filter(Boolean);
+      // Remove a parte que e o nome e a que e "LinkedIn"
+      var candidates = parts.filter(function(p) {
+        var lp = p.toLowerCase();
+        if (lp === (name || "").toLowerCase()) return false;
+        if (lp.indexOf("linkedin") >= 0) return false;
+        return true;
+      });
+      var roleRe = /(ceo|cfo|coo|cto|cio|ciso|cmo|vp|vice|diretor|director|head|gerente|manager|chief|lider|líder|coordenador|analista|especialista|founder|s[oó]cio|presidente|superintendente)/i;
+      // 1) candidato do titulo que parece cargo (contem palavra de cargo e nao e so a empresa)
+      for (var i = 0; i < candidates.length; i++) {
+        var c = candidates[i];
+        var lc = c.toLowerCase();
+        if (lc === (companyName || "").toLowerCase()) continue;
+        // remove sufixo "at Empresa" / "na Empresa" se presente
+        if (roleRe.test(c)) {
+          var clean = c.replace(new RegExp("\\s+(na|no|at|@)\\s+" + (companyName || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ".*", "i"), "").trim();
+          return clean || c;
+        }
+      }
+      // 2) fallback: extrair cargo curto do snippet (ate ~6 palavras a partir da palavra de cargo)
+      var sn = snippet || "";
+      var m = sn.match(new RegExp("((?:" + roleRe.source + ")[A-Za-zÀ-ÿ]*(?:\\s+(?:de|da|do|of|e|&|ao|aos)?\\s*[A-Za-zÀ-ÿ]+){0,4})", "i"));
+      if (m && m[1]) {
+        var found = m[1].trim().replace(/\s{2,}/g, " ");
+        // corta sufixo " na/no/da Empresa ..." se aparecer
+        var cre = new RegExp("\\s+(na|no|da|do|at|@)\\s+" + (companyName || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ".*", "i");
+        found = found.replace(cre, "").trim();
+        // corta conectores soltos ao final (ha, em, etc.)
+        found = found.replace(/\s+(na|no|da|do|de|ha|há|em|e|at|@)$/i, "").trim();
+        if (found.length >= 3 && found.length <= 50) return found;
+      }
+      // 3) primeiro candidato do titulo que nao e a empresa
+      for (var j = 0; j < candidates.length; j++) {
+        if (candidates[j].toLowerCase() !== (companyName || "").toLowerCase()) return candidates[j];
+      }
+      return "";
+    }
+
     for (const q of queries) {
       try {
         const r = await fetch("https://api.tavily.com/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ api_key: tavilyKey, query: q, search_depth: "basic", max_results: 5, language: "pt", country: "Brazil" }),
+          body: JSON.stringify({ api_key: tavilyKey, query: q, search_depth: "advanced", max_results: 6, language: "pt", country: "Brazil", include_raw_content: false }),
         });
-        if (!r.ok) continue;
+        if (!r.ok) { results.errors.push(`Tavily L3: HTTP ${r.status}`); continue; }
         const json = await r.json();
         for (const result of (json.results || [])) {
           const url = result.url || "";
           if (!url.includes("linkedin.com/in/")) continue;
-          // Extract name from title: "Name - Title at Company | LinkedIn"
           const titleParts = (result.title || "").split(/\s*[-–|]\s*/);
-          const name = titleParts[0]?.trim() || "";
-          const role = titleParts[1]?.trim() || "";
+          const name = (titleParts[0] || "").trim();
           if (!name || name.length < 4 || name.toLowerCase() === company.toLowerCase()) continue;
-          // Verify this person is actually associated with the company
-          const snippet = (result.content || result.snippet || "").toLowerCase();
-          if (!snippet.includes(company.toLowerCase().split(" ")[0])) continue;
+          const snippet = (result.content || result.snippet || "");
+          if (!snippet.toLowerCase().includes(company.toLowerCase().split(" ")[0])) continue;
+          const role = extractRole(result.title, snippet, name, company);
           addContact({
             nome: name,
             cargo: role,
             linkedin: url,
             email: "",
             email_confidence: 0,
-            is_senior: /ceo|cto|ciso|director|head|vp|chief|vice/i.test(role),
+            is_senior: /ceo|cto|ciso|coo|cfo|director|diretor|head|vp|chief|vice|presidente/i.test(role),
             source: "LinkedIn (Tavily)",
           });
         }
