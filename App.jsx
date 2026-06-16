@@ -700,6 +700,7 @@ function PipelineView(props) {
   var _st_dragId = useState(null); var dragId = _st_dragId[0]; var setDragId = _st_dragId[1];
   var _st_dragAcc = useState(null); var dragAcc = _st_dragAcc[0]; var setDragAcc = _st_dragAcc[1];
   var _st_ghostPos = useState({x:0, y:0}); var ghostPos = _st_ghostPos[0]; var setGhostPos = _st_ghostPos[1];
+  var _st_ghostW = useState(160); var ghostW = _st_ghostW[0]; var setGhostW = _st_ghostW[1];
   var dragFrom = useRef(null);
   var colRefs = useRef({});
   function getColAtPoint(x, y) {
@@ -717,6 +718,7 @@ function PipelineView(props) {
     e.preventDefault();
     var rect = e.currentTarget.getBoundingClientRect();
     grabOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    setGhostW(rect.width);
     dragFrom.current = fromCol;
     setDragId(acc.id);
     setDragAcc(acc);
@@ -744,6 +746,7 @@ function PipelineView(props) {
     var t0 = e.touches[0];
     var rect = e.currentTarget.getBoundingClientRect();
     grabOffset.current = { x: t0.clientX - rect.left, y: t0.clientY - rect.top };
+    setGhostW(rect.width);
     dragFrom.current = fromCol;
     setDragId(acc.id);
     setDragAcc(acc);
@@ -824,7 +827,7 @@ function PipelineView(props) {
         )}
       </div>
       {dragId && dragAcc && (
-        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:160,zIndex:9999,pointerEvents:"none",transform:"rotate(3deg) scale(1.05)",boxShadow:"0 20px 60px rgba(15,23,42,.2),0 4px 16px rgba(67,97,238,.2)",borderRadius:14}}>
+        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:ghostW,zIndex:9999,pointerEvents:"none",transform:"rotate(2deg)",boxShadow:"0 20px 60px rgba(15,23,42,.2),0 4px 16px rgba(67,97,238,.2)",borderRadius:14}}>
           <div style={{background:"#fff",border:"1.5px solid #10b981",borderRadius:14,padding:"12px 14px"}}>
             <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{dragAcc.nome}</div>
             <div style={{fontSize:10,color:"#6b7280",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{dragAcc.setor}</div>
