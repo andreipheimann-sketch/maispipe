@@ -33,7 +33,7 @@ export default async function handler(req, res) {
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: "Responda apenas com a palavra: OK" }] }],
-        generationConfig: { maxOutputTokens: 10 },
+        generationConfig: { maxOutputTokens: 100, thinkingConfig: { thinkingBudget: 0 } },
       }),
     });
 
