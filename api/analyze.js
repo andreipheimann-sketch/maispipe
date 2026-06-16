@@ -68,7 +68,7 @@ export default async function handler(req, res) {
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         contents: [{ role: "user", parts: parts }],
-        generationConfig: { responseMimeType: "application/json", maxOutputTokens: 1400 },
+        generationConfig: { responseMimeType: "application/json", maxOutputTokens: 8192, thinkingConfig: { thinkingBudget: 0 } },
       }),
     });
 
