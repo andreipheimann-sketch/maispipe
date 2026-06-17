@@ -46,8 +46,8 @@ function storageDel(key) {
 // no Supabase, mantendo as MESMAS assinaturas. O resto do app nao muda.
 var PLANS = {
   "starter":      { id:"starter",      label:"Starter",      limit:30,  color:"#0ea5e9" },
-  "professional": { id:"professional", label:"Professional", limit:100, color:"#4361EE" },
-  "free":         { id:"free",         label:"Trial",        limit:5,   color:"#64748b" },
+  "professional": { id:"professional", label:"Professional", limit:100, color:"#a5b4fc" },
+  "free":         { id:"free",         label:"Trial",        limit:5,   color:"rgba(255,255,255,.55)" },
 };
 var USAGE_KEY = "usage_state";
 
@@ -59,8 +59,8 @@ function nextPlanId(planId) {
 }
 function nextPlanMsg(planId) {
   var np = nextPlanId(planId);
-  if (!np) return "VocÃª jÃ¡ estÃ¡ no plano mais alto. Aguarde a renovaÃ§Ã£o no prÃ³ximo mÃªs.";
-  return "Migre para o plano " + PLANS[np].label + " e mapeie atÃ© " + PLANS[np].limit + " contas por mÃªs.";
+  if (!np) return "Você já está no plano mais alto. Aguarde a renovação no próximo mês.";
+  return "Migre para o plano " + PLANS[np].label + " e mapeie até " + PLANS[np].limit + " contas por mês.";
 }
 
 function currentPeriod() {
@@ -143,7 +143,7 @@ function parseCSV(text) {
 
   var header = splitLine(lines[0]).map(norm);
   var idxNome = header.findIndex(function(h){ return h==="nome"||h==="empresa"||h==="company"||h==="name"||h==="conta"||h==="account"; });
-  var idxSite = header.findIndex(function(h){ return h==="site"||h==="website"||h==="url"||h==="domÃ­nio"||h==="domain"||h==="web"; });
+  var idxSite = header.findIndex(function(h){ return h==="site"||h==="website"||h==="url"||h==="domínio"||h==="domain"||h==="web"; });
   var idxLink = header.findIndex(function(h){ return h.indexOf("linkedin")>=0||h==="li"; });
 
   var hasHeader = idxNome >= 0;
@@ -167,15 +167,15 @@ function parseCSV(text) {
 
 // -- CONSTANTS ----------------------------------------------------------------
 var STATUS_CONFIG = {
-  "prospecting": { label:"Em prospecÃ§Ã£o", color:"#64748b", bg:"#f8fafc", border:"#e2e8f0" },
+  "prospecting": { label:"Em prospecção", color:"rgba(255,255,255,.55)", bg:"#f8fafc", border:"#e2e8f0" },
   "contacted":   { label:"Contatado",     color:"#0369a1", bg:"#eff6ff", border:"#bfdbfe" },
-  "meeting":     { label:"ReuniÃ£o",       color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe" },
-  "won":         { label:"Convertido",    color:"#2d3a8c", bg:"#f0f3ff", border:"#c7d0fa" },
+  "meeting":     { label:"Reunião",       color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe" },
+  "won":         { label:"Convertido",    color:"#818cf8", bg:"#f0f3ff", border:"#c7d0fa" },
   "lost":        { label:"Perdido",       color:"#991b1b", bg:"#fff1f2", border:"#fecdd3" },
 };
 var STATUS_ORDER = ["prospecting","contacted","meeting","won","lost"];
 var FIT_CONFIG = {
-  "ALTO":  { bg:"#e8ecfd", border:"#4361EE", text:"#2d3a8c" },
+  "ALTO":  { bg:"#e8ecfd", border:"#6366f1", text:"#2d3a8c" },
   "MEDIO": { bg:"#fef3c7", border:"#f59e0b", text:"#92400e" },
   "BAIXO": { bg:"#fee2e2", border:"#ef4444", text:"#991b1b" },
 };
@@ -187,62 +187,62 @@ var TOUCH_TYPES = {
   whatsapp: { label:"WhatsApp",     icon:"W", color:"#16a34a", bg:"#f0f3ff" },
   call:     { label:"Cold Call",    icon:"C", color:"#92400e", bg:"#fffbeb" },
   follow:   { label:"Follow-up",    icon:"F", color:"#7c3aed", bg:"#f5f3ff" },
-  breakup:  { label:"Breakup",      icon:"B", color:"#64748b", bg:"#f8fafc" },
+  breakup:  { label:"Breakup",      icon:"B", color:"rgba(255,255,255,.55)", bg:"#f8fafc" },
 };
 var STAKEHOLDER_PROFILES = [
-  { id:"headcx", label:"Head de CX / Diretor de Atendimento", angle:"CSAT, SLA e escala do time",    pain:"volume crescendo mais rÃ¡pido que headcount, CSAT caindo" },
+  { id:"headcx", label:"Head de CX / Diretor de Atendimento", angle:"CSAT, SLA e escala do time",    pain:"volume crescendo mais rápido que headcount, CSAT caindo" },
   { id:"ceo",    label:"CEO / Diretor Geral",                  angle:"retencao e crescimento",        pain:"churn por atendimento ruim travando expansao da base" },
-  { id:"ops",    label:"VP / Diretor de OperaÃ§Ãµes",            angle:"custo por ticket e eficiencia", pain:"budget de CX estourado sem visibilidade de ROI" },
+  { id:"ops",    label:"VP / Diretor de Operações",            angle:"custo por ticket e eficiencia", pain:"budget de CX estourado sem visibilidade de ROI" },
   { id:"cs",     label:"Head de Customer Success",             angle:"health score e retencao",       pain:"sem visibilidade de clientes em risco antes de churnarem" },
-  { id:"ti",     label:"Gerente de TI / CTO",                  angle:"integraÃ§Ã£o e migracao",         pain:"sistema atual sem API robusta, customizacoes caras" },
+  { id:"ti",     label:"Gerente de TI / CTO",                  angle:"integração e migracao",         pain:"sistema atual sem API robusta, customizacoes caras" },
   { id:"cfo",    label:"CFO / Diretor Financeiro",             angle:"ROI e reducao de custo",        pain:"custo por ticket alto sem benchmark claro do mercado" },
 ];
 var SEQUENCE_TEMPLATES = {
   headcx: [
-    { day:1,  type:"linkedin", subject:"Atendimento omnichannel na {empresa}", body:"Ola, tudo bem?\n\nVi que {empresa} atua em {setor} e tem uma operacao de atendimento ativo.\n\nComo Head de CX, imagino que voce equilibra diariamente a pressao por SLA com a necessidade de escalar o time sem explodir o custo.\n\nEmpresas similares no {setor} conseguiram aumentar CSAT em 25% e reduzir 40% do custo por ticket ao unificar todos os canais na Zendesk Suite com IA nativa.\n\nFaz sentido um papo de 20 minutos para eu entender como esta o processo de atendimento de voces hoje?\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
-    { day:3,  type:"email",    subject:"[{empresa}] Quanto custa um ticket sem resposta?", body:"Ola,\n\nUma pergunta direta: qual o impacto no churn quando um cliente fica mais de 24h sem resposta na {empresa}?\n\nNa media do setor de {setor}, cada 1% de queda no CSAT representa aumento de 2 a 3% no churn. Com a Zendesk Suite, empresas similares:\n\n, Reduziram TMA em 35% com macros e IA de sugestao de resposta\n, Aumentaram first contact resolution de 52% para 78%\n, Deflexionaram 28% dos tickets via self-service inteligente\n\nConsigo te mostrar em 20 minutos com dados do seu setor.\n\nTem disponibilidade essa semana?\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:1,  type:"linkedin", subject:"Atendimento omnichannel na {empresa}", body:"Ola, tudo bem?\n\nVi que {empresa} atua em {setor} e tem uma operacao de atendimento ativo.\n\nComo Head de CX, imagino que voce equilibra diariamente a pressao por SLA com a necessidade de escalar o time sem explodir o custo.\n\nEmpresas similares no {setor} conseguiram aumentar CSAT em 25% e reduzir 40% do custo por ticket ao unificar todos os canais na Zendesk Suite com IA nativa.\n\nFaz sentido um papo de 20 minutos para eu entender como esta o processo de atendimento de voces hoje?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:3,  type:"email",    subject:"[{empresa}] Quanto custa um ticket sem resposta?", body:"Ola,\n\nUma pergunta direta: qual o impacto no churn quando um cliente fica mais de 24h sem resposta na {empresa}?\n\nNa media do setor de {setor}, cada 1% de queda no CSAT representa aumento de 2 a 3% no churn. Com a Zendesk Suite, empresas similares:\n\n, Reduziram TMA em 35% com macros e IA de sugestao de resposta\n, Aumentaram first contact resolution de 52% para 78%\n, Deflexionaram 28% dos tickets via self-service inteligente\n\nConsigo te mostrar em 20 minutos com dados do seu setor.\n\nTem disponibilidade essa semana?\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:6,  type:"call",     subject:"Cold call , Head de CX {empresa}", body:"Bom dia [Nome], aqui e o BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nPerfeito. Ligo porque {empresa} tem o perfil exato onde a Zendesk gera mais impacto em {setor}: time de atendimento ativo com pressao crescente de CSAT e custo.\n\nEmpresas similares aumentaram CSAT em 25% e reduziram 40% do custo por ticket nos primeiros 90 dias. Faz sentido eu te mostrar como funcionou? Quando voce tem 20 minutos?" },
-    { day:10, type:"email",    subject:"[{empresa}] Case: CSAT de 68% para 89% em 90 dias", body:"Ola,\n\nRecentemente ajudamos uma empresa de {setor} com perfil muito similar ao da {empresa} a:\n\n, Unificar e-mail, chat, WhatsApp e voz em uma unica plataforma em 30 dias\n, Aumentar CSAT de 68% para 89% nos primeiros 90 dias\n, Reduzir TMA em 35% com macros inteligentes e IA de sugestao\n, Deflexionar 28% dos tickets via self-service , sem agente\n\nO time de CX nao parou as operacoes , a implementacao foi conduzida pelo nosso CS.\n\nFaz sentido eu te contar como funcionou? 20 minutos essa semana.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
-    { day:15, type:"linkedin", subject:"Atualizacao rapida , {empresa}", body:"Ola,\n\nMandei um email sobre atendimento omnichannel na {empresa}, mas imagino que a caixa esta cheia.\n\nUma pergunta direta: voces tem visibilidade em tempo real do CSAT e SLA em todos os canais hoje?\n\nSe nao, vale muito uma conversa , posso mostrar um benchmark do {setor} que costuma mudar a perspectiva.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
-    { day:21, type:"breakup",  subject:"Ultima mensagem , {empresa}", body:"Ola,\n\nVou respeitar o seu tempo , essa e minha ultima mensagem sobre o tema.\n\nSe CX e self-service nao sao prioridade agora na {empresa}, faz todo sentido. Mas se em algum momento a conversa sobre CSAT, custo por ticket ou escala do time de atendimento ganhar urgencia, pode me chamar.\n\nGuardo a {empresa} no radar.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:10, type:"email",    subject:"[{empresa}] Case: CSAT de 68% para 89% em 90 dias", body:"Ola,\n\nRecentemente ajudamos uma empresa de {setor} com perfil muito similar ao da {empresa} a:\n\n, Unificar e-mail, chat, WhatsApp e voz em uma unica plataforma em 30 dias\n, Aumentar CSAT de 68% para 89% nos primeiros 90 dias\n, Reduzir TMA em 35% com macros inteligentes e IA de sugestao\n, Deflexionar 28% dos tickets via self-service , sem agente\n\nO time de CX nao parou as operacoes , a implementacao foi conduzida pelo nosso CS.\n\nFaz sentido eu te contar como funcionou? 20 minutos essa semana.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:15, type:"linkedin", subject:"Atualizacao rapida , {empresa}", body:"Ola,\n\nMandei um email sobre atendimento omnichannel na {empresa}, mas imagino que a caixa esta cheia.\n\nUma pergunta direta: voces tem visibilidade em tempo real do CSAT e SLA em todos os canais hoje?\n\nSe nao, vale muito uma conversa , posso mostrar um benchmark do {setor} que costuma mudar a perspectiva.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:21, type:"breakup",  subject:"Ultima mensagem , {empresa}", body:"Ola,\n\nVou respeitar o seu tempo , essa e minha ultima mensagem sobre o tema.\n\nSe CX e self-service nao sao prioridade agora na {empresa}, faz todo sentido. Mas se em algum momento a conversa sobre CSAT, custo por ticket ou escala do time de atendimento ganhar urgencia, pode me chamar.\n\nGuardo a {empresa} no radar.\n\nAbraço,\nBDR/SDR | Zendesk" },
   ],
   ceo: [
-    { day:1,  type:"linkedin", subject:"Retencao de clientes na {empresa}", body:"Ola, tudo bem?\n\nVi que {empresa} esta crescendo em {setor} , parabens pelo trabalho.\n\nUma realidade comum em empresas que crescem rapido: a base de clientes cresce mais rapido que a capacidade de atendimento, e o CSAT comeÃ§a a cair , gerando churn justamente quando mais precisam reter.\n\nEmpresas similares no {setor} resolveram esse problema com Zendesk Suite: escalaram o atendimento com IA e self-service sem aumentar headcount.\n\nVale um papo de 15 minutos?" },
-    { day:3,  type:"email",    subject:"[{empresa}] Atendimento como vantagem competitiva", body:"Ola,\n\nPara uma empresa de {setor} em crescimento como a {empresa}, atendimento ao cliente pode ser o maior diferencial competitivo , ou o maior risco de churn.\n\nO que empresas lÃ­deres do setor estao fazendo:\n, Self-service com IA que resolve 30% dos tickets sem agente\n, Omnichannel unificado: o cliente nao precisa repetir o problema\n, CSAT em tempo real para antecipar clientes em risco de churn\n\nConsigo te mostrar em 20 minutos como isso se aplicaria a {empresa}.\n\nTem disponibilidade?\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:1,  type:"linkedin", subject:"Retencao de clientes na {empresa}", body:"Ola, tudo bem?\n\nVi que {empresa} esta crescendo em {setor} , parabens pelo trabalho.\n\nUma realidade comum em empresas que crescem rapido: a base de clientes cresce mais rapido que a capacidade de atendimento, e o CSAT começa a cair , gerando churn justamente quando mais precisam reter.\n\nEmpresas similares no {setor} resolveram esse problema com Zendesk Suite: escalaram o atendimento com IA e self-service sem aumentar headcount.\n\nVale um papo de 15 minutos?" },
+    { day:3,  type:"email",    subject:"[{empresa}] Atendimento como vantagem competitiva", body:"Ola,\n\nPara uma empresa de {setor} em crescimento como a {empresa}, atendimento ao cliente pode ser o maior diferencial competitivo , ou o maior risco de churn.\n\nO que empresas líderes do setor estao fazendo:\n, Self-service com IA que resolve 30% dos tickets sem agente\n, Omnichannel unificado: o cliente nao precisa repetir o problema\n, CSAT em tempo real para antecipar clientes em risco de churn\n\nConsigo te mostrar em 20 minutos como isso se aplicaria a {empresa}.\n\nTem disponibilidade?\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:7,  type:"whatsapp", subject:"WhatsApp , CEO {empresa}", body:"Oi [Nome], BDR da Zendesk. Direto ao ponto: empresa de {setor} com perfil similar ao da {empresa} reduziu churn em 15% ao melhorar CSAT com nossa plataforma. Vale 15 minutos para eu mostrar como?" },
-    { day:12, type:"email",    subject:"[{empresa}] O custo do atendimento ruim", body:"Ola,\n\nUm numero que costuma surpreender CEOs de empresas de {setor}: adquirir um novo cliente custa de 5 a 7x mais do que reter um cliente existente.\n\nE o principal motivo de churn evitavel? Atendimento lento ou fragmentado.\n\nCom a Zendesk Suite, a {empresa} poderia:\n, Responder mais rapido com IA e automacao\n, Dar ao cliente a opcao de resolver sozinho (self-service)\n, Ter visibilidade em tempo real do CSAT e NPS\n\nVale 20 minutos para ver o potencial?\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:12, type:"email",    subject:"[{empresa}] O custo do atendimento ruim", body:"Ola,\n\nUm numero que costuma surpreender CEOs de empresas de {setor}: adquirir um novo cliente custa de 5 a 7x mais do que reter um cliente existente.\n\nE o principal motivo de churn evitavel? Atendimento lento ou fragmentado.\n\nCom a Zendesk Suite, a {empresa} poderia:\n, Responder mais rapido com IA e automacao\n, Dar ao cliente a opcao de resolver sozinho (self-service)\n, Ter visibilidade em tempo real do CSAT e NPS\n\nVale 20 minutos para ver o potencial?\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:17, type:"call",     subject:"Cold call , CEO {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Vou ser rapido.\n\nLigo porque {empresa} esta crescendo em {setor} e esse e exatamente o momento em que CX pode ser vantagem competitiva ou gargalo de crescimento.\n\nUma pergunta: qual o CSAT atual de voces e qual o impacto no churn quando um cliente nao e bem atendido?" },
-    { day:22, type:"breakup",  subject:"Encerrando contato , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se em algum momento o tema de CX, retencao de clientes ou escala do atendimento ganhar urgencia na {empresa}, pode me chamar.\n\nAbraÃ§o e sucesso!\nBDR/SDR | Zendesk" },
+    { day:22, type:"breakup",  subject:"Encerrando contato , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se em algum momento o tema de CX, retencao de clientes ou escala do atendimento ganhar urgencia na {empresa}, pode me chamar.\n\nAbraço e sucesso!\nBDR/SDR | Zendesk" },
   ],
   ops: [
-    { day:1,  type:"email",    subject:"[{empresa}] Custo por ticket no {setor}", body:"Ola,\n\nUma pergunta direta para um Diretor de Operacoes: qual o custo por ticket do time de atendimento da {empresa} hoje?\n\nNa media do setor de {setor}, o custo por ticket varia de R$15 a R$45. Com deflexao via self-service e IA da Zendesk, empresas similares reduziram esse custo em 40% em 90 dias.\n\nConsigo te mostrar o calculo aplicado ao perfil da {empresa} em 20 minutos.\n\nTem disponibilidade?\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:1,  type:"email",    subject:"[{empresa}] Custo por ticket no {setor}", body:"Ola,\n\nUma pergunta direta para um Diretor de Operacoes: qual o custo por ticket do time de atendimento da {empresa} hoje?\n\nNa media do setor de {setor}, o custo por ticket varia de R$15 a R$45. Com deflexao via self-service e IA da Zendesk, empresas similares reduziram esse custo em 40% em 90 dias.\n\nConsigo te mostrar o calculo aplicado ao perfil da {empresa} em 20 minutos.\n\nTem disponibilidade?\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:4,  type:"linkedin", subject:"Eficiencia operacional no atendimento , {empresa}", body:"Ola,\n\nComo Diretor de Operacoes, imagino que voce olha constantemente para a relacao entre headcount do time de CX e volume de tickets.\n\nO desafio mais comum em {setor}: o volume cresce 20% ao ano mas o budget nao acompanha , e a saida e ou contratar mais agentes ou encontrar eficiencia com tecnologia.\n\nA Zendesk Suite resolve isso com automacao, IA e self-service. Vale um papo?" },
     { day:8,  type:"call",     subject:"Cold call , Ops {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nPerfeito. Ligo porque {empresa} apareceu no nosso radar em {setor}. Uma pergunta objetiva: qual o custo mensal do time de atendimento de voces , e voces tem visibilidade do custo por ticket hoje?\n\n[ouvir]\n\nEntendi. E quando o volume de tickets sobe, o que acontece com o SLA e com o headcount?" },
-    { day:13, type:"email",    subject:"[{empresa}] ROI de CX: calculo rapido", body:"Ola,\n\nUm calculo que costuma mudar a perspectiva de Diretores de Operacoes:\n\nSe {empresa} tem 50 agentes com custo medio de R$4.000/mes = R$200k/mes\nDeflexionando 30% dos tickets com self-service = 15 agentes equivalentes economizados\nImpacto potencial: R$60k/mes = R$720k/ano\n\nIsso sem contar a melhora de CSAT e reducao de churn.\n\nConsigo te montar um business case especifico para {empresa} em 20 minutos de conversa.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:13, type:"email",    subject:"[{empresa}] ROI de CX: calculo rapido", body:"Ola,\n\nUm calculo que costuma mudar a perspectiva de Diretores de Operacoes:\n\nSe {empresa} tem 50 agentes com custo medio de R$4.000/mes = R$200k/mes\nDeflexionando 30% dos tickets com self-service = 15 agentes equivalentes economizados\nImpacto potencial: R$60k/mes = R$720k/ano\n\nIsso sem contar a melhora de CSAT e reducao de churn.\n\nConsigo te montar um business case especifico para {empresa} em 20 minutos de conversa.\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:19, type:"follow",   subject:"[{empresa}] Ultima tentativa , pilot gratuito", body:"Ola,\n\nUltima mensagem , prometo.\n\nEm vez de mais uma conversa, proponho algo diferente: um pilot de 30 dias da Zendesk Suite com dados reais da {empresa}. Sem compromisso.\n\nVoces veem o resultado na pratica , reducao de TMA, deflexao de tickets, CSAT em tempo real. Se nao fizer sentido, sem custo e sem pressao.\n\nVale arriscar 30 dias?" },
-    { day:25, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nNao quero continuar incomodando. Encerro o contato por aqui.\n\nSe em algum momento a conversa sobre custo de atendimento ou eficiencia operacional de CX ganhar espaco, pode me chamar.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:25, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nNao quero continuar incomodando. Encerro o contato por aqui.\n\nSe em algum momento a conversa sobre custo de atendimento ou eficiencia operacional de CX ganhar espaco, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
   ],
   cs: [
     { day:1,  type:"linkedin", subject:"Customer Success e retencao na {empresa}", body:"Ola,\n\nVi que {empresa} esta investindo em Customer Success em {setor} , otima estrategia.\n\nUma pergunta: voces conseguem identificar proativamente quais clientes estao em risco de churn antes de eles cancelarem?\n\nCom a Zendesk Suite, equipes de CS de empresas similares passaram a cruzar dados de CSAT, historico de tickets e engajamento para gerar health score automatico , e reduziram churn evitavel em 20%.\n\nVale um papo?" },
-    { day:4,  type:"email",    subject:"[{empresa}] Self-service reduz churn , dados do {setor}", body:"Ola,\n\nUm insight relevante para quem cuida de Customer Success em {setor}:\n\nClientes que resolvem problemas via self-service tem taxa de churn 30% menor do que clientes que precisam abrir ticket para resolver o mesmo problema.\n\nMotivo: self-service gera sensacao de autonomia e competencia. Ticket aberto gera sensacao de dependencia e frustracao.\n\nA {empresa} tem um Help Center estruturado hoje? Se nao, consigo mostrar como montar um em 30 dias com a base de conhecimento da Zendesk.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:4,  type:"email",    subject:"[{empresa}] Self-service reduz churn , dados do {setor}", body:"Ola,\n\nUm insight relevante para quem cuida de Customer Success em {setor}:\n\nClientes que resolvem problemas via self-service tem taxa de churn 30% menor do que clientes que precisam abrir ticket para resolver o mesmo problema.\n\nMotivo: self-service gera sensacao de autonomia e competencia. Ticket aberto gera sensacao de dependencia e frustracao.\n\nA {empresa} tem um Help Center estruturado hoje? Se nao, consigo mostrar como montar um em 30 dias com a base de conhecimento da Zendesk.\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:9,  type:"whatsapp", subject:"WhatsApp , CS {empresa}", body:"Oi [Nome], BDR da Zendesk. {empresa} tem algum processo de health score para identificar clientes em risco antes de churnar? Tenho um case relevante do {setor}. Posso te mandar?" },
-    { day:15, type:"email",    subject:"[{empresa}] Integracao Zendesk + CRM de CS", body:"Ola,\n\nUm dos maiores problemas de times de CS em {setor}: os dados de atendimento ficam no helpdesk e os dados de conta ficam no CRM , e os dois nao conversam.\n\nA Zendesk Suite integra nativamente com Salesforce, HubSpot e principais CRMs, trazendo historico completo de tickets para dentro do contexto de conta.\n\nIsso significa que o CSM ve, em tempo real, se o cliente abriu ticket critico, qual foi a resolucao e como o CSAT esta evoluindo.\n\nVale 20 minutos para ver isso na pratica?\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
-    { day:20, type:"follow",   subject:"[{empresa}] Uma ultima pergunta", body:"Ola,\n\nAntes de encerrar o contato: a {empresa} tem alguma meta de reducao de churn ou aumento de NPS para os proximos 6 meses?\n\nSe sim, vale muito uma conversa agora , antes da pressao chegar.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
-    { day:26, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se o tema de retencao, health score ou integracao de CX com CS ganhar relevancia, pode me chamar.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:15, type:"email",    subject:"[{empresa}] Integracao Zendesk + CRM de CS", body:"Ola,\n\nUm dos maiores problemas de times de CS em {setor}: os dados de atendimento ficam no helpdesk e os dados de conta ficam no CRM , e os dois nao conversam.\n\nA Zendesk Suite integra nativamente com Salesforce, HubSpot e principais CRMs, trazendo historico completo de tickets para dentro do contexto de conta.\n\nIsso significa que o CSM ve, em tempo real, se o cliente abriu ticket critico, qual foi a resolucao e como o CSAT esta evoluindo.\n\nVale 20 minutos para ver isso na pratica?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:20, type:"follow",   subject:"[{empresa}] Uma ultima pergunta", body:"Ola,\n\nAntes de encerrar o contato: a {empresa} tem alguma meta de reducao de churn ou aumento de NPS para os proximos 6 meses?\n\nSe sim, vale muito uma conversa agora , antes da pressao chegar.\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:26, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se o tema de retencao, health score ou integracao de CX com CS ganhar relevancia, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
   ],
   ti: [
-    { day:1,  type:"email",    subject:"[{empresa}] API e integracao Zendesk no {setor}", body:"Ola,\n\nChego ate voce porque {empresa} provavelmente tem um ecossistema de sistemas , ERP, CRM, e-commerce , que precisam conversar com a plataforma de atendimento.\n\nA Zendesk Suite tem API REST completa, marketplace com mais de 1.500 integracoes nativas e webhooks flexiveis. Empresas de {setor} integraram com SAP, TOTVS, Salesforce e plataformas de e-commerce em media em 4 semanas.\n\nPosso te mostrar como funciona a arquitetura de integracao?\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:1,  type:"email",    subject:"[{empresa}] API e integracao Zendesk no {setor}", body:"Ola,\n\nChego ate voce porque {empresa} provavelmente tem um ecossistema de sistemas , ERP, CRM, e-commerce , que precisam conversar com a plataforma de atendimento.\n\nA Zendesk Suite tem API REST completa, marketplace com mais de 1.500 integracoes nativas e webhooks flexiveis. Empresas de {setor} integraram com SAP, TOTVS, Salesforce e plataformas de e-commerce em media em 4 semanas.\n\nPosso te mostrar como funciona a arquitetura de integracao?\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:4,  type:"linkedin", subject:"Migracao de helpdesk , {empresa}", body:"Ola,\n\nVi que {empresa} usa [ferramenta atual] para atendimento. Uma pergunta tecnica: qual a maior dor de integracao que voces enfrentam hoje com o sistema atual?\n\nPergunto porque a migracao para Zendesk e conduzida pelo nosso time de CS com script de migracao de dados , historico de tickets, base de conhecimento e configuracoes.\n\nMuitas empresas de {setor} reduziram o trabalho de TI na migracao em mais de 60%. Vale um papo tecnico?" },
     { day:9,  type:"call",     subject:"Cold call , TI {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nLigo porque {empresa} pode estar avaliando ou ja usar uma ferramenta de atendimento que exige muito trabalho de TI para manter. Uma pergunta: quanto tempo por mes o time de TI de voces gasta mantendo customizacoes e integracoes do sistema de atendimento atual?" },
-    { day:14, type:"email",    subject:"[{empresa}] SLA de implementacao Zendesk", body:"Ola,\n\nPara quem cuida de TI, o maior medo de trocar de plataforma e o tempo e risco de implementacao.\n\nO que o nosso time de CS garante na implementacao da Zendesk Suite:\n, Go-live em 30 dias para Mid Market\n, Migracao de dados com script automatizado\n, Integracoes com ERP e CRM em 4 semanas em media\n, Treinamento do time de atendimento incluido\n, Suporte dedicado nos primeiros 90 dias\n\nVale 20 minutos para ver o plano de implementacao para {empresa}?\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
-    { day:20, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se o tema de migracao de plataforma de atendimento ou integracao com sistemas internos ganhar prioridade, pode me chamar.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:14, type:"email",    subject:"[{empresa}] SLA de implementacao Zendesk", body:"Ola,\n\nPara quem cuida de TI, o maior medo de trocar de plataforma e o tempo e risco de implementacao.\n\nO que o nosso time de CS garante na implementacao da Zendesk Suite:\n, Go-live em 30 dias para Mid Market\n, Migracao de dados com script automatizado\n, Integracoes com ERP e CRM em 4 semanas em media\n, Treinamento do time de atendimento incluido\n, Suporte dedicado nos primeiros 90 dias\n\nVale 20 minutos para ver o plano de implementacao para {empresa}?\n\nAbraço,\nBDR/SDR | Zendesk" },
+    { day:20, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se o tema de migracao de plataforma de atendimento ou integracao com sistemas internos ganhar prioridade, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
   ],
   cfo: [
-    { day:1,  type:"email",    subject:"[{empresa}] ROI de CX , calcular antes de decidir", body:"Ola,\n\nUma pergunta direta para um CFO de empresa de {setor}: qual e o custo mensal do time de atendimento da {empresa}, incluindo salarios, ferramentas e overhead?\n\nNa media do mercado Mid Market brasileiro, esse custo varia de R$150k a R$600k/mes dependendo do tamanho do time.\n\nCom deflexao via self-service e IA da Zendesk, empresas similares reduziram esse custo em 30 a 40% em 6 meses. O payback costuma ser em menos de 4 meses.\n\nConsigo te mostrar o business case especifico para {empresa} em 20 minutos.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:1,  type:"email",    subject:"[{empresa}] ROI de CX , calcular antes de decidir", body:"Ola,\n\nUma pergunta direta para um CFO de empresa de {setor}: qual e o custo mensal do time de atendimento da {empresa}, incluindo salarios, ferramentas e overhead?\n\nNa media do mercado Mid Market brasileiro, esse custo varia de R$150k a R$600k/mes dependendo do tamanho do time.\n\nCom deflexao via self-service e IA da Zendesk, empresas similares reduziram esse custo em 30 a 40% em 6 meses. O payback costuma ser em menos de 4 meses.\n\nConsigo te mostrar o business case especifico para {empresa} em 20 minutos.\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:5,  type:"linkedin", subject:"Custo de atendimento vs retencao , {empresa}", body:"Ola,\n\nTrabalho com CFOs de empresas de {setor} em um item que normalmente nao esta no radar do budget de tecnologia: a plataforma de atendimento ao cliente.\n\nO argumento que tem funcionado: o custo de perder 1% da base de clientes por atendimento ruim e muito maior do que o investimento em CX estruturado. Com a Zendesk, o payback e em menos de 4 meses.\n\nVale 20 minutos para te mostrar o business case?" },
-    { day:10, type:"email",    subject:"[{empresa}] Business case: CX como centro de lucro", body:"Ola,\n\nUm numero que costuma mudar a perspectiva de CFOs em {setor}:\n\nCusto de adquirir um novo cliente: 5 a 7x maior do que reter um existente\nImpacto de 1% de reducao no churn: R$X de ARR preservado (depende da base)\nDeflexao de 30% dos tickets: reducao de 10 a 15 agentes equivalentes\n\nIsso significa que investir em CX nao e custo , e reducao de custo de aquisicao e aumento de LTV.\n\nPosso montar o business case especifico para {empresa} em 20 minutos de conversa.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:10, type:"email",    subject:"[{empresa}] Business case: CX como centro de lucro", body:"Ola,\n\nUm numero que costuma mudar a perspectiva de CFOs em {setor}:\n\nCusto de adquirir um novo cliente: 5 a 7x maior do que reter um existente\nImpacto de 1% de reducao no churn: R$X de ARR preservado (depende da base)\nDeflexao de 30% dos tickets: reducao de 10 a 15 agentes equivalentes\n\nIsso significa que investir em CX nao e custo , e reducao de custo de aquisicao e aumento de LTV.\n\nPosso montar o business case especifico para {empresa} em 20 minutos de conversa.\n\nAbraço,\nBDR/SDR | Zendesk" },
     { day:16, type:"call",     subject:"Cold call , CFO {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\nLigo porque tenho um business case especifico para CFOs de empresas de {setor} , sobre reducao de custo operacional de atendimento e ROI de CX.\n\nO numero que costuma surpreender: deflexionar 30% dos tickets com self-service representa economia de 10 a 15 agentes equivalentes. Faz sentido eu te mostrar o calculo aplicado a {empresa}?" },
-    { day:22, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nUltima mensagem. Entendo que o timing pode nao ser o ideal.\n\nSe o tema de custo operacional de atendimento ou ROI de CX ganhar relevancia na agenda da {empresa}, pode me chamar.\n\nAbraÃ§o,\nBDR/SDR | Zendesk" },
+    { day:22, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nUltima mensagem. Entendo que o timing pode nao ser o ideal.\n\nSe o tema de custo operacional de atendimento ou ROI de CX ganhar relevancia na agenda da {empresa}, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
   ],
 };
 function safeArr(v) { return Array.isArray(v) ? v : []; }
@@ -313,15 +313,15 @@ function SequenceView(props) {
 
   function buildOneTouchVariant(touch, profile, acc) {
     var cargo = profile.label || "Decisor";
-    var angulo = profile.angle || "impacto no negÃ³cio";
+    var angulo = profile.angle || "impacto no negócio";
     var nome = acc.nome || "a empresa";
     var setor = (acc.data && acc.data.empresa && acc.data.empresa.setor) || acc.setor || "tecnologia";
-    var pain = profile.pain || "dores do negÃ³cio";
+    var pain = profile.pain || "dores do negócio";
 
     var variants = {
       email: [
         {subject:"["+nome+"] Uma pergunta direta para o "+cargo, body:"Ola,\n\nUma pergunta que raramente fazem para um "+cargo+":\n\nQuanto custa para "+nome+" cada cliente que vai embora sem conseguir atendimento?\n\nPergunto porque empresas de "+setor+" com perfil similar reduziram esse custo em 40% nos primeiros 90 dias com Zendesk.\n\nSe voce gerencia "+angulo+", vale 20 minutos para ver os numeros?\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {subject:"["+nome+"] O que "+cargo+" mais reclama sobre CX", body:"Ola,\n\nEm conversas com "+cargo+"s de "+setor+", o que mais ouÃ§o e:\n\n\"Meu time apaga incendio o dia todo mas nao tem visibilidade do que realmente importa.\"\n\nIsso ressoa com voce na "+nome+"?\n\nSe sim, tenho 3 formas que empresas similares resolveram isso. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
+        {subject:"["+nome+"] O que "+cargo+" mais reclama sobre CX", body:"Ola,\n\nEm conversas com "+cargo+"s de "+setor+", o que mais ouço e:\n\n\"Meu time apaga incendio o dia todo mas nao tem visibilidade do que realmente importa.\"\n\nIsso ressoa com voce na "+nome+"?\n\nSe sim, tenho 3 formas que empresas similares resolveram isso. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
         {subject:"["+nome+"] Benchmark de CX para "+cargo+"s de "+setor, body:"Ola,\n\nMontei um benchmark especifico para "+cargo+"s de "+setor+" com o perfil da "+nome+":\n\nMedia de CSAT do setor: 72%\nMediana de custo por ticket: R$ 28\nDeflexao via self-service: 18%\n\nCom Zendesk Suite, a media dessas empresas foi para CSAT 87%, R$17 por ticket e 31% de deflexao.\n\nQuer ver como "+nome+" se compara? 20 minutos.\n\nAbraco,\nBDR/SDR | Zendesk"},
       ],
       linkedin: [
@@ -402,7 +402,7 @@ function SequenceView(props) {
   function runGenerate(acc, p, contactName) {
     if (!acc || !p || genLoading) return;
     var setor = (acc.data && acc.data.empresa && acc.data.empresa.setor) || acc.setor || "tecnologia";
-    var cadÃªncia = [
+    var cadência = [
       {day:1,type:"linkedin"},{day:3,type:"email"},{day:6,type:"call"},
       {day:10,type:"email"},{day:15,type:"whatsapp"},{day:21,type:"breakup"}
     ];
@@ -419,7 +419,7 @@ function SequenceView(props) {
 
     setGenLoading(true);
     fetch("/api/gemini",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-      empresa:acc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, contato:contactName||"", touches:cadÃªncia
+      empresa:acc.nome, setor:setor, cargo:p.label, angulo:p.angle, pain:p.pain, contato:contactName||"", touches:cadência
     })})
       .then(function(r){ return r.json().then(function(d){ return {status:r.status, data:d}; }); })
       .then(function(res){
@@ -429,10 +429,10 @@ function SequenceView(props) {
           var seq = {id:"seq:"+Date.now()+"-"+Math.random().toString(36).slice(2,6), account:acc, profile:p, contactName:contactName||"", touches:norm, createdAt:Date.now(), engine:"ai"};
           setGenerated(seq);
           persistSeq(seq);
-          props.showToast("SequÃªncia gerada com IA e salva na biblioteca.", "#10b981");
+          props.showToast("Sequência gerada com IA e salva na biblioteca.", "#10b981");
         } else {
           var reason = (data && (data.error || data.message)) || ("HTTP " + res.status);
-          props.showToast("IA indisponÃ­vel, usando templates. Motivo: " + reason, "#f59e0b");
+          props.showToast("IA indisponível, usando templates. Motivo: " + reason, "#f59e0b");
           localFallback();
         }
       })
@@ -455,27 +455,27 @@ function SequenceView(props) {
   function saveSeq() {
     if (!generated) return;
     persistSeq(generated);
-    props.showToast("SequÃªncia salva na biblioteca!", "#10b981");
+    props.showToast("Sequência salva na biblioteca!", "#10b981");
   }
 
-  // GeraÃ§Ã£o disparada a partir de um contato real (vinda da aba Contatos).
+  // Geração disparada a partir de um contato real (vinda da aba Contatos).
   useEffect(function() {
     var req = props.seqRequest;
     if (!req || !req.ts || req.ts === lastSeqReqTs.current) return;
     lastSeqReqTs.current = req.ts;
 
-    // Tenta casar com uma conta jÃ¡ mapeada pelo nome da empresa.
+    // Tenta casar com uma conta já mapeada pelo nome da empresa.
     var empNorm = (req.empresa || "").toLowerCase().trim();
     var matchedAcc = null;
     if (empNorm) {
       matchedAcc = accounts.filter(function(a){ return (a.nome||"").toLowerCase().trim() === empNorm; })[0] || null;
       if (!matchedAcc) matchedAcc = accounts.filter(function(a){ return empNorm && (a.nome||"").toLowerCase().indexOf(empNorm) >= 0; })[0] || null;
     }
-    // Se nÃ£o houver conta mapeada, cria uma conta sintÃ©tica sÃ³ para a geraÃ§Ã£o.
+    // Se não houver conta mapeada, cria uma conta sintética só para a geração.
     var acc = matchedAcc || { id:"contact-seq", nome:req.empresa || "a empresa", setor:"", data:null };
 
     // Perfil baseado no cargo real do contato.
-    var profile = { id:"custom", label:req.cargo || "Decisor", angle:"impacto direto no negÃ³cio", pain:"dores especÃ­ficas do cargo" };
+    var profile = { id:"custom", label:req.cargo || "Decisor", angle:"impacto direto no negócio", pain:"dores específicas do cargo" };
 
     setView("builder");
     setSelAcc(acc);
@@ -484,7 +484,7 @@ function SequenceView(props) {
     setGenerated(null);
 
     runGenerate(acc, profile, req.nome || "");
-    props.showToast("Gerando sequÃªncia para " + (req.nome || req.cargo || "o contato") + "...", "#4361EE");
+    props.showToast("Gerando sequência para " + (req.nome || req.cargo || "o contato") + "...", "#6366f1");
     if (props.onConsumeSeqRequest) props.onConsumeSeqRequest();
   }, [props.seqRequest]);
 
@@ -492,25 +492,25 @@ function SequenceView(props) {
     return (
       <div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-          <div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{"SequÃªncias Salvas"}</div>
-          <button onClick={function(){setView("builder");}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Nova sequÃªncia"}</button>
+          <div style={{fontSize:22,fontWeight:800,color:"rgba(255,255,255,.92)"}}>{"Sequências Salvas"}</div>
+          <button onClick={function(){setView("builder");}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Nova sequência"}</button>
         </div>
         {saved.length === 0 ? (
-          <div style={{textAlign:"center",padding:"48px 0",background:"#f8fafc",borderRadius:16,border:"1.5px dashed #e2e8f0"}}>
-            <div style={{fontSize:32,marginBottom:10}}>{"ð¬"}</div>
-            <div style={{fontSize:14,fontWeight:700,color:"#334155"}}>Nenhuma sequÃªncia salva</div>
-            <div style={{fontSize:12,color:"#6b7280",marginTop:4}}>Toda sequÃªncia gerada Ã© salva aqui automaticamente</div>
+          <div style={{textAlign:"center",padding:"48px 0",background:"rgba(255,255,255,.03)",borderRadius:16,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+            <div style={{fontSize:32,marginBottom:10}}>{"📬"}</div>
+            <div style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,.75)"}}>Nenhuma sequência salva</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,.5)",marginTop:4}}>Toda sequência gerada é salva aqui automaticamente</div>
           </div>
         ) : (
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
             {saved.map(function(seq) {
               var fc = FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
               return (
-                <div key={seq.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"18px 20px",cursor:"pointer",transition:"all .2s"}} onClick={function(){setOpenSeq(seq);}}>
+                <div key={seq.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:16,padding:"18px 20px",cursor:"pointer",transition:"all .2s"}} onClick={function(){setOpenSeq(seq);}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
                     <div>
-                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:2}}>{seq.account&&seq.account.nome}</div>
-                      <div style={{fontSize:11,color:"#6b7280"}}>{seq.profile&&seq.profile.label}</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:2}}>{seq.account&&seq.account.nome}</div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{seq.profile&&seq.profile.label}</div>
                     </div>
                     <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"2px 9px",fontSize:9,fontWeight:700}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
                   </div>
@@ -521,8 +521,8 @@ function SequenceView(props) {
                     })}
                   </div>
                   <div style={{display:"flex",gap:6}}>
-                    <button onClick={function(e){e.stopPropagation();setOpenSeq(seq);}} style={{flex:1,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Abrir</button>
-                    <button onClick={function(e){e.stopPropagation();storageDel(seq.id).then(function(){setSaved(function(prev){return prev.filter(function(s){return s.id!==seq.id;});});props.showToast("Removida.","#ef4444");});}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"7px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>x</button>
+                    <button onClick={function(e){e.stopPropagation();setOpenSeq(seq);}} style={{flex:1,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Abrir</button>
+                    <button onClick={function(e){e.stopPropagation();storageDel(seq.id).then(function(){setSaved(function(prev){return prev.filter(function(s){return s.id!==seq.id;});});props.showToast("Removida.","#ef4444");});}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"7px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>x</button>
                   </div>
                 </div>
               );
@@ -538,17 +538,17 @@ function SequenceView(props) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:22,fontWeight:800,color:"#0f172a",marginBottom:3}}>{"Gerador de SequÃªncias"}</div>
-          <div style={{fontSize:13,color:"#64748b"}}>Selecione a conta e o perfil para gerar uma cadÃªncia de 6 toques.</div>
+          <div style={{fontSize:22,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:3}}>{"Gerador de Sequências"}</div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,.55)"}}>Selecione a conta e o perfil para gerar uma cadência de 6 toques.</div>
         </div>
-        <button onClick={function(){setView("library");}} style={{background:"#f8fafc",color:"#475569",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Biblioteca ("+saved.length+")"}</button>
+        <button onClick={function(){setView("library");}} style={{background:"rgba(255,255,255,.03)",color:"rgba(255,255,255,.6)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Biblioteca ("+saved.length+")"}</button>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:24}}>
         <div>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>{"1. Selecione a conta"}</div>
+          <div style={{fontSize:10,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>{"1. Selecione a conta"}</div>
           {accounts.length === 0 ? (
-            <div style={{background:"#f8fafc",border:"1.5px dashed #e2e8f0",borderRadius:12,padding:"20px",textAlign:"center"}}>
-              <div style={{fontSize:12,color:"#6b7280"}}>Nenhuma conta mapeada. Va para Busca.</div>
+            <div style={{background:"rgba(255,255,255,.03)",border:"1.5px dashed rgba(255,255,255,.08)",borderRadius:12,padding:"20px",textAlign:"center"}}>
+              <div style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Nenhuma conta mapeada. Va para Busca.</div>
             </div>
           ) : (
             <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
@@ -556,13 +556,13 @@ function SequenceView(props) {
                 var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
                 var active = selAcc && selAcc.id===acc.id;
                 return (
-                  <div key={acc.id} onClick={function(){setSelAcc(acc);setGenerated(null);}} style={{background:active?"#f0f3ff":"#fff",border:"1.5px solid "+(active?"#4361EE":"#e8edf4"),borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+                  <div key={acc.id} onClick={function(){setSelAcc(acc);setGenerated(null);}} style={{background:active?"#f0f3ff":"#fff",border:"1.5px solid "+(active?"#6366f1":"#e8edf4"),borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-                      <div style={{fontSize:10,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+                      <div style={{fontSize:12.5,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
                     </div>
                     <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:5,padding:"2px 7px",fontSize:8,fontWeight:700,flexShrink:0}}>{"FIT "+acc.fit}</span>
-                    {active && <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",flexShrink:0}}/>}
+                    {active && <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",flexShrink:0}}/>}
                   </div>
                 );
               })}
@@ -570,34 +570,34 @@ function SequenceView(props) {
           )}
         </div>
         <div>
-          <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>{"2. Escolha o stakeholder"}</div>
+          <div style={{fontSize:10,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>{"2. Escolha o stakeholder"}</div>
           <div style={{display:"flex",flexDirection:"column",gap:7}}>
             {STAKEHOLDER_PROFILES.map(function(p) {
               var active = selProfile && selProfile.id===p.id;
               return (
-                <div key={p.id} onClick={function(){setCustomProfile(null);setSelProfile(p);setGenerated(null);}} style={{background:active?"#f0f3ff":"#fff",border:"1.5px solid "+(active?"#4361EE":"#e8edf4"),borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+                <div key={p.id} onClick={function(){setCustomProfile(null);setSelProfile(p);setGenerated(null);}} style={{background:active?"#f0f3ff":"#fff",border:"1.5px solid "+(active?"#6366f1":"#e8edf4"),borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
                   <div style={{flex:1}}>
-                    <div style={{fontSize:12,fontWeight:700,color:"#0f172a"}}>{p.label}</div>
-                    <div style={{fontSize:10,color:"#6b7280",marginTop:2}}>{"Angulo: "+p.angle}</div>
+                    <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{p.label}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginTop:2}}>{"Angulo: "+p.angle}</div>
                   </div>
-                  {active && <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",flexShrink:0}}/>}
+                  {active && <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",flexShrink:0}}/>}
                 </div>
               );
             })}
-            <div style={{border:"1.5px dashed "+(customProfile?"#4361EE":"#e2e8f0"),borderRadius:10,padding:"10px 14px",background:customProfile?"#f0f3ff":"#fafafa"}}>
-              <div style={{fontSize:10,fontWeight:600,color:"#64748b",marginBottom:7}}>{"+ Cargo personalizado"}</div>
+            <div style={{border:"1.5px dashed "+(customProfile?"#6366f1":"#e2e8f0"),borderRadius:10,padding:"10px 14px",background:customProfile?"#f0f3ff":"#fafafa"}}>
+              <div style={{fontSize:10,fontWeight:600,color:"rgba(255,255,255,.55)",marginBottom:7}}>{"+ Cargo personalizado"}</div>
               <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-                <input value={customLabel} onChange={function(e){setCustomLabel(e.target.value);}} placeholder="Ex: Head de DevOps..." style={{flex:1,minWidth:110,background:"#fff",border:"1px solid #e2e8f0",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
-                <input value={customAngle} onChange={function(e){setCustomAngle(e.target.value);}} placeholder="Angulo de abordagem..." style={{flex:1,minWidth:110,background:"#fff",border:"1px solid #e2e8f0",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
-                <button onClick={function(){if(!customLabel.trim())return;var cp={id:"custom",label:customLabel.trim(),angle:customAngle.trim()||"abordagem customizada",pain:"dores especificas do cargo"};setCustomProfile(cp);setSelProfile(cp);setGenerated(null);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:7,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>Usar cargo</button>
+                <input value={customLabel} onChange={function(e){setCustomLabel(e.target.value);}} placeholder="Ex: Head de DevOps..." style={{flex:1,minWidth:110,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
+                <input value={customAngle} onChange={function(e){setCustomAngle(e.target.value);}} placeholder="Angulo de abordagem..." style={{flex:1,minWidth:110,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
+                <button onClick={function(){if(!customLabel.trim())return;var cp={id:"custom",label:customLabel.trim(),angle:customAngle.trim()||"abordagem customizada",pain:"dores especificas do cargo"};setCustomProfile(cp);setSelProfile(cp);setGenerated(null);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:7,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>Usar cargo</button>
               </div>
-              {customProfile && <div style={{marginTop:6,fontSize:10,color:"#3451d1",fontWeight:600}}>{"v Usando: "+customProfile.label}</div>}
+              {customProfile && <div style={{marginTop:6,fontSize:10,color:"#a5b4fc",fontWeight:600}}>{"v Usando: "+customProfile.label}</div>}
             </div>
           </div>
         </div>
       </div>
       <div style={{display:"flex",gap:10,marginBottom:24}}>
-        <button onClick={generate} disabled={!selAcc||!selProfile||genLoading} style={{flex:1,background:(!selAcc||!selProfile||genLoading)?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:(!selAcc||!selProfile||genLoading)?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 0",fontSize:14,fontWeight:700,cursor:(!selAcc||!selProfile||genLoading)?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s"}}>{genLoading?"Gerando com IA...":"Gerar sequÃªncia de 6 toques"}</button>
+        <button onClick={generate} disabled={!selAcc||!selProfile||genLoading} style={{flex:1,background:(!selAcc||!selProfile||genLoading)?"#e2e8f0":"linear-gradient(135deg,#6366f1,#4f46e5)",color:(!selAcc||!selProfile||genLoading)?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 0",fontSize:14,fontWeight:700,cursor:(!selAcc||!selProfile||genLoading)?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s"}}>{genLoading?"Gerando com IA...":"Gerar sequência de 6 toques"}</button>
       </div>
       {generated && (
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -608,35 +608,35 @@ function SequenceView(props) {
                 {"Gerado por IA (Gemini)"}
               </span>
             ) : (
-              <span style={{fontSize:10,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fde68a",borderRadius:7,padding:"4px 10px"}}>{"Template local (IA indisponÃ­vel)"}</span>
+              <span style={{fontSize:10,fontWeight:700,color:"#92400e",background:"rgba(251,191,36,.14)",border:"1px solid rgba(251,191,36,.3)",borderRadius:7,padding:"4px 10px"}}>{"Template local (IA indisponível)"}</span>
             )}
             {generated.contactName && (
-              <span style={{fontSize:10,fontWeight:700,color:"#3451d1",background:"#eef2ff",border:"1px solid #c7d0fa",borderRadius:7,padding:"4px 10px",display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:10,fontWeight:700,color:"#a5b4fc",background:"#eef2ff",border:"1px solid rgba(99,102,241,.3)",borderRadius:7,padding:"4px 10px",display:"flex",alignItems:"center",gap:5}}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                {"Para: " + generated.contactName + (generated.profile && generated.profile.label ? " Â· " + generated.profile.label : "")}
+                {"Para: " + generated.contactName + (generated.profile && generated.profile.label ? " · " + generated.profile.label : "")}
               </span>
             )}
-            <span style={{fontSize:10,fontWeight:600,color:"#059669",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:7,padding:"4px 10px"}}>{"Salva na biblioteca"}</span>
+            <span style={{fontSize:10,fontWeight:600,color:"#059669",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:7,padding:"4px 10px"}}>{"Salva na biblioteca"}</span>
           </div>
           {safeArr(generated.touches).map(function(touch,i) {
             var tc = TOUCH_TYPES[touch.type]||TOUCH_TYPES.email;
             return (
-              <div key={i} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:14,overflow:"hidden"}}>
+              <div key={i} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:14,overflow:"hidden"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",background:tc.bg,borderBottom:"1px solid #f1f5f9"}}>
                   <div style={{width:28,height:28,borderRadius:8,background:tc.color+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:tc.color,flexShrink:0}}>{tc.icon}</div>
                   <div style={{flex:1}}>
-                    <div style={{fontSize:12,fontWeight:700,color:"#0f172a"}}>{tc.label+" , Dia "+touch.day}</div>
-                    {touch.subject && <div style={{fontSize:10,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{"Assunto: "+touch.subject}</div>}
+                    <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{tc.label+" , Dia "+touch.day}</div>
+                    {touch.subject && <div style={{fontSize:10,color:"rgba(255,255,255,.55)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{"Assunto: "+touch.subject}</div>}
                   </div>
-                  <button onClick={function(){regenerateTouch(i);}} title="Gerar nova versao" style={{background:"none",border:"1px solid #e2e8f0",borderRadius:7,padding:"4px 8px",cursor:"pointer",color:"#94a3b8",display:"flex",alignItems:"center",gap:4,fontSize:10,fontFamily:"inherit",transition:"all .2s"}}
-                    onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.color="#4361EE";}}
-                    onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.color="#94a3b8";}}>
+                  <button onClick={function(){regenerateTouch(i);}} title="Gerar nova versao" style={{background:"none",border:"1px solid rgba(255,255,255,.08)",borderRadius:7,padding:"4px 8px",cursor:"pointer",color:"rgba(255,255,255,.4)",display:"flex",alignItems:"center",gap:4,fontSize:10,fontFamily:"inherit",transition:"all .2s"}}
+                    onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.color="#a5b4fc";}}
+                    onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.color="rgba(255,255,255,.4)";}}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                     Recarregar
                   </button>
                   <CopyBtn text={(touch.subject?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
                 </div>
-                <div style={{padding:"14px 16px",fontSize:12.5,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+tc.color}}>{touch.body}</div>
+                <div style={{padding:"14px 16px",fontSize:12.5,color:"rgba(255,255,255,.9)",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+tc.color}}>{touch.body}</div>
               </div>
             );
           })}
@@ -651,27 +651,27 @@ function SequenceView(props) {
 function SequenceModal(props) {
   var seq = props.seq;
   return (
-    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(15,23,42,.75)",zIndex:9999,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"12px 10px",overflowY:"auto",overflowX:"hidden",WebkitOverflowScrolling:"touch"}} onClick={function(e){if(e.target===e.currentTarget)props.onClose();}}>
-      <div style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:660,boxShadow:"0 24px 80px rgba(15,23,42,.3)",marginBottom:16,flexShrink:0}} onClick={function(e){e.stopPropagation();}}>
+    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"12px 10px",overflowY:"auto",overflowX:"hidden",WebkitOverflowScrolling:"touch"}} onClick={function(e){if(e.target===e.currentTarget)props.onClose();}}>
+      <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:18,width:"100%",maxWidth:660,boxShadow:"0 24px 80px rgba(0,0,0,0.48)",marginBottom:16,flexShrink:0}} onClick={function(e){e.stopPropagation();}}>
         <div style={{padding:"14px 14px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
           <div style={{minWidth:0,flex:1}}>
-            <div style={{fontSize:15,fontWeight:800,color:"#0f172a",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account && seq.account.nome}</div>
-            <div style={{fontSize:11,color:"#6b7280"}}>{seq.profile && seq.profile.label + ", " + fmtDate(seq.createdAt)}</div>
+            <div style={{fontSize:15,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account && seq.account.nome}</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{seq.profile && seq.profile.label + ", " + fmtDate(seq.createdAt)}</div>
           </div>
-          <button onClick={props.onClose} style={{background:"#f1f5f9",border:"none",borderRadius:8,padding:"6px 10px",cursor:"pointer",color:"#64748b",fontSize:15,lineHeight:1,fontFamily:"inherit",flexShrink:0}}>{"x"}</button>
+          <button onClick={props.onClose} style={{background:"rgba(255,255,255,.05)",border:"none",borderRadius:8,padding:"6px 10px",cursor:"pointer",color:"rgba(255,255,255,.55)",fontSize:15,lineHeight:1,fontFamily:"inherit",flexShrink:0}}>{"x"}</button>
         </div>
         <div style={{padding:"12px 10px",display:"flex",flexDirection:"column",gap:10}}>
           {safeArr(seq.touches).map(function(touch, idx) {
             var tc = TOUCH_TYPES[touch.type] || TOUCH_TYPES.email;
             return (
-              <div key={idx} style={{border:"1.5px solid #e8edf4",borderRadius:12,overflow:"hidden"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",background:"#fafafa",borderBottom:"1px solid #f1f5f9",flexWrap:"wrap"}}>
+              <div key={idx} style={{border:"1.5px solid rgba(255,255,255,.08)",borderRadius:12,overflow:"hidden"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",background:"rgba(255,255,255,.03)",borderBottom:"1px solid #f1f5f9",flexWrap:"wrap"}}>
                   <span style={{fontSize:10,fontWeight:700,color:tc.color,flexShrink:0}}>{tc.label}</span>
                   <span style={{background:tc.bg,color:tc.color,borderRadius:20,padding:"1px 7px",fontSize:9,fontWeight:700,flexShrink:0}}>{"Dia " + touch.day}</span>
-                  <div style={{flex:1,minWidth:40,fontSize:10,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
+                  <div style={{flex:1,minWidth:40,fontSize:10,color:"rgba(255,255,255,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
                   <CopyBtn text={(touch.type==="email"||touch.type==="linkedin"?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
                 </div>
-                <div style={{padding:"10px",fontSize:12,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.75,wordBreak:"break-word",overflowWrap:"break-word"}}>{touch.body}</div>
+                <div style={{padding:"10px",fontSize:12,color:"rgba(255,255,255,.9)",whiteSpace:"pre-wrap",lineHeight:1.75,wordBreak:"break-word",overflowWrap:"break-word"}}>{touch.body}</div>
               </div>
             );
           })}
@@ -688,44 +688,44 @@ function AccountCard(props) {
   var _st_menuOpen = useState(false); var menuOpen = _st_menuOpen[0]; var setMenuOpen = _st_menuOpen[1];
   function handleStatus(s) { props.onStatusChange(acc.id, s); setMenuOpen(false); }
 
-  // ââ Estado NAO MAPEADO ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Estado NAO MAPEADO ──────────────────────────────────────────────────
   if (!acc.mapped) {
     var isMapping = props.mapping;
     return (
-      <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid "+(props.selected?"#4361EE":"rgba(228,235,244,.8)"),borderRadius:20,padding:"20px 22px",position:"relative",boxShadow:props.selected?"0 4px 16px rgba(67,97,238,.12)":"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}}>
+      <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid "+(props.selected?"#6366f1":"rgba(228,235,244,.8)"),borderRadius:20,padding:"20px 22px",position:"relative",boxShadow:props.selected?"0 4px 16px rgba(99,102,241,.12)":"0 2px 12px rgba(0,0,0,0.1)",transition:"all .25s"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,gap:10}}>
           <div style={{display:"flex",alignItems:"flex-start",gap:10,flex:1,minWidth:0}}>
-            <input type="checkbox" checked={!!props.selected} onChange={function(){props.onToggleSelect(acc.id);}} disabled={isMapping} style={{marginTop:2,width:16,height:16,accentColor:"#4361EE",cursor:"pointer",flexShrink:0}}/>
+            <input type="checkbox" checked={!!props.selected} onChange={function(){props.onToggleSelect(acc.id);}} disabled={isMapping} style={{marginTop:2,width:16,height:16,accentColor:"#6366f1",cursor:"pointer",flexShrink:0}}/>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-              <div style={{fontSize:11,color:"#94a3b8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.site || "Importada da lista"}</div>
+              <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.site || "Importada da lista"}</div>
             </div>
           </div>
-          <span style={{fontSize:8,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fde68a",borderRadius:6,padding:"3px 8px",flexShrink:0,textTransform:"uppercase",letterSpacing:.5}}>{"NÃ£o mapeada"}</span>
+          <span style={{fontSize:8,fontWeight:700,color:"#92400e",background:"rgba(251,191,36,.14)",border:"1px solid rgba(251,191,36,.3)",borderRadius:6,padding:"3px 8px",flexShrink:0,textTransform:"uppercase",letterSpacing:.5}}>{"Não mapeada"}</span>
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
-          <button onClick={function(e){e.stopPropagation();if(!isMapping)props.onMap(acc);}} disabled={isMapping} style={{flex:1,background:isMapping?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:isMapping?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"9px 0",fontSize:12,fontWeight:700,cursor:isMapping?"default":"pointer",fontFamily:"inherit",boxShadow:isMapping?"none":"0 4px 12px rgba(67,97,238,.25)"}}>
+          <button onClick={function(e){e.stopPropagation();if(!isMapping)props.onMap(acc);}} disabled={isMapping} style={{flex:1,background:isMapping?"#f1f5f9":"linear-gradient(135deg,#6366f1,#4f46e5)",color:isMapping?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"9px 0",fontSize:12,fontWeight:700,cursor:isMapping?"default":"pointer",fontFamily:"inherit",boxShadow:isMapping?"none":"0 4px 12px rgba(99,102,241,.25)"}}>
             {isMapping ? "Mapeando..." : "Mapear conta"}
           </button>
-          <button onClick={function(e){e.stopPropagation();props.onDelete(acc.id);}} disabled={isMapping} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"9px 11px",fontSize:11,cursor:isMapping?"default":"pointer",fontFamily:"inherit"}}>x</button>
+          <button onClick={function(e){e.stopPropagation();props.onDelete(acc.id);}} disabled={isMapping} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:10,padding:"9px 11px",fontSize:11,cursor:isMapping?"default":"pointer",fontFamily:"inherit"}}>x</button>
         </div>
       </div>
     );
   }
 
-  // ââ Estado MAPEADO (card completo original) âââââââââââââââââââââââââââââ
+  // ── Estado MAPEADO (card completo original) ─────────────────────────────
   return (
-    <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid rgba(228,235,244,.8)",borderRadius:20,padding:"20px 22px",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",boxShadow:"0 2px 12px rgba(15,23,42,.06)"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-5px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(15,23,42,.14)";e.currentTarget.style.borderColor="rgba(67,97,238,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";e.currentTarget.style.borderColor="rgba(228,235,244,.8)";}}>
+    <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid rgba(228,235,244,.8)",borderRadius:20,padding:"20px 22px",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-5px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(0,0,0,0.22)";e.currentTarget.style.borderColor="rgba(99,102,241,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.1)";e.currentTarget.style.borderColor="rgba(228,235,244,.8)";}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-          <div style={{fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
         </div>
         <MiniGauge score={acc.fit}/>
       </div>
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
         <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700}}>{"FIT "+acc.fit}</span>
-        <span style={{background:"#f8fafc",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
+        <span style={{background:"rgba(255,255,255,.03)",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div style={{position:"relative"}}>
@@ -734,11 +734,11 @@ function AccountCard(props) {
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           {menuOpen && (
-            <div onClick={function(e){e.stopPropagation();}} style={{position:"absolute",bottom:"calc(100% + 6px)",left:0,background:"#fff",border:"1.5px solid #e8edf4",borderRadius:12,boxShadow:"0 8px 32px rgba(15,23,42,.12)",zIndex:50,minWidth:160,overflow:"hidden"}}>
+            <div onClick={function(e){e.stopPropagation();}} style={{position:"absolute",bottom:"calc(100% + 6px)",left:0,background:"rgba(16,16,30,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:12,boxShadow:"0 12px 40px rgba(0,0,0,0.5)",zIndex:50,minWidth:160,overflow:"hidden"}}>
               {STATUS_ORDER.map(function(s) {
                 var sc2 = STATUS_CONFIG[s];
                 return (
-                  <div key={s} onClick={function(){handleStatus(s);}} style={{padding:"9px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:11,fontWeight:600,color:sc2.color,background:acc.status===s?sc2.bg:"#fff"}} onMouseEnter={function(e){if(acc.status!==s)e.currentTarget.style.background="#f8fafc";}} onMouseLeave={function(e){if(acc.status!==s)e.currentTarget.style.background="#fff";}}>
+                  <div key={s} onClick={function(){handleStatus(s);}} style={{padding:"9px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:11,fontWeight:600,color:sc2.color,background:acc.status===s?sc2.bg:"#fff"}} onMouseEnter={function(e){if(acc.status!==s)e.currentTarget.style.background="rgba(255,255,255,.06)";}} onMouseLeave={function(e){if(acc.status!==s)e.currentTarget.style.background="rgba(255,255,255,.04)";}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:sc2.color}}/>
                     {sc2.label}
                     {acc.status===s && <svg style={{marginLeft:"auto"}} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
@@ -749,9 +749,9 @@ function AccountCard(props) {
           )}
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
-          <span style={{fontSize:10,color:"#6b7280"}}>{fmtDate(acc.savedAt)}</span>
-          <button onClick={function(e){e.stopPropagation();props.onOpen(acc);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ver</button>
-          <button onClick={function(e){e.stopPropagation();props.onDelete(acc.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>x</button>
+          <span style={{fontSize:10,color:"rgba(255,255,255,.5)"}}>{fmtDate(acc.savedAt)}</span>
+          <button onClick={function(e){e.stopPropagation();props.onOpen(acc);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ver</button>
+          <button onClick={function(e){e.stopPropagation();props.onDelete(acc.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>x</button>
         </div>
       </div>
     </div>
@@ -870,23 +870,23 @@ function PipelineView(props) {
             var cards = props.accounts.filter(function(a){return a.status===col;});
             var isOver = overCol===col && dragFrom.current!==null && dragFrom.current!==col;
             return (
-              <div key={col} ref={function(el){colRefs.current[col]=el;}} style={{flex:1,minWidth:155,background:isOver?"rgba(67,97,238,.06)":"#f8fafc",borderRadius:16,padding:14,border:"1.5px solid "+(isOver?"#4361EE":"#e8edf4"),transition:"border-color .15s,background .15s",boxShadow:isOver?"0 0 0 3px rgba(67,97,238,.15)":"none"}}>
+              <div key={col} ref={function(el){colRefs.current[col]=el;}} style={{flex:1,minWidth:155,background:isOver?"rgba(99,102,241,.06)":"#f8fafc",borderRadius:16,padding:14,border:"1.5px solid "+(isOver?"#6366f1":"#e8edf4"),transition:"border-color .15s,background .15s",boxShadow:isOver?"0 0 0 3px rgba(99,102,241,.15)":"none"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:sc.color}}/>
                   <div style={{fontSize:9,fontWeight:700,color:sc.color,textTransform:"uppercase",letterSpacing:.8}}>{sc.label}</div>
-                  <div style={{marginLeft:"auto",fontSize:10,fontWeight:700,color:"#6b7280",background:"#e2e8f0",borderRadius:20,padding:"1px 7px"}}>{cards.length}</div>
+                  <div style={{marginLeft:"auto",fontSize:10,fontWeight:700,color:"rgba(255,255,255,.5)",background:"rgba(255,255,255,.1)",borderRadius:20,padding:"1px 7px"}}>{cards.length}</div>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:8,minHeight:60}}>
                   {cards.map(function(acc) {
                     var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
                     var isDragging = dragId===acc.id;
                     return (
-                      <div key={acc.id} onMouseDown={function(e){startMouseDrag(e,acc,col);}} onTouchStart={function(e){startTouchDrag(e,acc,col);}} style={{background:"#fff",border:"1px solid "+(isDragging?"#4361EE":"#edf0f7"),borderRadius:14,padding:"12px 14px",cursor:isDragging?"grabbing":"grab",touchAction:"none",opacity:isDragging?0.25:1,transition:"opacity .1s",position:"relative"}}>
+                      <div key={acc.id} onMouseDown={function(e){startMouseDrag(e,acc,col);}} onTouchStart={function(e){startTouchDrag(e,acc,col);}} style={{background:"rgba(255,255,255,.04)",border:"1px solid "+(isDragging?"#6366f1":"#edf0f7"),borderRadius:14,padding:"12px 14px",cursor:isDragging?"grabbing":"grab",touchAction:"none",opacity:isDragging?0.25:1,transition:"opacity .1s",position:"relative"}}>
                         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:3}}>
-                          <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{acc.nome}</div>
-                          <div style={{fontSize:11,color:"#cbd5e1",marginLeft:6,flexShrink:0,letterSpacing:2}}>{"..."}</div>
+                          <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{acc.nome}</div>
+                          <div style={{fontSize:11,color:"rgba(255,255,255,.35)",marginLeft:6,flexShrink:0,letterSpacing:2}}>{"..."}</div>
                         </div>
-                        <div style={{fontSize:10,color:"#6b7280",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+                        <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
                         <div style={{display:"flex",gap:5}}>
                           <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700}}>{"FIT "+acc.fit}</span>
                           <span style={{fontSize:8,color:TIER_COLOR[acc.tier]||"#94a3b8",fontWeight:700}}>{acc.tier}</span>
@@ -895,7 +895,7 @@ function PipelineView(props) {
                     );
                   })}
                   {cards.length===0&&(
-                    <div style={{textAlign:"center",padding:"28px 8px",color:isOver?"#3451d1":"#cbd5e1",fontSize:11,border:"2px dashed "+(isOver?"#4361EE":"#e8edf4"),borderRadius:10,transition:"all .15s",fontWeight:isOver?600:400}}>
+                    <div style={{textAlign:"center",padding:"28px 8px",color:isOver?"#4f46e5":"#cbd5e1",fontSize:11,border:"2px dashed "+(isOver?"#6366f1":"#e8edf4"),borderRadius:10,transition:"all .15s",fontWeight:isOver?600:400}}>
                       {isOver?"Soltar aqui":"Vazio"}
                     </div>
                   )}
@@ -905,16 +905,16 @@ function PipelineView(props) {
           })}
         </div>
         {dragId&&(
-          <div style={{marginTop:10,textAlign:"center",fontSize:11,color:"#6b7280"}}>
+          <div style={{marginTop:10,textAlign:"center",fontSize:11,color:"rgba(255,255,255,.5)"}}>
             {"Solte sobre a coluna de destino"}
           </div>
         )}
       </div>
       {dragId && dragAcc && (
-        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:ghostW,boxSizing:"border-box",zIndex:9999,pointerEvents:"none",boxShadow:"0 12px 32px rgba(15,23,42,.22)",borderRadius:14,opacity:.95}}>
-          <div style={{background:"#fff",border:"1.5px solid #4361EE",borderRadius:14,padding:"12px 14px",boxSizing:"border-box"}}>
-            <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{dragAcc.nome}</div>
-            <div style={{fontSize:10,color:"#6b7280",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{dragAcc.setor}</div>
+        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:ghostW,boxSizing:"border-box",zIndex:9999,pointerEvents:"none",boxShadow:"0 12px 32px rgba(0,0,0,0.35)",borderRadius:14,opacity:.95}}>
+          <div style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(99,102,241,.4)",borderRadius:14,padding:"12px 14px",boxSizing:"border-box"}}>
+            <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{dragAcc.nome}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{dragAcc.setor}</div>
             {ghostFc&&(
               <span style={{background:ghostFc.bg,border:"1px solid "+ghostFc.border,color:ghostFc.text,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700}}>{"FIT "+dragAcc.fit}</span>
             )}
@@ -955,32 +955,32 @@ function AttachmentAnalysis(props) {
   if (!acc.attachData) return null;
   if (loading) return (
     <div style={{display:"flex",alignItems:"center",gap:12,padding:"32px 0",justifyContent:"center"}}>
-      <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",animation:"pulse 1s infinite"}}/>
-      <span style={{color:"#6b7280",fontSize:13}}>{"Analisando documento com IA..."}</span>
+      <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",animation:"pulse 1s infinite"}}/>
+      <span style={{color:"rgba(255,255,255,.5)",fontSize:13}}>{"Analisando documento com IA..."}</span>
     </div>
   );
   if (!analysis) return null;
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
-      <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:"#f0f3ff",borderRadius:10,border:"1px solid #c7d0fa"}}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-        <span style={{fontSize:11,color:"#4361EE",fontWeight:600}}>{acc.attachFileName||"Documento anexado"}</span>
+      <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:"rgba(99,102,241,.1)",borderRadius:10,border:"1px solid rgba(99,102,241,.3)"}}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        <span style={{fontSize:11,color:"#a5b4fc",fontWeight:600}}>{acc.attachFileName||"Documento anexado"}</span>
       </div>
-      <div style={{background:"#f8fafc",borderRadius:14,padding:"16px 18px",border:"1px solid #e8edf4"}}>
-        <div style={{fontSize:9,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>Resumo Executivo</div>
-        <div style={{fontSize:13,color:"#334155",lineHeight:1.7}}>{analysis.resumo}</div>
+      <div style={{background:"rgba(255,255,255,.03)",borderRadius:14,padding:"16px 18px",border:"1px solid rgba(255,255,255,.08)"}}>
+        <div style={{fontSize:9,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>Resumo Executivo</div>
+        <div style={{fontSize:13,color:"rgba(255,255,255,.75)",lineHeight:1.7}}>{analysis.resumo}</div>
       </div>
       {analysis.insights&&analysis.insights.length>0&&(
         <div>
-          <div style={{fontSize:9,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Insights para ProspecÃ§Ã£o</div>
+          <div style={{fontSize:9,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Insights para Prospecção</div>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {analysis.insights.map(function(ins,i){return (
-              <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",background:"#fff",border:"1px solid #e8edf4",borderRadius:10,padding:"10px 14px"}}>
-                <div style={{width:20,height:20,borderRadius:6,background:"linear-gradient(135deg,#4361EE,#3451d1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px"}}>
+                <div style={{width:20,height:20,borderRadius:6,background:"linear-gradient(135deg,#6366f1,#4f46e5)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   <span style={{fontSize:9,fontWeight:700,color:"#fff"}}>{i+1}</span>
                 </div>
-                <span style={{fontSize:12,color:"#334155",lineHeight:1.6}}>{ins}</span>
+                <span style={{fontSize:12,color:"rgba(255,255,255,.75)",lineHeight:1.6}}>{ins}</span>
               </div>
             );})}
           </div>
@@ -991,7 +991,7 @@ function AttachmentAnalysis(props) {
           <div style={{fontSize:9,fontWeight:700,color:"#059669",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Oportunidades Comerciais</div>
           <div style={{display:"flex",flexDirection:"column",gap:7}}>
             {analysis.oportunidades.map(function(op,i){return (
-              <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"8px 12px",background:"#f0fdf4",borderRadius:8,border:"1px solid #bbf7d0"}}>
+              <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"8px 12px",background:"rgba(52,211,153,.12)",borderRadius:8,border:"1px solid rgba(52,211,153,.3)"}}>
                 <span style={{color:"#059669",fontWeight:700,flexShrink:0}}>{"+"}</span>
                 <span style={{fontSize:12,color:"#065f46",lineHeight:1.6}}>{op}</span>
               </div>
@@ -1004,7 +1004,7 @@ function AttachmentAnalysis(props) {
           <div style={{fontSize:9,fontWeight:700,color:"#92400e",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Alertas e Riscos</div>
           <div style={{display:"flex",flexDirection:"column",gap:7}}>
             {analysis.alertas.map(function(al,i){return (
-              <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"8px 12px",background:"#fffbeb",borderRadius:8,border:"1px solid #fde68a"}}>
+              <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"8px 12px",background:"rgba(251,191,36,.1)",borderRadius:8,border:"1px solid rgba(251,191,36,.3)"}}>
                 <span style={{color:"#92400e",fontWeight:700,flexShrink:0}}>{"!"}</span>
                 <span style={{fontSize:12,color:"#92400e",lineHeight:1.6}}>{al}</span>
               </div>
@@ -1030,7 +1030,7 @@ function exportAccountPDF(acc, d) {
   var triggers = safeA("triggers");
   var stakeholders = safeA("stakeholders");
   var spin = safeA("estrategia.perguntas_spin");
-  var objeÃ§Ãµes = safeA("estrategia.objecoes");
+  var objeções = safeA("estrategia.objecoes");
   var ae = safeA("proximos_passos.ae");
   var bdr = safeA("proximos_passos.bdr");
   var prazo = safe("proximos_passos.prazo") || "";
@@ -1038,14 +1038,14 @@ function exportAccountPDF(acc, d) {
   var html = "<html><head><title>Account Map - "+nome+"</title><style>";
   html += "body{font-family:Verdana,sans-serif;padding:32px;color:#0f172a;font-size:12px;line-height:1.7;max-width:800px;margin:0 auto}";
   html += "h1{font-size:20px;color:#0f172a;margin-bottom:4px}";
-  html += "h2{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#4361EE;margin:24px 0 8px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}";
+  html += "h2{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#6366f1;margin:24px 0 8px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}";
   html += ".meta{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}";
   html += ".badge{padding:3px 10px;border-radius:6px;font-size:9px;font-weight:700}";
   html += ".fit-alto{background:#dcfce7;color:#065f46}.fit-medio{background:#fef3c7;color:#92400e}.fit-baixo{background:#fee2e2;color:#991b1b}";
   html += ".tier{background:#f8fafc;border:1px solid #e2e8f0;color:#475569}";
   html += "ul{list-style:none;padding:0;margin:0}";
   html += "li{padding:4px 0 4px 14px;position:relative;border-bottom:1px solid #f8fafc}";
-  html += "li:before{content:'-';position:absolute;left:0;color:#4361EE;font-weight:700}";
+  html += "li:before{content:'-';position:absolute;left:0;color:#6366f1;font-weight:700}";
   html += ".msg{background:#f8fafc;border-left:3px solid #10b981;padding:12px 16px;white-space:pre-wrap;margin:6px 0;font-size:11px;line-height:1.8}";
   html += ".sk{background:#f8fafc;border-radius:8px;padding:10px 14px;margin-bottom:8px}";
   html += ".footer{margin-top:32px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:10px;color:#94a3b8}";
@@ -1080,15 +1080,15 @@ function exportAccountPDF(acc, d) {
     });
   }
   if (spin.length) { html += "<h2>Perguntas SPIN</h2><ul>"+spin.map(function(q){return "<li>"+q+"</li>";}).join("")+"</ul>"; }
-  if (objeÃ§Ãµes.length) {
+  if (objeções.length) {
     html += "<h2>Objecoes e Respostas</h2>";
-    objeÃ§Ãµes.forEach(function(o) {
+    objeções.forEach(function(o) {
       html += "<div class='sk'><strong style='color:#92400e'>\""+o.objecao+"\"</strong><br/><span style='font-size:11px'>-> "+o.resposta+"</span></div>";
     });
   }
   if (ae.length || bdr.length) {
-    html += "<h2>Plano de AÃ§Ã£o</h2><div style='display:flex;gap:20px'>";
-    if (ae.length) { html += "<div style='flex:1'><strong style='font-size:10px;color:#4361EE'>AE</strong><ul style='margin-top:6px'>"+ae.map(function(a){return "<li>"+a+"</li>";}).join("")+"</ul></div>"; }
+    html += "<h2>Plano de Ação</h2><div style='display:flex;gap:20px'>";
+    if (ae.length) { html += "<div style='flex:1'><strong style='font-size:10px;color:#6366f1'>AE</strong><ul style='margin-top:6px'>"+ae.map(function(a){return "<li>"+a+"</li>";}).join("")+"</ul></div>"; }
     if (bdr.length) { html += "<div style='flex:1'><strong style='font-size:10px;color:#f59e0b'>BDR</strong><ul style='margin-top:6px'>"+bdr.map(function(a){return "<li>"+a+"</li>";}).join("")+"</ul></div>"; }
     html += "</div>";
     if (prazo) html += "<p style='margin-top:12px;font-size:11px'><strong>Prazo:</strong> "+prazo+"</p>";
@@ -1131,14 +1131,14 @@ function AccountModal(props) {
     var r = dig(path);
     if (r != null) return r;
     // Fallback: buildData grava sob "estrategia"/"objecoes" (sem acento) enquanto
-    // outros trechos leem "estratÃ©gia"/"objeÃ§Ãµes". Tenta as duas grafias.
+    // outros trechos leem "estratégia"/"objeções". Tenta as duas grafias.
     var alt = path
-      .replace(/estratÃ©gia/g, "estrategia")
-      .replace(/objeÃ§Ãµes/g, "objecoes");
+      .replace(/estratégia/g, "estrategia")
+      .replace(/objeções/g, "objecoes");
     if (alt !== path) { var r2 = dig(alt); if (r2 != null) return r2; }
     var alt2 = path
-      .replace(/estrategia/g, "estratÃ©gia")
-      .replace(/objecoes/g, "objeÃ§Ãµes");
+      .replace(/estrategia/g, "estratégia")
+      .replace(/objecoes/g, "objeções");
     if (alt2 !== path) { var r3 = dig(alt2); if (r3 != null) return r3; }
     return null;
   }
@@ -1148,7 +1148,7 @@ function AccountModal(props) {
   var usedContactKeys = useRef({});
   function resetMatches() { usedContactKeys.current = {}; }
   // Palavras genericas que NAO devem sozinhas determinar um match
-  var GENERIC_ROLE_WORDS = {"diretor":1,"director":1,"head":1,"gerente":1,"manager":1,"vp":1,"vice":1,"chief":1,"lider":1,"lÃ­der":1,"de":1,"da":1,"do":1,"e":1,"of":1,"the":1,"coordenador":1,"executivo":1};
+  var GENERIC_ROLE_WORDS = {"diretor":1,"director":1,"head":1,"gerente":1,"manager":1,"vp":1,"vice":1,"chief":1,"lider":1,"líder":1,"de":1,"da":1,"do":1,"e":1,"of":1,"the":1,"coordenador":1,"executivo":1};
   function roleTokens(s) {
     return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
       .split(/[\s\/,\-|]+/).filter(function(w){ return w.length > 2; });
@@ -1178,7 +1178,7 @@ function AccountModal(props) {
     }
     return null;
   }
-  var tabs=[{id:"overview",label:"VisÃ£o Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"spin",label:"SPIN & ObjeÃ§Ãµes"},{id:"plan",label:"Plano de AÃ§Ã£o"}].concat(acc.attachData?[{id:"attachment",label:"ConteÃºdo Anexado"}]:[]);
+  var tabs=[{id:"overview",label:"Visão Geral"},{id:"stakeholders",label:"Stakeholders"},{id:"spin",label:"SPIN & Objeções"},{id:"plan",label:"Plano de Ação"}].concat(acc.attachData?[{id:"attachment",label:"Conteúdo Anexado"}]:[]);
   var empresa=sd("empresa")||{};
   var stakeholders=safeArr(sd("stakeholders"));
   var dores=safeArr(sd("dores.principais"));
@@ -1186,8 +1186,8 @@ function AccountModal(props) {
   var sinais=safeArr(sd("dores.sinais_ativos"));
   var triggers=safeArr(sd("triggers"));
   var noticias=safeArr(sd("noticias"));
-  var spin=safeArr(sd("estratÃ©gia.perguntas_spin"));
-  var objecoes=safeArr(sd("estratÃ©gia.objeÃ§Ãµes"));
+  var spin=safeArr(sd("estratégia.perguntas_spin"));
+  var objecoes=safeArr(sd("estratégia.objeções"));
   var ae=safeArr(sd("proximos_passos.ae"));
   var bdr=safeArr(sd("proximos_passos.bdr"));
   var prazo=sd("proximos_passos.prazo")||"";
@@ -1197,74 +1197,74 @@ function AccountModal(props) {
   var concorrentes=safeArr(sd("mercado.competidores_provedor"));
   var CHANNELS=[{key:"emails",label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)",isObj:true},{key:"inmails",label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)",isObj:true},{key:"whatsapps",label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)",isObj:false},{key:"cold_calls",label:"Cold Call",color:"#92400e",bg:"#fef3c7",isObj:false}];
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.75)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"20px 16px",overflowY:"auto",backdropFilter:"blur(10px)"}}>
-      <div className="modal-box" style={{background:"rgba(255,255,255,.99)",borderRadius:24,width:"100%",maxWidth:820,boxShadow:"0 32px 100px rgba(15,23,42,.3)"}}>
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"20px 16px",overflowY:"auto",backdropFilter:"blur(10px)"}}>
+      <div className="modal-box" style={{background:"rgba(255,255,255,.99)",borderRadius:24,width:"100%",maxWidth:820,boxShadow:"0 32px 100px rgba(0,0,0,0.48)"}}>
         <div style={{padding:"22px 28px 0",borderBottom:"1px solid #f1f5f9"}}>
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,marginBottom:16}}>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-                <div style={{fontSize:21,fontWeight:800,color:"#0f172a",lineHeight:1.2}}>{acc.nome}</div>
-                {acc.liveMode&&<span style={{background:"#e8ecfd",border:"1px solid #86efac",color:"#2d3a8c",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:700}}>LIVE</span>}
+                <div style={{fontSize:21,fontWeight:800,color:"rgba(255,255,255,.92)",lineHeight:1.2}}>{acc.nome}</div>
+                {acc.liveMode&&<span style={{background:"rgba(99,102,241,.12)",border:"1px solid rgba(52,211,153,.35)",color:"#818cf8",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:700}}>LIVE</span>}
               </div>
-              <div style={{fontSize:12,color:"#6b7280",marginBottom:10}}>{acc.setor}</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:10}}>{acc.setor}</div>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{"FIT "+fit}</span>
-                <span style={{background:"#f8fafc",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
+                <span style={{background:"rgba(255,255,255,.03)",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
                 <span style={{background:sc.bg,border:"1px solid "+sc.border,color:sc.color,borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{sc.label}</span>
-                <span style={{background:"#f8fafc",color:"#6b7280",borderRadius:8,padding:"4px 12px",fontSize:9}}>{"Salvo "+fmtDate(acc.savedAt)}</span>
+                <span style={{background:"rgba(255,255,255,.03)",color:"rgba(255,255,255,.5)",borderRadius:8,padding:"4px 12px",fontSize:9}}>{"Salvo "+fmtDate(acc.savedAt)}</span>
               </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0,alignItems:"flex-end"}}>
               <div style={{display:"flex",gap:4,flexWrap:"wrap",maxWidth:200}}>
-                {STATUS_ORDER.map(function(s){var sc2=STATUS_CONFIG[s];return <button key={s} onClick={function(){props.onStatusChange(acc.id,s);}} style={{background:acc.status===s?sc2.bg:"#f8fafc",border:"1px solid "+(acc.status===s?sc2.border:"#e2e8f0"),color:acc.status===s?sc2.color:"#6b7280",borderRadius:6,padding:"3px 8px",fontSize:9,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{sc2.label}</button>;})}
+                {STATUS_ORDER.map(function(s){var sc2=STATUS_CONFIG[s];return <button key={s} onClick={function(){props.onStatusChange(acc.id,s);}} style={{background:acc.status===s?sc2.bg:"#f8fafc",border:"1px solid "+(acc.status===s?sc2.border:"#e2e8f0"),color:acc.status===s?sc2.color:"rgba(255,255,255,.5)",borderRadius:6,padding:"3px 8px",fontSize:9,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{sc2.label}</button>;})}
               </div>
               <div style={{display:"flex",gap:6}}>
-                <button onClick={function(){exportAccountPDF(acc,d);}} style={{display:"flex",alignItems:"center",gap:6,background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"#0369a1",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>
+                <button onClick={function(){exportAccountPDF(acc,d);}} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(99,102,241,.1)",border:"1px solid rgba(56,189,248,.3)",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"#0369a1",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                   {"PDF"}
                 </button>
-                <button onClick={props.onClose} style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"#64748b",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>{"Fechar"}</button>
+                <button onClick={props.onClose} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"rgba(255,255,255,.55)",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>{"Fechar"}</button>
               </div>
             </div>
           </div>
           <div className="modal-tabs" style={{display:"flex",gap:0,overflowX:"auto"}}>
-            {tabs.map(function(tab){var active=activeTab===tab.id;return <button key={tab.id} onClick={function(){setActiveTab(tab.id);}} style={{padding:"10px 16px",border:"none",borderBottom:"2.5px solid "+(active?"#4361EE":"transparent"),background:"transparent",color:active?"#3451d1":"#94a3b8",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:active?700:500,transition:"all .15s",whiteSpace:"nowrap"}}>{tab.label}</button>;})}
+            {tabs.map(function(tab){var active=activeTab===tab.id;return <button key={tab.id} onClick={function(){setActiveTab(tab.id);}} style={{padding:"10px 16px",border:"none",borderBottom:"2.5px solid "+(active?"#6366f1":"transparent"),background:"transparent",color:active?"#4f46e5":"#94a3b8",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:active?700:500,transition:"all .15s",whiteSpace:"nowrap"}}>{tab.label}</button>;})}
           </div>
         </div>
         <div style={{padding:"22px 28px",maxHeight:"60vh",overflowY:"auto"}}>
           {activeTab==="overview"&&(
             <div>
-              {empresa.resumo&&<Sec title={empresa.resumoAI?"Resumo da Empresa Â· IA":"Resumo da Empresa"}><p style={{fontSize:13,lineHeight:1.8,color:"#334155",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["EstÃ¡gio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"#e8ecfd",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#2d3a8c",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"#0f172a",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
-              {fitJust&&<Sec title="Fit Zendesk"><p style={{fontSize:13,lineHeight:1.7,color:"#334155",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(67,97,238,.08)",border:"1px solid rgba(67,97,238,.25)",color:"#3451d1",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
-              {useCases.length>0&&<Sec title="Use Cases PrioritÃ¡rios">{useCases.map(function(u,i){return <R key={i} icon=">" color="#4361EE">{u}</R>;})}</Sec>}
-              {dores.length>0&&<Sec title="Possiveis dores para mapear">{dores.map(function(d2,i){return <R key={i} icon="!" color="#ef4444">{d2}</R>;})} {exposicao.length>0&&<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>{exposicao.map(function(r,i){return <span key={i} style={{background:"#fef3c7",border:"1px solid #f59e0b",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{r}</span>;})}</div>}</Sec>}
+              {empresa.resumo&&<Sec title={empresa.resumoAI?"Resumo da Empresa · IA":"Resumo da Empresa"}><p style={{fontSize:13,lineHeight:1.8,color:"rgba(255,255,255,.75)",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["Estágio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"rgba(99,102,241,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#818cf8",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"rgba(255,255,255,.92)",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
+              {fitJust&&<Sec title="Fit Zendesk"><p style={{fontSize:13,lineHeight:1.7,color:"rgba(255,255,255,.75)",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.25)",color:"#a5b4fc",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
+              {useCases.length>0&&<Sec title="Use Cases Prioritários">{useCases.map(function(u,i){return <R key={i} icon=">" color="#6366f1">{u}</R>;})}</Sec>}
+              {dores.length>0&&<Sec title="Possiveis dores para mapear">{dores.map(function(d2,i){return <R key={i} icon="!" color="#ef4444">{d2}</R>;})} {exposicao.length>0&&<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>{exposicao.map(function(r,i){return <span key={i} style={{background:"rgba(251,191,36,.14)",border:"1px solid rgba(245,158,11,.4)",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{r}</span>;})}</div>}</Sec>}
               {triggers.length>0&&<Sec title="Gatilhos Comerciais">{triggers.map(function(t,i){return <R key={i} icon="T" color="#7c3aed">{t}</R>;})}</Sec>}
-              {sinais.length>0&&<Sec title="Sinais de IntenÃ§Ã£o"><div style={{background:"#0c2340",borderRadius:12,padding:"12px 16px"}}>{sinais.map(function(s,i){return <div key={i} style={{fontSize:11.5,color:"#7dd3fc",lineHeight:1.6,display:"flex",gap:8,marginBottom:5}}><span style={{color:"#38bdf8",flexShrink:0}}>o</span>{s}</div>;})}</div></Sec>}
-              {concorrentes.length>0&&<Sec title="Concorrentes ProvÃ¡veis"><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{concorrentes.map(function(cc,i){return <span key={i} style={{background:"#fef3c7",border:"1px solid #f59e0b",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{cc}</span>;})}</div></Sec>}
-              {noticias.length>0&&<Sec title="NotÃ­cias e Contexto">{noticias.map(function(n,i){return <div key={i} style={{background:"#f8fafc",border:"1px solid #e8edf4",borderRadius:12,padding:"12px 14px",marginBottom:8}}>{n.url?<a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12.5,fontWeight:700,color:"#0ea5e9",textDecoration:"none",display:"block",marginBottom:3}}>{n.titulo}</a>:<div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",marginBottom:3}}>{n.titulo}</div>}<div style={{fontSize:11.5,color:"#64748b",lineHeight:1.6,marginBottom:3}}>{n.resumo}</div><div style={{fontSize:10,color:"#3451d1",fontWeight:600}}>{"-> "+n.relevancia}</div></div>;})}</Sec>}
+              {sinais.length>0&&<Sec title="Sinais de Intenção"><div style={{background:"#0c2340",borderRadius:12,padding:"12px 16px"}}>{sinais.map(function(s,i){return <div key={i} style={{fontSize:11.5,color:"#7dd3fc",lineHeight:1.6,display:"flex",gap:8,marginBottom:5}}><span style={{color:"#38bdf8",flexShrink:0}}>o</span>{s}</div>;})}</div></Sec>}
+              {concorrentes.length>0&&<Sec title="Concorrentes Prováveis"><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{concorrentes.map(function(cc,i){return <span key={i} style={{background:"rgba(251,191,36,.14)",border:"1px solid rgba(245,158,11,.4)",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{cc}</span>;})}</div></Sec>}
+              {noticias.length>0&&<Sec title="Notícias e Contexto">{noticias.map(function(n,i){return <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:12,padding:"12px 14px",marginBottom:8}}>{n.url?<a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12.5,fontWeight:700,color:"#0ea5e9",textDecoration:"none",display:"block",marginBottom:3}}>{n.titulo}</a>:<div style={{fontSize:12.5,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:3}}>{n.titulo}</div>}<div style={{fontSize:11.5,color:"rgba(255,255,255,.55)",lineHeight:1.6,marginBottom:3}}>{n.resumo}</div><div style={{fontSize:10,color:"#a5b4fc",fontWeight:600}}>{"-> "+n.relevancia}</div></div>;})}</Sec>}
             </div>
           )}
           {activeTab==="stakeholders"&&(
             <div>
               {enrichedContacts.length>0&&(
                 <div style={{marginBottom:20}}>
-                  <div style={{fontSize:9,fontWeight:700,letterSpacing:1.5,color:"#3451d1",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",boxShadow:"0 0 8px rgba(16,185,129,.5)"}}/>
+                  <div style={{fontSize:9,fontWeight:700,letterSpacing:1.5,color:"#a5b4fc",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",boxShadow:"0 0 8px rgba(16,185,129,.5)"}}/>
                     {"Contatos Reais Encontrados , "+enrichedContacts.length+" perfil"+(enrichedContacts.length>1?"s":"")}
-                    {enrichedSources.map(function(s,i){return <span key={i} style={{background:"rgba(67,97,238,.08)",border:"1px solid rgba(67,97,238,.2)",color:"#3451d1",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:600}}>{s}</span>;})}
+                    {enrichedSources.map(function(s,i){return <span key={i} style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.2)",color:"#a5b4fc",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:600}}>{s}</span>;})}
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:10,marginBottom:16}}>
                     {enrichedContacts.map(function(contact,i){
                       return (
-                        <div key={i} style={{background:"linear-gradient(145deg,#f0fdf4,#fff)",border:"1.5px solid rgba(67,97,238,.25)",borderRadius:14,padding:"14px 16px"}}>
-                          <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:1}}>{contact.nome||contact.name||""}</div>
-                          {(contact.cargo||contact.title)&&<div style={{fontSize:10,color:"#3451d1",marginBottom:6,fontWeight:600}}>{contact.cargo||contact.title}</div>}
+                        <div key={i} style={{background:"linear-gradient(145deg,#f0fdf4,#fff)",border:"1.5px solid rgba(99,102,241,.25)",borderRadius:14,padding:"14px 16px"}}>
+                          <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:1}}>{contact.nome||contact.name||""}</div>
+                          {(contact.cargo||contact.title)&&<div style={{fontSize:10,color:"#a5b4fc",marginBottom:6,fontWeight:600}}>{contact.cargo||contact.title}</div>}
                           <div style={{display:"flex",flexDirection:"column",gap:5}}>
                             {contact.email&&(
                               <a href={"mailto:"+contact.email} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"#0ea5e9",textDecoration:"none",background:"rgba(14,165,233,.06)",borderRadius:6,padding:"4px 8px"}}>
                                 <span>{"@"}</span>
                                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{contact.email}</span>
-                                {contact.email_confidence>0&&<span style={{fontSize:8,color:"#6b7280",marginLeft:"auto",flexShrink:0}}>{contact.email_confidence+"%"}</span>}
+                                {contact.email_confidence>0&&<span style={{fontSize:8,color:"rgba(255,255,255,.5)",marginLeft:"auto",flexShrink:0}}>{contact.email_confidence+"%"}</span>}
                               </a>
                             )}
                             {contact.linkedin&&(
@@ -1272,8 +1272,8 @@ function AccountModal(props) {
                                 <span>in</span><span>Ver perfil LinkedIn</span>
                               </a>
                             )}
-                            {contact.phone&&<span style={{fontSize:10,color:"#64748b",padding:"2px 0"}}>{contact.phone}</span>}
-                            <span style={{fontSize:8,color:"#6b7280",fontStyle:"italic"}}>{contact.source}</span>
+                            {contact.phone&&<span style={{fontSize:10,color:"rgba(255,255,255,.55)",padding:"2px 0"}}>{contact.phone}</span>}
+                            <span style={{fontSize:8,color:"rgba(255,255,255,.5)",fontStyle:"italic"}}>{contact.source}</span>
                           </div>
                         </div>
                       );
@@ -1281,31 +1281,31 @@ function AccountModal(props) {
                   </div>
                 </div>
               )}
-              <Sec title="Mapeamento EstratÃ©gico de Cargos">
+              <Sec title="Mapeamento Estratégico de Cargos">
               <div className="modal-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
                 {(resetMatches(), stakeholders).map(function(s,i){
                   var pc=s.prioridade==="PRIMARIO"?"#2d3a8c":s.prioridade==="SECUNDARIO"?"#92400e":"#475569";
-                  var uc=s.urgencia==="Alta"?"#991b1b":s.urgencia==="MÃ©dia"||s.urgencia==="MÃ©dia"?"#92400e":"#64748b";
+                  var uc=s.urgencia==="Alta"?"#991b1b":s.urgencia==="Média"||s.urgencia==="Média"?"#92400e":"#64748b";
                   var match=getEnrichedStakeholder(s.cargo);
                   return (
-                    <div key={i} style={{background:match?"linear-gradient(145deg,#f0fdf4,#fff)":"#f8fafc",border:"1.5px solid "+(match?"rgba(67,97,238,.3)":"#e8edf4"),borderRadius:14,padding:"14px 16px",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 4px 16px rgba(67,97,238,.1)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor=match?"rgba(67,97,238,.3)":"#e8edf4";e.currentTarget.style.boxShadow="";}}>
+                    <div key={i} style={{background:match?"linear-gradient(145deg,#f0fdf4,#fff)":"#f8fafc",border:"1.5px solid "+(match?"rgba(99,102,241,.3)":"#e8edf4"),borderRadius:14,padding:"14px 16px",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 4px 16px rgba(99,102,241,.1)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor=match?"rgba(99,102,241,.3)":"#e8edf4";e.currentTarget.style.boxShadow="";}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
-                        <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",lineHeight:1.3,flex:1}}>{s.cargo}</div>
+                        <div style={{fontSize:12.5,fontWeight:700,color:"rgba(255,255,255,.92)",lineHeight:1.3,flex:1}}>{s.cargo}</div>
                         <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",marginLeft:8,flexShrink:0}}>
                           <span style={{background:pc+"20",border:"1px solid "+pc,color:pc,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700,whiteSpace:"nowrap"}}>{s.prioridade}</span>
-                          <span style={{fontSize:8,color:uc,fontWeight:600}}>{"UrgÃªncia: "+s.urgencia}</span>
+                          <span style={{fontSize:8,color:uc,fontWeight:600}}>{"Urgência: "+s.urgencia}</span>
                         </div>
                       </div>
                       {match&&(
-                        <div style={{background:"rgba(67,97,238,.08)",border:"1px solid rgba(67,97,238,.2)",borderRadius:8,padding:"6px 10px",marginBottom:8}}>
-                          <div style={{fontSize:11,fontWeight:700,color:"#3451d1",marginBottom:3}}>{"â Match: "+match.nome}</div>
+                        <div style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.2)",borderRadius:8,padding:"6px 10px",marginBottom:8}}>
+                          <div style={{fontSize:11,fontWeight:700,color:"#a5b4fc",marginBottom:3}}>{"✓ Match: "+match.nome}</div>
                           <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                             {match.email&&<a href={"mailto:"+match.email} style={{fontSize:10,color:"#0ea5e9",textDecoration:"none"}}>{match.email}</a>}
                             {match.linkedin&&<a href={match.linkedin.startsWith("http")?match.linkedin:"https://www.linkedin.com/in/"+match.linkedin} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#0a66c2",textDecoration:"none",fontWeight:600}}>Ver LinkedIn -></a>}
                           </div>
                         </div>
                       )}
-                      <div style={{fontSize:11,color:"#64748b",lineHeight:1.6}}>{s.angulo}</div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,.55)",lineHeight:1.6}}>{s.angulo}</div>
                     </div>
                   );
                 })}
@@ -1317,30 +1317,30 @@ function AccountModal(props) {
             <div>
               <Sec title="Perguntas SPIN">
                 {spin.map(function(q,i){
-                  var tipo=q.startsWith("SITUAÃÃO")||q.startsWith("SITUAÃÃO")?"S":q.startsWith("PROBLEMA")?"P":q.startsWith("IMPLICAÃÃO")||q.startsWith("IMPLICAÃÃO")?"I":"N";
+                  var tipo=q.startsWith("SITUAÇÃO")||q.startsWith("SITUAÇÃO")?"S":q.startsWith("PROBLEMA")?"P":q.startsWith("IMPLICAÇÃO")||q.startsWith("IMPLICAÇÃO")?"I":"N";
                   var tc=tipo==="S"?"#0ea5e9":tipo==="P"?"#92400e":tipo==="I"?"#991b1b":"#2d3a8c";
                   var clean=q.indexOf(": ")>-1?q.slice(q.indexOf(": ")+2):q;
                   return (
                     <div key={i} style={{display:"flex",gap:10,padding:"10px 0",borderBottom:"1px solid #f1f5f9",alignItems:"flex-start"}}>
                       <span style={{background:tc+"20",border:"1px solid "+tc+"50",color:tc,borderRadius:6,padding:"2px 8px",fontSize:9,fontWeight:800,flexShrink:0,marginTop:1}}>{tipo}</span>
-                      <span style={{fontSize:12.5,color:"#334155",lineHeight:1.6,flex:1}}>{clean}</span>
+                      <span style={{fontSize:12.5,color:"rgba(255,255,255,.75)",lineHeight:1.6,flex:1}}>{clean}</span>
                       <CopyBtn text={clean}/>
                     </div>
                   );
                 })}
               </Sec>
               {objecoes.length>0&&(
-                <Sec title="ObjeÃ§Ãµes e Respostas">
+                <Sec title="Objeções e Respostas">
                   {objecoes.map(function(o,i){
-                    var objTxt = o.objeÃ§Ã£o || o.objecao || o.objection || "";
+                    var objTxt = o.objeção || o.objecao || o.objection || "";
                     var respTxt = o.resposta || o.response || "";
                     return (
-                      <div key={i} style={{background:"#f8fafc",border:"1.5px solid #e8edf4",borderRadius:14,padding:"14px 16px",marginBottom:10}}>
+                      <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:14,padding:"14px 16px",marginBottom:10}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8,gap:8}}>
                           <div style={{fontSize:12,fontWeight:700,color:"#92400e",lineHeight:1.4,flex:1}}>{'"'+objTxt+'"'}</div>
                           <CopyBtn text={'"'+objTxt+'"\n-> '+respTxt}/>
                         </div>
-                        <div style={{fontSize:12,color:"#334155",lineHeight:1.65}}>{"-> "+respTxt}</div>
+                        <div style={{fontSize:12,color:"rgba(255,255,255,.75)",lineHeight:1.65}}>{"-> "+respTxt}</div>
                       </div>
                     );
                   })}
@@ -1354,14 +1354,14 @@ function AccountModal(props) {
           {activeTab==="plan"&&(
             <div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:18}}>
-                <Sec title="AE , AÃ§Ãµes Imediatas">
-                  {ae.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#4361EE",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"#334155",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
+                <Sec title="AE , Ações Imediatas">
+                  {ae.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#a5b4fc",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"rgba(255,255,255,.75)",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
                 </Sec>
-                <Sec title="BDR , AÃ§Ãµes de Suporte">
-                  {bdr.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#f59e0b",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"#334155",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
+                <Sec title="BDR , Ações de Suporte">
+                  {bdr.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#f59e0b",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"rgba(255,255,255,.75)",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
                 </Sec>
               </div>
-              {prazo&&<div style={{background:"rgba(67,97,238,.06)",border:"1px solid rgba(67,97,238,.2)",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}><div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#4361EE,#3451d1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div><div><div style={{fontSize:9,color:"#3451d1",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Prazo</div><div style={{fontSize:13,color:"#0f172a",fontWeight:600}}>{prazo}</div></div></div>}
+              {prazo&&<div style={{background:"rgba(99,102,241,.06)",border:"1px solid rgba(99,102,241,.2)",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}><div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#6366f1,#4f46e5)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div><div><div style={{fontSize:9,color:"#a5b4fc",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Prazo</div><div style={{fontSize:13,color:"rgba(255,255,255,.92)",fontWeight:600}}>{prazo}</div></div></div>}
             </div>
           )}
         </div>
@@ -1376,18 +1376,18 @@ function CollapsibleChannels(props) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:10}}>
       {CHANNELS.map(function(cfg){
-        var items=safeArr(sd("estratÃ©gia."+cfg.key));
+        var items=safeArr(sd("estratégia."+cfg.key));
         if(!items.length)return null;
         var isOpen=open[cfg.key];
         return (
-          <div key={cfg.key} style={{border:"1.5px solid #e8edf4",borderRadius:16,overflow:"hidden",transition:"all .25s"}}>
+          <div key={cfg.key} style={{border:"1.5px solid rgba(255,255,255,.08)",borderRadius:16,overflow:"hidden",transition:"all .25s"}}>
             <div onClick={function(){toggle(cfg.key);}} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 18px",background:isOpen?cfg.bg:"#fafafa",cursor:"pointer",userSelect:"none",transition:"background .2s"}}>
               <div style={{width:32,height:32,borderRadius:9,background:cfg.bg,border:"1.5px solid "+cfg.color+"40",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                 <span style={{fontSize:11,fontWeight:800,color:cfg.color}}>{cfg.label.slice(0,2)}</span>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{cfg.label}</div>
-                <div style={{fontSize:10,color:"#6b7280"}}>{items.length+" template"+(items.length>1?"s":"")}</div>
+                <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{cfg.label}</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,.5)"}}>{items.length+" template"+(items.length>1?"s":"")}</div>
               </div>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{transition:"transform .25s cubic-bezier(.22,1,.36,1)",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>
                 <polyline points="6 9 12 15 18 9"/>
@@ -1399,13 +1399,13 @@ function CollapsibleChannels(props) {
                   var text=cfg.isObj?item.corpo:item;
                   var ck=cfg.key+"-"+i;
                   return (
-                    <div key={i} style={{border:"1px solid #e8edf4",borderRadius:12,overflow:"hidden"}}>
+                    <div key={i} style={{border:"1px solid rgba(255,255,255,.08)",borderRadius:12,overflow:"hidden"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,padding:"9px 14px",background:cfg.bg}}>
                         <span style={{fontSize:10,fontWeight:700,color:cfg.color}}>{"Template "+(i+1)}</span>
-                        {cfg.isObj&&item.assunto&&<span style={{fontSize:11,color:"#64748b",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{", "+item.assunto}</span>}
+                        {cfg.isObj&&item.assunto&&<span style={{fontSize:11,color:"rgba(255,255,255,.55)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{", "+item.assunto}</span>}
                         <CopyBtn text={(cfg.isObj&&item.assunto?"Assunto: "+item.assunto+"\n\n":"")+text}/>
                       </div>
-                      <div style={{padding:"14px 16px",fontSize:12.5,color:"#1e293b",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+cfg.color}}>{text}</div>
+                      <div style={{padding:"14px 16px",fontSize:12.5,color:"rgba(255,255,255,.9)",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+cfg.color}}>{text}</div>
                     </div>
                   );
                 })}
@@ -1419,7 +1419,7 @@ function CollapsibleChannels(props) {
 }
 function downloadSeqPDF(seq) {
   var TOUCH_LABELS = {email:"E-mail",linkedin:"InMail",whatsapp:"WhatsApp",call:"Cold Call",follow:"Follow-up",breakup:"Breakup"};
-  var html = "<html><head><title>"+((seq.account&&seq.account.nome)||"Sequencia")+"</title><style>body{font-family:Verdana,sans-serif;padding:32px;color:#0f172a;font-size:12px;line-height:1.7}h1{font-size:16px;color:#059669}h2{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#4361EE;margin:20px 0 6px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}.msg{background:#f8fafc;border-left:4px solid #10b981;padding:12px 16px;white-space:pre-wrap;margin:6px 0;font-size:11px;line-height:1.8}.day{display:inline-block;background:#dcfce7;color:#065f46;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;margin-bottom:6px}.footer{margin-top:24px;border-top:1px solid #e2e8f0;padding-top:10px;font-size:10px;color:#94a3b8}</style></head><body>";
+  var html = "<html><head><title>"+((seq.account&&seq.account.nome)||"Sequencia")+"</title><style>body{font-family:Verdana,sans-serif;padding:32px;color:#0f172a;font-size:12px;line-height:1.7}h1{font-size:16px;color:#059669}h2{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#6366f1;margin:20px 0 6px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}.msg{background:#f8fafc;border-left:4px solid #10b981;padding:12px 16px;white-space:pre-wrap;margin:6px 0;font-size:11px;line-height:1.8}.day{display:inline-block;background:#dcfce7;color:#065f46;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;margin-bottom:6px}.footer{margin-top:24px;border-top:1px solid #e2e8f0;padding-top:10px;font-size:10px;color:#94a3b8}</style></head><body>";
   html += "<h1>Sequencia: "+((seq.account&&seq.account.nome)||"")+((seq.profile&&seq.profile.label)?" , "+seq.profile.label:"")+"</h1>";
   html += "<p style='color:#64748b;font-size:11px'>Gerado em "+fmtDate(seq.createdAt)+" - Mais Pipe Beta</p>";
   (seq.touches||[]).forEach(function(t,i) {
@@ -1454,35 +1454,35 @@ function BibliotecaView(props) {
       props.showToast("Sequencia removida.","#ef4444");
     });
   }
-  if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}><div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE"}}/><span style={{color:"#6b7280",fontSize:13}}>Carregando...</span></div>;
+  if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}><div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1"}}/><span style={{color:"rgba(255,255,255,.5)",fontSize:13}}>Carregando...</span></div>;
   return (
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Biblioteca</div>
-          <div style={{fontSize:13,color:"#64748b"}}>{seqs.length+" sequÃªncia"+(seqs.length!==1?"s":"")+" salva"+(seqs.length!==1?"s":"")}</div>
+          <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>Biblioteca</div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,.55)"}}>{seqs.length+" sequência"+(seqs.length!==1?"s":"")+" salva"+(seqs.length!==1?"s":"")}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"8px 12px",fontSize:12,color:"rgba(255,255,255,.6)",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
             <option value="date">Mais recente</option>
             <option value="az">A -> Z</option>
             <option value="za">Z -> A</option>
           </select>
-          <div style={{display:"flex",background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,overflow:"hidden"}}>
-            <button onClick={function(){setViewMode("cards");}} title="Cards" style={{padding:"8px 12px",border:"none",background:viewMode==="cards"?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:viewMode==="cards"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1}}>
+          <div style={{display:"flex",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,overflow:"hidden"}}>
+            <button onClick={function(){setViewMode("cards");}} title="Cards" style={{padding:"8px 12px",border:"none",background:viewMode==="cards"?"linear-gradient(135deg,#6366f1,#4f46e5)":"transparent",color:viewMode==="cards"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
             </button>
-            <button onClick={function(){setViewMode("list");}} title="Lista" style={{padding:"8px 12px",border:"none",background:viewMode==="list"?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:viewMode==="list"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1}}>
+            <button onClick={function(){setViewMode("list");}} title="Lista" style={{padding:"8px 12px",border:"none",background:viewMode==="list"?"linear-gradient(135deg,#6366f1,#4f46e5)":"transparent",color:viewMode==="list"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             </button>
           </div>
         </div>
       </div>
       {seqs.length===0 ? (
-        <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
-          <div style={{fontSize:36,marginBottom:12}}>{"ð"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{"Nenhuma sequÃªncia salva ainda"}</div>
-          <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{"VÃ¡ para SequÃªncias e gere uma cadÃªncia â ela Ã© salva aqui automaticamente."}</div>
+        <div style={{textAlign:"center",padding:"64px 0",background:"rgba(255,255,255,.03)",borderRadius:20,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+          <div style={{fontSize:36,marginBottom:12}}>{"📚"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.75)",marginBottom:6}}>{"Nenhuma sequência salva ainda"}</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,.5)",lineHeight:1.6}}>{"Vá para Sequências e gere uma cadência — ela é salva aqui automaticamente."}</div>
         </div>
       ) : (
         viewMode==="cards" ? (
@@ -1493,14 +1493,14 @@ function BibliotecaView(props) {
             return (b.createdAt||0)-(a.createdAt||0);
           }).map(function(seq){
             var fc = FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
-            var TOUCH_TYPES_LOCAL = {email:{label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)"},linkedin:{label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)"},whatsapp:{label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)"},call:{label:"Cold Call",color:"#92400e",bg:"#fef3c7"},follow:{label:"Follow-up",color:"#7c3aed",bg:"#f5f3ff"},breakup:{label:"Breakup",color:"#64748b",bg:"#f8fafc"}};
+            var TOUCH_TYPES_LOCAL = {email:{label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)"},linkedin:{label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)"},whatsapp:{label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)"},call:{label:"Cold Call",color:"#92400e",bg:"#fef3c7"},follow:{label:"Follow-up",color:"#7c3aed",bg:"#f5f3ff"},breakup:{label:"Breakup",color:"rgba(255,255,255,.55)",bg:"#f8fafc"}};
             return (
-              <div key={seq.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:20,padding:"20px 22px",boxShadow:"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 12px 40px rgba(15,23,42,.12)";e.currentTarget.style.borderColor="#d1dae8";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";e.currentTarget.style.borderColor="#e8edf4";}}>
+              <div key={seq.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:20,padding:"20px 22px",boxShadow:"0 2px 12px rgba(0,0,0,0.1)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 12px 40px rgba(0,0,0,0.19)";e.currentTarget.style.borderColor="rgba(99,102,241,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.1)";e.currentTarget.style.borderColor="rgba(255,255,255,.08)";}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
-                    <div style={{fontSize:11,color:"#6b7280",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.profile&&seq.profile.label}</div>
-                    <div style={{fontSize:10,color:"#cbd5e1"}}>{fmtDate(seq.createdAt)}</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.profile&&seq.profile.label}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,.35)"}}>{fmtDate(seq.createdAt)}</div>
                   </div>
                   <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700,flexShrink:0,marginLeft:8}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
                 </div>
@@ -1511,9 +1511,9 @@ function BibliotecaView(props) {
                   })}
                 </div>
                 <div style={{display:"flex",gap:6}}>
-                  <button onClick={function(){props.onOpenSeq(seq);}} style={{flex:1,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"8px 0",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Abrir</button>
-                  <button onClick={function(){downloadSeqPDF(seq);}} title="Baixar PDF" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0369a1",borderRadius:10,padding:"8px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>PDF</button>
-                  <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"8px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>x</button>
+                  <button onClick={function(){props.onOpenSeq(seq);}} style={{flex:1,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"8px 0",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Abrir</button>
+                  <button onClick={function(){downloadSeqPDF(seq);}} title="Baixar PDF" style={{background:"rgba(99,102,241,.1)",border:"1px solid rgba(56,189,248,.3)",color:"#0369a1",borderRadius:10,padding:"8px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>PDF</button>
+                  <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:10,padding:"8px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>x</button>
                 </div>
               </div>
             );
@@ -1528,16 +1528,16 @@ function BibliotecaView(props) {
           }).map(function(seq){
             var fc=FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
             return (
-              <div key={seq.id} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
+              <div key={seq.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.boxShadow="";}}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
-                  <div style={{fontSize:11,color:"#6b7280",marginTop:1}}>{seq.profile&&seq.profile.label}</div>
+                  <div style={{fontSize:13.5,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:1}}>{seq.profile&&seq.profile.label}</div>
                 </div>
                 <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"2px 8px",fontSize:9,fontWeight:700,flexShrink:0}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
-                <span style={{fontSize:10,color:"#6b7280",flexShrink:0}}>{fmtDate(seq.createdAt)}</span>
-                <button onClick={function(){props.onOpenSeq(seq);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Abrir</button>
-                <button onClick={function(){downloadSeqPDF(seq);}} style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0369a1",borderRadius:8,padding:"5px 10px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>PDF</button>
-                <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
+                <span style={{fontSize:10,color:"rgba(255,255,255,.5)",flexShrink:0}}>{fmtDate(seq.createdAt)}</span>
+                <button onClick={function(){props.onOpenSeq(seq);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Abrir</button>
+                <button onClick={function(){downloadSeqPDF(seq);}} style={{background:"rgba(99,102,241,.1)",border:"1px solid rgba(56,189,248,.3)",color:"#0369a1",borderRadius:8,padding:"5px 10px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>PDF</button>
+                <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
               </div>
             );
           })}
@@ -1550,8 +1550,8 @@ function BibliotecaView(props) {
 function Sec(props) {
   return (
     <div style={{marginBottom:22}}>
-      <div style={{fontSize:9,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:"#4361EE",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
-        <div style={{width:3,height:14,background:"linear-gradient(180deg,#4361EE,#3451d1)",borderRadius:3,boxShadow:"0 0 8px rgba(67,97,238,.4)"}}/>
+      <div style={{fontSize:9,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:"#a5b4fc",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+        <div style={{width:3,height:14,background:"linear-gradient(180deg,#6366f1,#4f46e5)",borderRadius:3,boxShadow:"0 0 8px rgba(99,102,241,.4)"}}/>
         {props.title}
       </div>
       {props.children}
@@ -1559,16 +1559,16 @@ function Sec(props) {
   );
 }
 function R(props) {
-  return <div style={{display:"flex",gap:8,padding:"7px 0",borderBottom:"1px solid #f1f5f9",fontSize:12.5,color:"#334155",lineHeight:1.55}}><span style={{color:props.color,flexShrink:0,fontWeight:700}}>{props.icon}</span>{props.children}</div>;
+  return <div style={{display:"flex",gap:8,padding:"7px 0",borderBottom:"1px solid #f1f5f9",fontSize:12.5,color:"rgba(255,255,255,.75)",lineHeight:1.55}}><span style={{color:props.color,flexShrink:0,fontWeight:700}}>{props.icon}</span>{props.children}</div>;
 }
 // -- SEARCH VIEW ---------------------------------------------------------------
 function LoadingStatus() {
   var steps = [
-    {text:"Consultando fontes pÃºblicas com IA...", icon:"ð"},
-    {text:"Mapeando stakeholders e estrutura da empresa...", icon:"ð§­"},
-    {text:"Gerando fit score e dores de CX...", icon:"â¡"},
-    {text:"Criando mensagens personalizadas por canal...", icon:"â"},
-    {text:"Montando plano de prospecÃ§Ã£o...", icon:"ð¯"},
+    {text:"Consultando fontes públicas com IA...", icon:"🔍"},
+    {text:"Mapeando stakeholders e estrutura da empresa...", icon:"🧭"},
+    {text:"Gerando fit score e dores de CX...", icon:"⚡"},
+    {text:"Criando mensagens personalizadas por canal...", icon:"✉"},
+    {text:"Montando plano de prospecção...", icon:"🎯"},
   ];
   var _st_step = useState(0); var step = _st_step[0]; var setStep = _st_step[1];
   useEffect(function() {
@@ -1578,17 +1578,17 @@ function LoadingStatus() {
     return function() { clearInterval(t); };
   }, []);
   return (
-    <div style={{marginTop:16,background:"linear-gradient(135deg,rgba(67,97,238,.06),rgba(14,165,233,.04))",border:"1.5px solid rgba(67,97,238,.2)",borderRadius:16,padding:"16px 20px"}}>
+    <div style={{marginTop:16,background:"linear-gradient(135deg,rgba(99,102,241,.06),rgba(14,165,233,.04))",border:"1.5px solid rgba(99,102,241,.2)",borderRadius:16,padding:"16px 20px"}}>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
-        <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE",boxShadow:"0 0 0 3px rgba(67,97,238,.2)",animation:"pulse 1s ease-in-out infinite",flexShrink:0}}/>
-        <span style={{fontSize:13,color:"#3451d1",fontWeight:700}}>Mais Pipe com IA</span>
-        <span style={{fontSize:10,color:"#6b7280",marginLeft:"auto"}}>{"anÃ¡lise em tempo real"}</span>
+        <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",boxShadow:"0 0 0 3px rgba(99,102,241,.2)",animation:"pulse 1s ease-in-out infinite",flexShrink:0}}/>
+        <span style={{fontSize:13,color:"#a5b4fc",fontWeight:700}}>Mais Pipe com IA</span>
+        <span style={{fontSize:10,color:"rgba(255,255,255,.5)",marginLeft:"auto"}}>{"análise em tempo real"}</span>
       </div>
-      <div style={{fontSize:13,color:"#334155",lineHeight:1.6,display:"flex",alignItems:"center",gap:8}}>
+      <div style={{fontSize:13,color:"rgba(255,255,255,.75)",lineHeight:1.6,display:"flex",alignItems:"center",gap:8}}>
         <span style={{fontSize:16}}>{steps[step].icon}</span>
         <span style={{transition:"opacity .3s"}}>{steps[step].text}</span>
       </div>
-      <div style={{marginTop:12,height:3,background:"#e2e8f0",borderRadius:3,overflow:"hidden"}}>
+      <div style={{marginTop:12,height:3,background:"rgba(255,255,255,.1)",borderRadius:3,overflow:"hidden"}}>
         <div style={{height:"100%",background:"linear-gradient(90deg,#10b981,#0ea5e9)",borderRadius:3,animation:"shimmer 1.5s ease-in-out infinite",backgroundSize:"200% 100%"}}/>
       </div>
     </div>
@@ -1646,7 +1646,7 @@ function ContactsView(props) {
   }, []);
 
   function showToastC(msg, color) {
-    setToastC({msg:msg,color:color||"#3451d1"});
+    setToastC({msg:msg,color:color||"#4f46e5"});
     setTimeout(function(){ setToastC(null); }, 3000);
   }
 
@@ -1694,22 +1694,22 @@ function ContactsView(props) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:22,fontWeight:800,color:"#0f172a",marginBottom:3,letterSpacing:"-0.4px"}}>{"Contatos"}</div>
-          <div style={{fontSize:12.5,color:"#64748b"}}>{contacts.length===0 ? "Os contatos aparecem aqui ao mapear contas com IA." : contacts.length + " contato" + (contacts.length!==1?"s":"") + " Â· busque o e-mail e gere uma sequÃªncia em 1 clique"}</div>
+          <div style={{fontSize:22,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:3,letterSpacing:"-0.4px"}}>{"Contatos"}</div>
+          <div style={{fontSize:12.5,color:"rgba(255,255,255,.55)"}}>{contacts.length===0 ? "Os contatos aparecem aqui ao mapear contas com IA." : contacts.length + " contato" + (contacts.length!==1?"s":"") + " · busque o e-mail e gere uma sequência em 1 clique"}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder={"Buscar..."} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",minWidth:160,flex:1}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
-          <select value={csort} onChange={function(e){setCsort(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder={"Buscar..."} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",minWidth:160,flex:1}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+          <select value={csort} onChange={function(e){setCsort(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 12px",fontSize:12,color:"rgba(255,255,255,.6)",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
             <option value="az">A - Z</option>
             <option value="za">Z - A</option>
           </select>
-          <button onClick={function(){setAddModal(true);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(67,97,238,.25)"}}>{"+ Novo"}</button>
+          <button onClick={function(){setAddModal(true);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(99,102,241,.25)"}}>{"+ Novo"}</button>
         </div>
       </div>
       {addModal && (
-        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}} onClick={function(e){if(e.target===e.currentTarget)setAddModal(false);}}>
-          <div style={{background:"#fff",borderRadius:20,width:"100%",maxWidth:440,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.25)"}} onClick={function(e){e.stopPropagation();}}>
-            <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar Contato"}</div>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}} onClick={function(e){if(e.target===e.currentTarget)setAddModal(false);}}>
+          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,width:"100%",maxWidth:440,padding:"24px",boxShadow:"0 24px 80px rgba(0,0,0,0.4)"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{fontSize:16,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:16}}>{"Adicionar Contato"}</div>
             {[
               {label:"Nome completo", val:newNome, set:setNewNome, ph:"Ex: Ana Lima"},
               {label:"Cargo", val:newCargo, set:setNewCargo, ph:"Ex: VP de Operacoes"},
@@ -1720,14 +1720,14 @@ function ContactsView(props) {
             ].map(function(f) {
               return (
                 <div key={f.label} style={{marginBottom:10}}>
-                  <div style={{fontSize:10,fontWeight:700,color:"#64748b",marginBottom:4,textTransform:"uppercase",letterSpacing:.5}}>{f.label}</div>
-                  <input value={f.val} onChange={function(e){f.set(e.target.value);}} placeholder={f.ph} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 12px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none"}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+                  <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,.55)",marginBottom:4,textTransform:"uppercase",letterSpacing:.5}}>{f.label}</div>
+                  <input value={f.val} onChange={function(e){f.set(e.target.value);}} placeholder={f.ph} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 12px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
                 </div>
               );
             })}
             <div style={{display:"flex",gap:8,marginTop:16}}>
-              <button onClick={function(){setAddModal(false);}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
-              <button onClick={addContactManual} disabled={saving||(!newNome&&!newCargo)} style={{flex:2,background:(saving||(!newNome&&!newCargo))?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:(saving||(!newNome&&!newCargo))?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:(saving||(!newNome&&!newCargo))?"default":"pointer",fontFamily:"inherit"}}>
+              <button onClick={function(){setAddModal(false);}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={addContactManual} disabled={saving||(!newNome&&!newCargo)} style={{flex:2,background:(saving||(!newNome&&!newCargo))?"#e2e8f0":"linear-gradient(135deg,#6366f1,#4f46e5)",color:(saving||(!newNome&&!newCargo))?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:(saving||(!newNome&&!newCargo))?"default":"pointer",fontFamily:"inherit"}}>
                 {saving ? "Salvando..." : "Salvar contato"}
               </button>
             </div>
@@ -1736,14 +1736,14 @@ function ContactsView(props) {
       )}
       {loadingC ? (
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}>
-          <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE"}}/>
-          <span style={{color:"#6b7280",fontSize:13}}>{"Carregando..."}</span>
+          <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1"}}/>
+          <span style={{color:"rgba(255,255,255,.5)",fontSize:13}}>{"Carregando..."}</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
-          <div style={{fontSize:36,marginBottom:12}}>{"ð¥"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{search ? "Nenhum contato encontrado" : "Nenhum contato ainda"}</div>
-          <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{search ? "Tente outro termo de busca." : "Os contatos sao criados automaticamente ao fazer uma pesquisa com IA que retorne stakeholders."}</div>
+        <div style={{textAlign:"center",padding:"64px 0",background:"rgba(255,255,255,.03)",borderRadius:20,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+          <div style={{fontSize:36,marginBottom:12}}>{"👥"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.75)",marginBottom:6}}>{search ? "Nenhum contato encontrado" : "Nenhum contato ainda"}</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,.5)",lineHeight:1.6}}>{search ? "Tente outro termo de busca." : "Os contatos sao criados automaticamente ao fazer uma pesquisa com IA que retorne stakeholders."}</div>
         </div>
       ) : (
         <div style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -1758,43 +1758,43 @@ function ContactsView(props) {
               var group = grouped[empresa].slice().sort(function(a,b){ var an=(a.nome||"").toLowerCase(), bn=(b.nome||"").toLowerCase(); return csort==="za" ? bn.localeCompare(an) : an.localeCompare(bn); });
               return (
                 <div key={empresa}>
-                  <div onClick={function(){toggleGroup(empresa);}} style={{display:"flex",alignItems:"center",gap:8,marginBottom:expandedGroups[empresa]?10:0,padding:"10px 14px",background:"linear-gradient(135deg,rgba(67,97,238,.07),rgba(14,165,233,.04))",border:"1px solid rgba(67,97,238,.14)",borderRadius:expandedGroups[empresa]?"12px 12px 0 0":12,cursor:"pointer",userSelect:"none",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(67,97,238,.12),rgba(14,165,233,.07))";}} onMouseLeave={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(67,97,238,.07),rgba(14,165,233,.04))";}}>
-                    <span style={{fontSize:14}}>{"ð¢"}</span>
-                    <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{empresa}</span>
-                    <span style={{fontSize:10,color:"#6b7280",marginLeft:"auto",marginRight:6}}>{group.length + " contato" + (group.length!==1?"s":"")}</span>
-                    <span style={{fontSize:10,color:"#4361EE",fontWeight:700,transition:"transform .2s",display:"inline-block",transform:expandedGroups[empresa]?"rotate(0deg)":"rotate(-90deg)"}}>{"â¼"}</span>
+                  <div onClick={function(){toggleGroup(empresa);}} style={{display:"flex",alignItems:"center",gap:8,marginBottom:expandedGroups[empresa]?10:0,padding:"10px 14px",background:"linear-gradient(135deg,rgba(99,102,241,.07),rgba(14,165,233,.04))",border:"1px solid rgba(99,102,241,.14)",borderRadius:expandedGroups[empresa]?"12px 12px 0 0":12,cursor:"pointer",userSelect:"none",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(99,102,241,.12),rgba(14,165,233,.07))";}} onMouseLeave={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(99,102,241,.07),rgba(14,165,233,.04))";}}>
+                    <span style={{fontSize:14}}>{"🏢"}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{empresa}</span>
+                    <span style={{fontSize:10,color:"rgba(255,255,255,.5)",marginLeft:"auto",marginRight:6}}>{group.length + " contato" + (group.length!==1?"s":"")}</span>
+                    <span style={{fontSize:10,color:"#a5b4fc",fontWeight:700,transition:"transform .2s",display:"inline-block",transform:expandedGroups[empresa]?"rotate(0deg)":"rotate(-90deg)"}}>{"▼"}</span>
                   </div>
-                  {expandedGroups[empresa] && <div style={{display:"flex",flexDirection:"column",gap:8,paddingLeft:8,paddingBottom:4,border:"1px solid rgba(67,97,238,.14)",borderTop:"none",borderRadius:"0 0 12px 12px",background:"#fafbff",padding:"10px 8px 10px 12px"}}>
+                  {expandedGroups[empresa] && <div style={{display:"flex",flexDirection:"column",gap:8,paddingLeft:8,paddingBottom:4,border:"1px solid rgba(99,102,241,.14)",borderTop:"none",borderRadius:"0 0 12px 12px",background:"#fafbff",padding:"10px 8px 10px 12px"}}>
                     {group.map(function(c) {
                       var canSeq = !!(c.cargo || c.nome);
                       return (
-                        <div key={c.id} style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
-                          <div style={{width:32,height:32,borderRadius:9,background:"linear-gradient(135deg,#4361EE,#0ea5e9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                        <div key={c.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.boxShadow="";}}>
+                          <div style={{width:32,height:32,borderRadius:9,background:"linear-gradient(135deg,#6366f1,#0ea5e9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                             <span style={{fontSize:12,color:"#fff",fontWeight:700}}>{(c.nome||c.cargo||"?")[0].toUpperCase()}</span>
                           </div>
                           <div style={{flex:1,minWidth:120}}>
-                            <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome||c.cargo}</div>
-                            {c.nome && c.cargo && c.nome!==c.cargo && <div style={{fontSize:11,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo}</div>}
+                            <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome||c.cargo}</div>
+                            {c.nome && c.cargo && c.nome!==c.cargo && <div style={{fontSize:11,color:"rgba(255,255,255,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo}</div>}
                           </div>
                           {c.email ? (
-                            <div style={{display:"flex",alignItems:"center",gap:6,background:"#f8fafc",border:"1px solid #eef2f7",borderRadius:8,padding:"5px 8px",maxWidth:260,minWidth:0}}>
+                            <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:8,padding:"5px 8px",maxWidth:260,minWidth:0}}>
                               <span style={{fontSize:11,color:c.emailValidated?"#0f766e":"#64748b",fontWeight:c.emailValidated?600:400,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{c.email}</span>
-                              {c.emailValidated && <span title={"Confianca "+(c.emailConfidence||"")+"%"} style={{fontSize:8,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:5,padding:"1px 5px",flexShrink:0}}>{c.emailConfidence?c.emailConfidence+"%":"OK"}</span>}
+                              {c.emailValidated && <span title={"Confianca "+(c.emailConfidence||"")+"%"} style={{fontSize:8,fontWeight:700,color:"#10b981",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:5,padding:"1px 5px",flexShrink:0}}>{c.emailConfidence?c.emailConfidence+"%":"OK"}</span>}
                               <CopyBtn text={c.email}/>
                             </div>
                           ) : (
-                            <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{background:enriching[c.id]?"#f1f5f9":"#eff6ff",color:enriching[c.id]?"#94a3b8":"#3451d1",border:"1px solid "+(enriching[c.id]?"#e2e8f0":"#c7d0fa"),borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>
+                            <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{background:enriching[c.id]?"#f1f5f9":"#eff6ff",color:enriching[c.id]?"#94a3b8":"#4f46e5",border:"1px solid "+(enriching[c.id]?"#e2e8f0":"#c7d0fa"),borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>
                               {enriching[c.id] ? "Buscando..." : "Buscar e-mail"}
                             </button>
                           )}
-                          <button onClick={function(){ if(canSeq && props.onGenerateSequence) props.onGenerateSequence(c); }} disabled={!canSeq} title={canSeq?"Gerar cadÃªncia de 6 toques para este contato":"Informe nome ou cargo para gerar"} style={{display:"flex",alignItems:"center",gap:5,background:"linear-gradient(135deg,#7c3aed,#6366f1)",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:canSeq?"pointer":"not-allowed",opacity:canSeq?1:.5,fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0,boxShadow:"0 2px 8px rgba(124,58,167,.25)"}}>
+                          <button onClick={function(){ if(canSeq && props.onGenerateSequence) props.onGenerateSequence(c); }} disabled={!canSeq} title={canSeq?"Gerar cadência de 6 toques para este contato":"Informe nome ou cargo para gerar"} style={{display:"flex",alignItems:"center",gap:5,background:"linear-gradient(135deg,#7c3aed,#6366f1)",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:canSeq?"pointer":"not-allowed",opacity:canSeq?1:.5,fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0,boxShadow:"0 2px 8px rgba(124,58,167,.25)"}}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                            Gerar sequÃªncia
+                            Gerar sequência
                           </button>
                           {c.linkedin && (
-                            <a href={c.linkedin} target="_blank" rel="noreferrer" title="Abrir LinkedIn" style={{background:"#eff6ff",border:"1px solid #bfdbfe",color:"#0a66c2",borderRadius:8,padding:"6px 9px",fontSize:11,fontWeight:700,textDecoration:"none",display:"flex",alignItems:"center",flexShrink:0}}>{"in"}</a>
+                            <a href={c.linkedin} target="_blank" rel="noreferrer" title="Abrir LinkedIn" style={{background:"rgba(99,102,241,.1)",border:"1px solid rgba(56,189,248,.3)",color:"#0a66c2",borderRadius:8,padding:"6px 9px",fontSize:11,fontWeight:700,textDecoration:"none",display:"flex",alignItems:"center",flexShrink:0}}>{"in"}</a>
                           )}
-                          <button onClick={function(){deleteContact(c.id);}} title="Remover contato" style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"6px 9px",fontSize:11,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>{"x"}</button>
+                          <button onClick={function(){deleteContact(c.id);}} title="Remover contato" style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"6px 9px",fontSize:11,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>{"x"}</button>
                         </div>
                       );
                     })}
@@ -1806,7 +1806,7 @@ function ContactsView(props) {
         </div>
       )}
       {toastC && (
-        <div style={{position:"fixed",bottom:28,right:28,background:toastC.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(15,23,42,.2)",zIndex:400,maxWidth:340}}>
+        <div style={{position:"fixed",bottom:28,right:28,background:toastC.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(0,0,0,0.32)",zIndex:400,maxWidth:340}}>
           {toastC.msg}
         </div>
       )}
@@ -1818,9 +1818,9 @@ function ContactsView(props) {
 // -- INTEGRATIONS VIEW ---------------------------------------------------------
 function IntegrationsView() {
   var INTEGRATIONS = [
-    {id:"salesforce", name:"Salesforce", logo:"âï¸", desc:"Sincronize contas, contatos e oportunidades com o Salesforce CRM.", color:"#00A1E0", connected:false},
-    {id:"hubspot",    name:"HubSpot",    logo:"ð ", desc:"Exporte leads e sequencias diretamente para o HubSpot CRM.",      color:"#FF7A59", connected:false},
-    {id:"pipedrive",  name:"Pipedrive",  logo:"ð¯", desc:"Crie deals automaticamente no Pipedrive ao salvar uma conta.",    color:"#272D35", connected:false},
+    {id:"salesforce", name:"Salesforce", logo:"☁️", desc:"Sincronize contas, contatos e oportunidades com o Salesforce CRM.", color:"#00A1E0", connected:false},
+    {id:"hubspot",    name:"HubSpot",    logo:"🟠", desc:"Exporte leads e sequencias diretamente para o HubSpot CRM.",      color:"#FF7A59", connected:false},
+    {id:"pipedrive",  name:"Pipedrive",  logo:"🎯", desc:"Crie deals automaticamente no Pipedrive ao salvar uma conta.",    color:"#272D35", connected:false},
   ];
   var _st_states = useState(function(){
     var saved = {};
@@ -1874,78 +1874,78 @@ function IntegrationsView() {
   return (
     <div>
       <div style={{marginBottom:28}}>
-        <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"IntegraÃ§Ãµes"}</div>
-        <div style={{fontSize:13,color:"#64748b"}}>{"Conecte o + Pipe ao seu CRM e ferramentas de vendas."}</div>
+        <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>{"Integrações"}</div>
+        <div style={{fontSize:13,color:"rgba(255,255,255,.55)"}}>{"Conecte o + Pipe ao seu CRM e ferramentas de vendas."}</div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16,marginBottom:32}}>
         {INTEGRATIONS.map(function(int) {
           var st = intStates[int.id] || {};
           var isConn = st.connected;
           return (
-            <div key={int.id} style={{background:"#fff",border:"1.5px solid "+(isConn?"#bbf7d0":"#e8edf4"),borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(15,23,42,.10)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";}}>
+            <div key={int.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid "+(isConn?"#bbf7d0":"#e8edf4"),borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(0,0,0,0.1)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.16)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.1)";}}>
               <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
                 <div style={{width:44,height:44,borderRadius:12,background:int.color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{int.logo}</div>
                 <div>
-                  <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>{int.name}</div>
-                  {isConn && <div style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CONECTADO"}</div>}
+                  <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{int.name}</div>
+                  {isConn && <div style={{fontSize:9,fontWeight:700,color:"#10b981",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CONECTADO"}</div>}
                 </div>
               </div>
-              <div style={{fontSize:12,color:"#64748b",lineHeight:1.6,marginBottom:16}}>{int.desc}</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,.55)",lineHeight:1.6,marginBottom:16}}>{int.desc}</div>
               {isConn ? (
                 <div style={{display:"flex",gap:8}}>
-                  <div style={{flex:1,background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"8px 12px",fontSize:11,color:"#10b981",fontWeight:600}}>{"Ativo"}</div>
-                  <button onClick={function(){disconnect(int.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"8px 12px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{"Desconectar"}</button>
+                  <div style={{flex:1,background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:10,padding:"8px 12px",fontSize:11,color:"#10b981",fontWeight:600}}>{"Ativo"}</div>
+                  <button onClick={function(){disconnect(int.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:10,padding:"8px 12px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{"Desconectar"}</button>
                 </div>
               ) : (
-                <button onClick={function(){setModalInt(int);setApiKey("");}} style={{width:"100%",background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(67,97,238,.25)"}}>{"Conectar"}</button>
+                <button onClick={function(){setModalInt(int);setApiKey("");}} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.25)"}}>{"Conectar"}</button>
               )}
             </div>
           );
         })}
         {customs.map(function(c) {
           return (
-            <div key={c.id} style={{background:"#fff",border:"1.5px solid #bbf7d0",borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(15,23,42,.06)"}}>
+            <div key={c.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(52,211,153,.3)",borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}}>
               <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-                <div style={{width:44,height:44,borderRadius:12,background:"#f8fafc",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{"ð"}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:"rgba(255,255,255,.03)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{"🔌"}</div>
                 <div>
-                  <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>{c.name}</div>
-                  <div style={{fontSize:9,fontWeight:700,color:"#10b981",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CUSTOMIZADO"}</div>
+                  <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{c.name}</div>
+                  <div style={{fontSize:9,fontWeight:700,color:"#10b981",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CUSTOMIZADO"}</div>
                 </div>
               </div>
-              <div style={{fontSize:11,color:"#64748b",marginBottom:14,wordBreak:"break-all"}}>{c.webhookURL || "Webhook configurado"}</div>
-              <button onClick={function(){removeCustom(c.id);}} style={{width:"100%",background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:10,padding:"8px 0",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{"Remover"}</button>
+              <div style={{fontSize:11,color:"rgba(255,255,255,.55)",marginBottom:14,wordBreak:"break-all"}}>{c.webhookURL || "Webhook configurado"}</div>
+              <button onClick={function(){removeCustom(c.id);}} style={{width:"100%",background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:10,padding:"8px 0",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{"Remover"}</button>
             </div>
           );
         })}
-        <button onClick={function(){setCustomModal(true);}} style={{background:"#f8fafc",border:"2px dashed #e2e8f0",borderRadius:20,padding:"24px",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,transition:"all .2s",minHeight:180}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.background="#eff6ff";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.background="#f8fafc";}}>
+        <button onClick={function(){setCustomModal(true);}} style={{background:"rgba(255,255,255,.03)",border:"2px dashed rgba(255,255,255,.08)",borderRadius:20,padding:"24px",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,transition:"all .2s",minHeight:180}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.background="rgba(99,102,241,.12)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.background="rgba(255,255,255,.06)";}}>
           <span style={{fontSize:32}}>{"+"}</span>
-          <span style={{fontSize:13,fontWeight:600,color:"#64748b"}}>{"Adicionar integraÃ§Ã£o"}</span>
-          <span style={{fontSize:11,color:"#94a3b8"}}>{"Via webhook ou API key"}</span>
+          <span style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,.55)"}}>{"Adicionar integração"}</span>
+          <span style={{fontSize:11,color:"rgba(255,255,255,.4)"}}>{"Via webhook ou API key"}</span>
         </button>
       </div>
       {modalInt && (
-        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
-          <div style={{background:"#fff",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(15,23,42,.28)"}}>
-            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:4}}>{modalInt.logo + " Conectar " + modalInt.name}</div>
-            <div style={{fontSize:12,color:"#6b7280",marginBottom:20}}>{"Insira sua API Key do " + modalInt.name + " para ativar a integracao."}</div>
-            <input value={apiKey} onChange={function(e){setApiKey(e.target.value);}} placeholder={"API Key do " + modalInt.name} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(0,0,0,0.45)"}}>
+            <div style={{fontSize:18,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{modalInt.logo + " Conectar " + modalInt.name}</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:20}}>{"Insira sua API Key do " + modalInt.name + " para ativar a integracao."}</div>
+            <input value={apiKey} onChange={function(e){setApiKey(e.target.value);}} placeholder={"API Key do " + modalInt.name} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={function(){setModalInt(null);setApiKey("");}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
-              <button onClick={function(){connect(modalInt.id);}} disabled={!apiKey} style={{flex:2,background:apiKey?"linear-gradient(135deg,#4361EE,#3451d1)":"#e2e8f0",color:apiKey?"#fff":"#94a3b8",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:apiKey?"pointer":"default",fontFamily:"inherit"}}>{"Conectar " + modalInt.name}</button>
+              <button onClick={function(){setModalInt(null);setApiKey("");}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={function(){connect(modalInt.id);}} disabled={!apiKey} style={{flex:2,background:apiKey?"linear-gradient(135deg,#6366f1,#4f46e5)":"#e2e8f0",color:apiKey?"#fff":"#94a3b8",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:apiKey?"pointer":"default",fontFamily:"inherit"}}>{"Conectar " + modalInt.name}</button>
             </div>
           </div>
         </div>
       )}
       {customModal && (
-        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.7)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
-          <div style={{background:"#fff",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(15,23,42,.28)"}}>
-            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar integraÃ§Ã£o personalizada"}</div>
-            <input value={customName} onChange={function(e){setCustomName(e.target.value);}} placeholder={"Nome da ferramenta (ex: RD Station)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
-            <input value={customURL} onChange={function(e){setCustomURL(e.target.value);}} placeholder={"Webhook URL (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
-            <input value={customKey} onChange={function(e){setCustomKey(e.target.value);}} placeholder={"API Key (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(0,0,0,0.45)"}}>
+            <div style={{fontSize:18,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:16}}>{"Adicionar integração personalizada"}</div>
+            <input value={customName} onChange={function(e){setCustomName(e.target.value);}} placeholder={"Nome da ferramenta (ex: RD Station)"} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+            <input value={customURL} onChange={function(e){setCustomURL(e.target.value);}} placeholder={"Webhook URL (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+            <input value={customKey} onChange={function(e){setCustomKey(e.target.value);}} placeholder={"API Key (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={function(){setCustomModal(false);}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
-              <button onClick={addCustom} disabled={!customName} style={{flex:2,background:customName?"linear-gradient(135deg,#4361EE,#3451d1)":"#e2e8f0",color:customName?"#fff":"#94a3b8",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:customName?"pointer":"default",fontFamily:"inherit"}}>{"Adicionar"}</button>
+              <button onClick={function(){setCustomModal(false);}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={addCustom} disabled={!customName} style={{flex:2,background:customName?"linear-gradient(135deg,#6366f1,#4f46e5)":"#e2e8f0",color:customName?"#fff":"#94a3b8",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:customName?"pointer":"default",fontFamily:"inherit"}}>{"Adicionar"}</button>
             </div>
           </div>
         </div>
@@ -1970,24 +1970,24 @@ function HomeView(props) {
   var taxa = total>0?Math.round(converted/total*100):0;
 
   var CARDS = [
-    {id:"busca",    label:"Busca com IA",       emoji:"ð", nav:"search",
+    {id:"busca",    label:"Busca com IA",       emoji:"🔍", nav:"search",
      desc:"Analise qualquer empresa Mid Market e gere account mapping completo com fit, dores, stakeholders e mensagens personalizadas.",
-     stat:total+" conta"+(total!==1?"s":"")+" mapeada"+(total!==1?"s":""), statColor:"#4361EE"},
-    {id:"contas",   label:"Contas",              emoji:"ð", nav:"accounts",
-     desc:"Todas as empresas mapeadas organizadas por fit, tier e estÃ¡gio. Visualize em cards ou lista com filtros avanÃ§ados.",
+     stat:total+" conta"+(total!==1?"s":"")+" mapeada"+(total!==1?"s":""), statColor:"#6366f1"},
+    {id:"contas",   label:"Contas",              emoji:"📁", nav:"accounts",
+     desc:"Todas as empresas mapeadas organizadas por fit, tier e estágio. Visualize em cards ou lista com filtros avançados.",
      stat:total+" no total", statColor:"#0369a1"},
-    {id:"seqs",     label:"SequÃªncias",          emoji:"ð¬", nav:"sequences",
-     desc:"Gere cadÃªncias de 6 toques personalizadas por stakeholder com e-mail, InMail, WhatsApp e cold call.",
+    {id:"seqs",     label:"Sequências",          emoji:"📬", nav:"sequences",
+     desc:"Gere cadências de 6 toques personalizadas por stakeholder com e-mail, InMail, WhatsApp e cold call.",
      stat:"6 perfis de stakeholder", statColor:"#7c3aed"},
-    {id:"biblio",   label:"Biblioteca",          emoji:"ð", nav:"biblioteca",
-     desc:"Todas as sequÃªncias salvas organizadas. Exporte qualquer cadÃªncia em PDF com um clique.",
-     stat:"SequÃªncias salvas", statColor:"#059669"},
-    {id:"pipe",     label:"Pipeline Kanban",     emoji:"ð", nav:"pipeline",
-     desc:"Visualize todas as contas por estÃ¡gio da prospecÃ§Ã£o. Arraste os cards entre colunas para atualizar o status.",
+    {id:"biblio",   label:"Biblioteca",          emoji:"📚", nav:"biblioteca",
+     desc:"Todas as sequências salvas organizadas. Exporte qualquer cadência em PDF com um clique.",
+     stat:"Sequências salvas", statColor:"#059669"},
+    {id:"pipe",     label:"Pipeline Kanban",     emoji:"📊", nav:"pipeline",
+     desc:"Visualize todas as contas por estágio da prospecção. Arraste os cards entre colunas para atualizar o status.",
      stat:converted+" convertida"+(converted!==1?"s":""), statColor:"#065f46"},
-    {id:"relat",    label:"RelatÃ³rios",          emoji:"ð", nav:"relatorios",
-     desc:"Dashboard com funil de conversÃ£o, distribuiÃ§Ã£o por fit e tier, grÃ¡ficos donut e semicÃ­rculo e export em PDF.",
-     stat:taxa+"% taxa de conversÃ£o", statColor:"#92400e"},
+    {id:"relat",    label:"Relatórios",          emoji:"📈", nav:"relatorios",
+     desc:"Dashboard com funil de conversão, distribuição por fit e tier, gráficos donut e semicírculo e export em PDF.",
+     stat:taxa+"% taxa de conversão", statColor:"#92400e"},
   ];
 
   var visible = CARDS.filter(function(c2){ return !hidden[c2.id]; });
@@ -1997,31 +1997,31 @@ function HomeView(props) {
 
   return (
     <div>
-      <div style={{position:"relative",borderRadius:28,overflow:"hidden",marginBottom:28,background:"linear-gradient(135deg,#0A0A0F 0%,#171430 45%,#1e1b4b 100%)",padding:"40px 40px 36px"}}>
-        <div style={{position:"absolute",top:-80,right:-60,width:320,height:320,borderRadius:"50%",background:"radial-gradient(circle,rgba(67,97,238,.35),transparent 70%)",filter:"blur(20px)"}}/>
-        <div style={{position:"absolute",bottom:-100,left:-40,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(124,58,167,.25),transparent 70%)",filter:"blur(20px)"}}/>
+      <div style={{position:"relative",borderRadius:24,overflow:"hidden",marginBottom:28,background:"linear-gradient(135deg,#0a0a14 0%,#171430 45%,#1e1b4b 100%)",border:"1px solid rgba(255,255,255,.08)",padding:"40px 40px 36px"}}>
+        <div style={{position:"absolute",top:-80,right:-60,width:320,height:320,borderRadius:"50%",background:"radial-gradient(circle,rgba(99,102,241,.4),transparent 70%)",filter:"blur(20px)"}}/>
+        <div style={{position:"absolute",bottom:-100,left:-40,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,.3),transparent 70%)",filter:"blur(20px)"}}/>
         <div style={{position:"relative",zIndex:2}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:18}}>
             <span style={{fontSize:10,fontWeight:700,color:"#a5b4fc",background:"rgba(99,102,241,.15)",border:"1px solid rgba(129,140,248,.3)",borderRadius:20,padding:"4px 12px",letterSpacing:.5}}>{"BETA"}</span>
-            <span style={{fontSize:12,color:"#94a3b8"}}>{greet + ", vamos gerar pipeline"}</span>
+            <span style={{fontSize:12,color:"rgba(255,255,255,.4)"}}>{greet + ", vamos gerar pipeline"}</span>
           </div>
           <div style={{fontSize:38,fontWeight:900,letterSpacing:"-1.2px",lineHeight:1.05,color:"#fff",marginBottom:10}}>
             <span style={{color:"#818cf8"}}>{"+"}</span>{"pipe"}
-            <span style={{display:"block",fontSize:18,fontWeight:600,color:"#cbd5e1",letterSpacing:"-.3px",marginTop:6}}>{"Account mapping com IA para times de vendas"}</span>
+            <span style={{display:"block",fontSize:18,fontWeight:600,color:"rgba(255,255,255,.35)",letterSpacing:"-.3px",marginTop:6}}>{"Account mapping com IA para times de vendas"}</span>
           </div>
-          <div style={{fontSize:13.5,color:"#94a3b8",maxWidth:520,lineHeight:1.7,marginBottom:26}}>{"Pesquise qualquer empresa, gere inteligÃªncia de conta completa e cadÃªncias de prospecÃ§Ã£o em segundos. Chegue preparado, feche mais rÃ¡pido."}</div>
+          <div style={{fontSize:13.5,color:"rgba(255,255,255,.4)",maxWidth:520,lineHeight:1.7,marginBottom:26}}>{"Pesquise qualquer empresa, gere inteligência de conta completa e cadências de prospecção em segundos. Chegue preparado, feche mais rápido."}</div>
           <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
             {[
               {label:"Contas mapeadas", value:total, accent:"#818cf8"},
               {label:"Convertidas", value:converted, accent:"#34d399"},
-              {label:"Taxa de conversÃ£o", value:taxa+"%", accent:"#c084fc"},
+              {label:"Taxa de conversão", value:taxa+"%", accent:"#c084fc"},
             ].map(function(m){return (
               <div key={m.label} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:16,padding:"16px 22px",minWidth:128}}>
                 <div style={{fontSize:30,fontWeight:800,color:m.accent,lineHeight:1,letterSpacing:"-.5px"}}>{m.value}</div>
-                <div style={{fontSize:10.5,color:"#94a3b8",fontWeight:500,marginTop:6,whiteSpace:"nowrap"}}>{m.label}</div>
+                <div style={{fontSize:10.5,color:"rgba(255,255,255,.4)",fontWeight:500,marginTop:6,whiteSpace:"nowrap"}}>{m.label}</div>
               </div>
             );})}
-            <button onClick={function(){onNav("search");}} style={{marginLeft:"auto",alignSelf:"center",background:"linear-gradient(135deg,#4361EE,#6366f1)",color:"#fff",border:"none",borderRadius:14,padding:"14px 26px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 8px 28px rgba(67,97,238,.45)",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 12px 36px rgba(67,97,238,.55)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 8px 28px rgba(67,97,238,.45)";}}>
+            <button onClick={function(){onNav("search");}} style={{marginLeft:"auto",alignSelf:"center",background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:14,padding:"14px 26px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 8px 28px rgba(99,102,241,.5)",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 12px 36px rgba(99,102,241,.6)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 8px 28px rgba(99,102,241,.5)";}}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
               {"Nova busca"}
             </button>
@@ -2030,12 +2030,12 @@ function HomeView(props) {
       </div>
 
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:10}}>
-        <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Acesso rÃ¡pido"}</div>
+        <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.85)"}}>{"Acesso rápido"}</div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           {CARDS.map(function(c2){
             var isHidden = hidden[c2.id];
             return (
-              <button key={c2.id} onClick={function(){toggleCard(c2.id);}} style={{background:isHidden?"#f8fafc":"#f0f3ff",border:"1px solid "+(isHidden?"#e2e8f0":"#c7d0fa"),color:isHidden?"#94a3b8":"#4361EE",borderRadius:8,padding:"4px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",opacity:isHidden?.5:1}}>
+              <button key={c2.id} onClick={function(){toggleCard(c2.id);}} style={{background:isHidden?"rgba(255,255,255,.04)":"rgba(99,102,241,.15)",border:"1px solid "+(isHidden?"rgba(255,255,255,.08)":"rgba(99,102,241,.3)"),color:isHidden?"rgba(255,255,255,.4)":"#a5b4fc",borderRadius:8,padding:"4px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .2s",opacity:isHidden?.6:1}}>
                 {c2.emoji+" "+c2.label}
               </button>
             );
@@ -2046,18 +2046,18 @@ function HomeView(props) {
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:18}}>
         {visible.map(function(card){
           return (
-            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"24px",cursor:"pointer",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",overflow:"hidden",boxShadow:"0 1px 3px rgba(15,23,42,.04)"}}
-              onMouseEnter={function(e){e.currentTarget.style.borderColor="#c7d0fa";e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(67,97,238,.14)";}}
-              onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 1px 3px rgba(15,23,42,.04)";}}>
+            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:18,padding:"24px",cursor:"pointer",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",overflow:"hidden",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}
+              onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.35)";e.currentTarget.style.background="rgba(99,102,241,.06)";e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(0,0,0,.35)";}}
+              onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.background="rgba(255,255,255,.04)";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
               <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
-                <div style={{width:48,height:48,borderRadius:14,background:"linear-gradient(135deg,#4361EE,#6366f1)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 16px rgba(67,97,238,.28)",flexShrink:0}}>
+                <div style={{width:48,height:48,borderRadius:14,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 16px rgba(99,102,241,.4)",flexShrink:0}}>
                   <span style={{fontSize:22}}>{card.emoji}</span>
                 </div>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
               </div>
-              <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:8,letterSpacing:"-.3px"}}>{card.label}</div>
-              <div style={{fontSize:12.5,color:"#64748b",lineHeight:1.65,marginBottom:16,minHeight:48}}>{card.desc}</div>
-              <div style={{display:"flex",alignItems:"center",gap:7,paddingTop:14,borderTop:"1px solid #f1f5f9"}}>
+              <div style={{fontSize:16,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:8,letterSpacing:"-.3px"}}>{card.label}</div>
+              <div style={{fontSize:12.5,color:"rgba(255,255,255,.5)",lineHeight:1.65,marginBottom:16,minHeight:48}}>{card.desc}</div>
+              <div style={{display:"flex",alignItems:"center",gap:7,paddingTop:14,borderTop:"1px solid rgba(255,255,255,.07)"}}>
                 <div style={{width:6,height:6,borderRadius:"50%",background:card.statColor,flexShrink:0}}/>
                 <span style={{fontSize:11,color:card.statColor,fontWeight:600}}>{card.stat}</span>
               </div>
@@ -2067,11 +2067,11 @@ function HomeView(props) {
       </div>
 
       {total === 0 && (
-        <div style={{marginTop:28,background:"linear-gradient(135deg,#f0f3ff,#fff)",border:"1.5px solid #c7d0fa",borderRadius:20,padding:"32px",textAlign:"center"}}>
-          <div style={{fontSize:40,marginBottom:12}}>{"ð"}</div>
-          <div style={{fontSize:18,fontWeight:700,color:"#0f172a",marginBottom:8}}>{"Bem-vindo ao +pipe Beta"}</div>
-          <div style={{fontSize:13,color:"#64748b",marginBottom:20,lineHeight:1.7,maxWidth:400,margin:"0 auto 20px"}}>{"Comece mapeando sua primeira conta. Digite o nome de uma empresa na Busca e deixe a IA gerar o account mapping completo."}</div>
-          <button onClick={function(){onNav("search");}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:12,padding:"12px 28px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(67,97,238,.35)"}}>
+        <div style={{marginTop:28,background:"linear-gradient(135deg,rgba(99,102,241,.12),rgba(255,255,255,.02))",border:"1px solid rgba(99,102,241,.25)",borderRadius:18,padding:"32px",textAlign:"center"}}>
+          <div style={{fontSize:40,marginBottom:12}}>{"🚀"}</div>
+          <div style={{fontSize:18,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:8}}>{"Bem-vindo ao +pipe Beta"}</div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,.5)",marginBottom:20,lineHeight:1.7,maxWidth:400,margin:"0 auto 20px"}}>{"Comece mapeando sua primeira conta. Digite o nome de uma empresa na Busca e deixe a IA gerar o account mapping completo."}</div>
+          <button onClick={function(){onNav("search");}} style={{background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:12,padding:"12px 28px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.45)"}}>
             {"Mapear primeira conta"}
           </button>
         </div>
@@ -2113,7 +2113,7 @@ function buildData(company, searchResults) {
   var setor = isEcomm?"E-commerce / Varejo Digital":isFintech?"Fintech / Servicos Financeiros":isSaaS?"Software / SaaS B2B":isHealth?"Saude / Healthtech":isTelecom?"Telecomunicacoes":"Tecnologia / Mid Market";
   var tier  = (isEcomm||isFintech||isSaaS||isTelecom) ? "Tier 1" : "Tier 2";
   function buildResumo() {
-    if (!tavilyAnswers.length) return company+" e uma empresa de "+setor+" com operaÃ§Ã£o ativa no Brasil.";
+    if (!tavilyAnswers.length) return company+" e uma empresa de "+setor+" com operação ativa no Brasil.";
     // Filter to best PT-BR content
     var ptAnswers = tavilyAnswers.filter(function(a) {
       return a.length > 80 && /\b(empresa|brasil|compan|serv|produt|clientes|mercado|tecnolog|atend|fundad|operas|setor)\b/i.test(a);
@@ -2142,7 +2142,7 @@ function buildData(company, searchResults) {
   if (Array.isArray(searchResults)) {
     searchResults.forEach(function(b) { (b.sources||[]).forEach(function(s){allSources.push(s);}); });
   }
-  // Build noticias â sources have {title, url, content} from search API
+  // Build noticias — sources have {title, url, content} from search API
   var noticiasSources = allSources
     .filter(function(s){ return s.url && (s.title||s.titulo); })
     .filter(function(s){ return !/linkedin\.com|facebook\.com|instagram\.com|twitter\.com/.test(s.url||""); })
@@ -2154,17 +2154,17 @@ function buildData(company, searchResults) {
     });
   var noticias = noticiasSources.length ? noticiasSources : [{titulo:"Buscar noticias recentes de "+company, resumo:"Clique para pesquisar noticias sobre a empresa.", url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX 2024", relevancia:"Pesquisa sugerida"}];
   return {
-    empresa:{nome:company,setor:setor,resumo:resumo,rawContext:allText.slice(0,4000),tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponÃ­vel",clientes:clientes||""},
+    empresa:{nome:company,setor:setor,resumo:resumo,rawContext:allText.slice(0,4000),tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponível",clientes:clientes||""},
     fit:{score:"ALTO",justificativa:company+" atua em "+setor+", vertical de alto potencial para Zendesk Suite. Times de atendimento Mid Market com pressao de CSAT e custo por ticket sao nosso ICP principal.",solucoes_zendesk:["Zendesk Support (ticketing omnichannel)","Zendesk Messaging (chat e WhatsApp)","Help Center com IA generativa","Zendesk Explore (analytics e CSAT)","Workforce Management","QA e automacao de qualidade","Zendesk Sell (CRM de vendas)"]},
     mercado:{competidores_provedor:["Freshdesk","Salesforce Service Cloud","HubSpot Service Hub","ServiceNow CSM","Intercom","LivePerson","TOTVS CRM","sistema interno legado"],concorrentes_mercado:[]},
-    dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rÃ¡pido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
+    dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rápido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
     triggers:["Crescimento acelerado do time de atendimento (vagas abertas de agente/CX)","Alto volume de reclamacoes no Reclame Aqui ou redes sociais","Abertura ou expansao de canal digital (WhatsApp, chat, e-commerce)","Contratacao recente de Head de CX, VP de Ops ou Diretor de Atendimento","Insatisfacao com Freshdesk ou sistema legado","Lancamento de novo produto , aumento de demanda de suporte"],
     stakeholders:[
       {cargo:"Head de CX / Diretor de Atendimento",angulo:"Decisor principal. Sente pressao de CSAT, SLA e custo. Quer escalar sem contratar mais agentes.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
       {cargo:"CEO / Diretor Geral",angulo:"Decisor economico. Ve CX como alavanca de retencao. Quer ROI claro e reducao de churn.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
-      {cargo:"VP / Diretor de OperaÃ§Ãµes",angulo:"Co-decisor. Olha custo por ticket e eficiencia. Quer reducao de custo e SLA previsivel.",prioridade:"PRIMARIO",urgencia:"MÃ©dia"},
-      {cargo:"Head de Customer Success",angulo:"Aliado. Quer integraÃ§Ã£o com CRM e visibilidade de clientes em risco de churn.",prioridade:"SECUNDARIO",urgencia:"MÃ©dia"},
-      {cargo:"Gerente de TI / CTO",angulo:"Avalia viabilidade tÃ©cnica. Precisa de API robusta e suporte no processo de migracao.",prioridade:"SECUNDARIO",urgencia:"MÃ©dia"},
+      {cargo:"VP / Diretor de Operações",angulo:"Co-decisor. Olha custo por ticket e eficiencia. Quer reducao de custo e SLA previsivel.",prioridade:"PRIMARIO",urgencia:"Média"},
+      {cargo:"Head de Customer Success",angulo:"Aliado. Quer integração com CRM e visibilidade de clientes em risco de churn.",prioridade:"SECUNDARIO",urgencia:"Média"},
+      {cargo:"Gerente de TI / CTO",angulo:"Avalia viabilidade técnica. Precisa de API robusta e suporte no processo de migracao.",prioridade:"SECUNDARIO",urgencia:"Média"},
       {cargo:"CFO / Diretor Financeiro",angulo:"Aprova budget. Quer ROI mensuravel e comparativo de custo por ticket antes x depois.",prioridade:"TERCIARIO",urgencia:"Baixa"}
     ],
     noticias: noticias,
@@ -2206,15 +2206,15 @@ function buildData(company, searchResults) {
         "NECESSIDADE: O que precisaria para CX subir de prioridade na "+company+"?",
         "NECESSIDADE: Se eu mostrasse como aumentar CSAT em 25 pontos em 90 dias, valeria 20 minutos?"
       ],
-      objeÃ§Ãµes:[
-        {objeÃ§Ã£o:"Ja usamos Freshdesk e estamos satisfeitos",resposta:"A diferenca na pratica e na IA nativa, omnichannel real e analytics profundo com Explore. Vale ver lado a lado?"},
-        {objeÃ§Ã£o:"Nao temos budget para isso agora",resposta:"Posso mostrar o ROI baseado no custo por ticket atual? Clientes de "+setor+" costumam pagar a plataforma com a economia em 4 a 6 meses."},
-        {objeÃ§Ã£o:"Nossa TI nao tem capacidade",resposta:"Nosso CS conduz toda a implementacao. Empresas de "+setor+" ficaram no ar em media em 4 semanas sem demandar TI interna."},
-        {objeÃ§Ã£o:"Nao e prioridade agora",resposta:"Quando CX ganha prioridade , e antes ou depois de uma queda de CSAT que impacta churn?"},
-        {objeÃ§Ã£o:"Ja usamos Salesforce Service Cloud",resposta:"O Salesforce e poderoso. Zendesk e mais rapida para implementar, mais intuitiva para o agente e mais barata para escalar."},
-        {objeÃ§Ã£o:"Precisamos envolver mais areas",resposta:"Posso te ajudar a preparar o business case com ROI e casos do "+setor+" para facilitar a conversa interna."},
-        {objeÃ§Ã£o:"Ja tentamos uma ferramenta e o time nao adotou",resposta:"Problema de UX da ferramenta. Zendesk tem NPS de 86 entre agentes. Posso mostrar a interface em 10 minutos?"},
-        {objeÃ§Ã£o:"Preferimos desenvolver internamente",resposta:"Manter helpdesk interno custa em media 3x mais que a Zendesk em 2 anos. Posso mostrar o calculo?"}
+      objeções:[
+        {objeção:"Ja usamos Freshdesk e estamos satisfeitos",resposta:"A diferenca na pratica e na IA nativa, omnichannel real e analytics profundo com Explore. Vale ver lado a lado?"},
+        {objeção:"Nao temos budget para isso agora",resposta:"Posso mostrar o ROI baseado no custo por ticket atual? Clientes de "+setor+" costumam pagar a plataforma com a economia em 4 a 6 meses."},
+        {objeção:"Nossa TI nao tem capacidade",resposta:"Nosso CS conduz toda a implementacao. Empresas de "+setor+" ficaram no ar em media em 4 semanas sem demandar TI interna."},
+        {objeção:"Nao e prioridade agora",resposta:"Quando CX ganha prioridade , e antes ou depois de uma queda de CSAT que impacta churn?"},
+        {objeção:"Ja usamos Salesforce Service Cloud",resposta:"O Salesforce e poderoso. Zendesk e mais rapida para implementar, mais intuitiva para o agente e mais barata para escalar."},
+        {objeção:"Precisamos envolver mais areas",resposta:"Posso te ajudar a preparar o business case com ROI e casos do "+setor+" para facilitar a conversa interna."},
+        {objeção:"Ja tentamos uma ferramenta e o time nao adotou",resposta:"Problema de UX da ferramenta. Zendesk tem NPS de 86 entre agentes. Posso mostrar a interface em 10 minutos?"},
+        {objeção:"Preferimos desenvolver internamente",resposta:"Manter helpdesk interno custa em media 3x mais que a Zendesk em 2 anos. Posso mostrar o calculo?"}
       ]
     },
     proximos_passos:{
@@ -2329,7 +2329,7 @@ function SearchView(props) {
       var dup = props.accounts.find(function(a){ return a.nome && a.nome.toLowerCase().trim() === nomeLower; });
       if (dup) { setDuplicate(dup); setInputVal(""); return; }
     }
-    // Consome 1 crÃ©dito ANTES de mapear. Se estourou o limite, bloqueia.
+    // Consome 1 crédito ANTES de mapear. Se estourou o limite, bloqueia.
     if (props.onRequestCredit) {
       props.onRequestCredit().then(function(ok){
         if (!ok) return; // limite atingido -> toast ja exibido pelo App
@@ -2362,13 +2362,13 @@ function SearchView(props) {
   return (
     <div>
       <div style={{marginBottom:32}}>
-        <div style={{fontSize:26,fontWeight:800,color:"#0f172a",marginBottom:6,letterSpacing:"-0.5px"}}>
-          {"Account "}<span style={{color:"#4361EE"}}>{"Mapping"}</span>
+        <div style={{fontSize:26,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:6,letterSpacing:"-0.5px"}}>
+          {"Account "}<span style={{color:"#a5b4fc"}}>{"Mapping"}</span>
         </div>
-        <div style={{fontSize:13,color:"#64748b",marginBottom:20,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento de CX completo. O resultado Ã© salvo automaticamente em Contas."}</div>
+        <div style={{fontSize:13,color:"rgba(255,255,255,.55)",marginBottom:20,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento de CX completo. O resultado é salvo automaticamente em Contas."}</div>
 
         {usage && (
-          <div style={{background:"#fff",border:"1.5px solid "+(usage.remaining<=0?"#fecdd3":"#e8edf4"),borderRadius:16,padding:"16px 18px",marginBottom:20}}>
+          <div style={{background:"rgba(255,255,255,.04)",border:"1.5px solid "+(usage.remaining<=0?"#fecdd3":"#e8edf4"),borderRadius:16,padding:"16px 18px",marginBottom:20}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:10}}>
               <div style={{display:"flex",alignItems:"center",gap:8}}>
                 <div style={{position:"relative"}}>
@@ -2377,59 +2377,59 @@ function SearchView(props) {
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
                   {planMenu && (
-                    <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"#fff",border:"1.5px solid #e8edf4",borderRadius:12,boxShadow:"0 8px 32px rgba(15,23,42,.12)",zIndex:60,minWidth:200,overflow:"hidden"}}>
-                      <div style={{padding:"8px 12px",fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.6,borderBottom:"1px solid #f1f5f9"}}>{"Plano (demo)"}</div>
+                    <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"rgba(16,16,30,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:12,boxShadow:"0 12px 40px rgba(0,0,0,0.5)",zIndex:60,minWidth:200,overflow:"hidden"}}>
+                      <div style={{padding:"8px 12px",fontSize:9,fontWeight:700,color:"rgba(255,255,255,.4)",textTransform:"uppercase",letterSpacing:.6,borderBottom:"1px solid #f1f5f9"}}>{"Plano (demo)"}</div>
                       {["free","starter","professional"].map(function(pid) {
                         var p = PLANS[pid]; var isCurrent = usage.plan===pid;
                         return (
-                          <div key={pid} onClick={function(){ if(props.onChangePlan)props.onChangePlan(pid); setPlanMenu(false); }} style={{padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,background:isCurrent?"#f0f3ff":"#fff"}} onMouseEnter={function(e){if(!isCurrent)e.currentTarget.style.background="#f8fafc";}} onMouseLeave={function(e){if(!isCurrent)e.currentTarget.style.background="#fff";}}>
+                          <div key={pid} onClick={function(){ if(props.onChangePlan)props.onChangePlan(pid); setPlanMenu(false); }} style={{padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,background:isCurrent?"#f0f3ff":"#fff"}} onMouseEnter={function(e){if(!isCurrent)e.currentTarget.style.background="rgba(255,255,255,.06)";}} onMouseLeave={function(e){if(!isCurrent)e.currentTarget.style.background="rgba(255,255,255,.04)";}}>
                             <span style={{width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0}}/>
-                            <span style={{fontSize:12,fontWeight:700,color:"#0f172a",flex:1}}>{p.label}</span>
-                            <span style={{fontSize:10,color:"#64748b"}}>{p.limit + "/mÃªs"}</span>
-                            {isCurrent && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
+                            <span style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)",flex:1}}>{p.label}</span>
+                            <span style={{fontSize:10,color:"rgba(255,255,255,.55)"}}>{p.limit + "/mês"}</span>
+                            {isCurrent && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
                           </div>
                         );
                       })}
                     </div>
                   )}
                 </div>
-                <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
+                <span style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-                <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mÃªs"}</span>
+                <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mês"}</span>
                 <input ref={csvRef} type="file" accept=".csv,text/csv" onChange={onCsvPick} style={{display:"none"}}/>
-                <button onClick={function(){csvRef.current&&csvRef.current.click();}} style={{background:"#fff",border:"1.5px solid #4361EE",color:"#4361EE",borderRadius:9,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
+                <button onClick={function(){csvRef.current&&csvRef.current.click();}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(99,102,241,.4)",color:"#a5b4fc",borderRadius:9,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                   {"Importar CSV"}
                 </button>
                 <div style={{position:"relative",display:"flex"}}>
-                  <button onClick={function(){setCsvInfo(!csvInfo);}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}} title="Modelo do CSV" style={{background:"#f8fafc",border:"1.5px solid #e2e8f0",color:"#64748b",borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,padding:0}}>{"i"}</button>
+                  <button onClick={function(){setCsvInfo(!csvInfo);}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}} title="Modelo do CSV" style={{background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,padding:0}}>{"i"}</button>
                   {csvInfo && (
-                    <div style={{position:"absolute",top:"calc(100% + 8px)",right:0,background:"#0f172a",color:"#fff",borderRadius:12,padding:"14px 16px",width:260,zIndex:70,boxShadow:"0 12px 40px rgba(15,23,42,.3)",fontSize:11,lineHeight:1.6}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}}>
+                    <div style={{position:"absolute",top:"calc(100% + 8px)",right:0,background:"#0f172a",color:"#fff",borderRadius:12,padding:"14px 16px",width:260,zIndex:70,boxShadow:"0 12px 40px rgba(0,0,0,0.48)",fontSize:11,lineHeight:1.6}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}}>
                       <div style={{fontWeight:700,marginBottom:8,fontSize:12}}>{"Modelo do arquivo CSV"}</div>
-                      <div style={{color:"#cbd5e1",marginBottom:10}}>{"Use as colunas abaixo (nome Ã© obrigatÃ³rio, as demais opcionais):"}</div>
+                      <div style={{color:"rgba(255,255,255,.35)",marginBottom:10}}>{"Use as colunas abaixo (nome é obrigatório, as demais opcionais):"}</div>
                       <div style={{background:"rgba(255,255,255,.08)",borderRadius:8,padding:"10px 12px",fontFamily:"monospace",fontSize:10.5,color:"#e2e8f0",overflowX:"auto",whiteSpace:"nowrap"}}>
                         <div style={{fontWeight:700,color:"#7dd3fc"}}>{"nome,site,linkedin"}</div>
                         <div>{"Nubank,nubank.com.br,linkedin.com/company/nubank"}</div>
                         <div>{"Stone,stone.com.br,"}</div>
                         <div>{"TOTVS,totvs.com,"}</div>
                       </div>
-                      <div style={{color:"#94a3b8",marginTop:10,fontSize:10}}>{"Aceita separador vÃ­rgula ou ponto-e-vÃ­rgula. A ordem das colunas nÃ£o importa."}</div>
+                      <div style={{color:"rgba(255,255,255,.4)",marginTop:10,fontSize:10}}>{"Aceita separador vírgula ou ponto-e-vírgula. A ordem das colunas não importa."}</div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            <div style={{height:8,background:"#f1f5f9",borderRadius:8,overflow:"hidden"}}>
-              <div style={{height:"100%",width:Math.min(100,Math.round((usage.used/usage.limit)*100))+"%",background:usage.remaining<=3?"linear-gradient(90deg,#ef4444,#f59e0b)":"linear-gradient(90deg,"+usage.planColor+",#3451d1)",borderRadius:8,transition:"width .4s"}}/>
+            <div style={{height:8,background:"rgba(255,255,255,.05)",borderRadius:8,overflow:"hidden"}}>
+              <div style={{height:"100%",width:Math.min(100,Math.round((usage.used/usage.limit)*100))+"%",background:usage.remaining<=3?"linear-gradient(90deg,#ef4444,#f59e0b)":"linear-gradient(90deg,"+usage.planColor+",#4f46e5)",borderRadius:8,transition:"width .4s"}}/>
             </div>
             {usage.remaining<=0 && (
-              <div style={{marginTop:14,background:"linear-gradient(135deg,#fff7ed,#fef2f2)",border:"1.5px solid #fed7aa",borderRadius:12,padding:"14px 16px"}}>
+              <div style={{marginTop:14,background:"linear-gradient(135deg,#fff7ed,#fef2f2)",border:"1.5px solid rgba(251,146,60,.3)",borderRadius:12,padding:"14px 16px"}}>
                 <div style={{fontSize:13,fontWeight:800,color:"#9a3412",marginBottom:4}}>{"Limite do plano " + usage.planLabel + " atingido"}</div>
-                <div style={{fontSize:12,color:"#7c2d12",lineHeight:1.6,marginBottom:12}}>{"VocÃª usou os " + usage.limit + " mapeamentos deste mÃªs. " + (nextPlanMsg(usage.plan))}</div>
+                <div style={{fontSize:12,color:"#7c2d12",lineHeight:1.6,marginBottom:12}}>{"Você usou os " + usage.limit + " mapeamentos deste mês. " + (nextPlanMsg(usage.plan))}</div>
                 {nextPlanId(usage.plan) && (
-                  <button onClick={function(){ if(props.onChangePlan)props.onChangePlan(nextPlanId(usage.plan)); }} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"10px 18px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(67,97,238,.3)"}}>
-                    {"Migrar para " + PLANS[nextPlanId(usage.plan)].label + " (" + PLANS[nextPlanId(usage.plan)].limit + "/mÃªs)"}
+                  <button onClick={function(){ if(props.onChangePlan)props.onChangePlan(nextPlanId(usage.plan)); }} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"10px 18px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.3)"}}>
+                    {"Migrar para " + PLANS[nextPlanId(usage.plan)].label + " (" + PLANS[nextPlanId(usage.plan)].limit + "/mês)"}
                   </button>
                 )}
               </div>
@@ -2437,44 +2437,44 @@ function SearchView(props) {
           </div>
         )}
         {csvPreview && (
-          <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.65)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
-            <div style={{background:"#fff",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.25)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
-              <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:6}}>{"Importar contas"}</div>
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
+            <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(0,0,0,0.4)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
+              <div style={{fontSize:17,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:6}}>{"Importar contas"}</div>
               {csvPreview.error ? (
-                <div style={{fontSize:13,color:"#ef4444",background:"#fff1f2",border:"1px solid #fecdd3",borderRadius:10,padding:"12px 14px",marginTop:8}}>{csvPreview.error}</div>
+                <div style={{fontSize:13,color:"#ef4444",background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",borderRadius:10,padding:"12px 14px",marginTop:8}}>{csvPreview.error}</div>
               ) : (
                 <div style={{display:"flex",flexDirection:"column",minHeight:0}}>
-                  <div style={{fontSize:12,color:"#64748b",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas para Contas como nao mapeadas (sem consumir creditos)."}</div>
-                  <div style={{overflowY:"auto",border:"1px solid #f1f5f9",borderRadius:10,marginBottom:16}}>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,.55)",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas para Contas como nao mapeadas (sem consumir creditos)."}</div>
+                  <div style={{overflowY:"auto",border:"1px solid rgba(255,255,255,.06)",borderRadius:10,marginBottom:16}}>
                     {csvPreview.rows.slice(0,50).map(function(r,i){
                       return (
                         <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderBottom:i<csvPreview.rows.length-1?"1px solid #f8fafc":"none"}}>
-                          <span style={{fontSize:12,fontWeight:600,color:"#0f172a",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
-                          {r.site && <span style={{fontSize:10,color:"#94a3b8",flexShrink:0}}>{r.site}</span>}
+                          <span style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,.92)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
+                          {r.site && <span style={{fontSize:10,color:"rgba(255,255,255,.4)",flexShrink:0}}>{r.site}</span>}
                         </div>
                       );
                     })}
-                    {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"#94a3b8"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
+                    {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"rgba(255,255,255,.4)"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
                   </div>
                 </div>
               )}
               <div style={{display:"flex",gap:8}}>
-                <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
-                {!csvPreview.error && <button onClick={confirmImport} style={{flex:2,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{"Importar " + csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"")}</button>}
+                <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+                {!csvPreview.error && <button onClick={confirmImport} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{"Importar " + csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"")}</button>}
               </div>
             </div>
           </div>
         )}
         <div style={{display:"flex",gap:10}}>
-          <input value={inputVal} onChange={function(e){setInputVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleSearch();}} placeholder="Ex: Nubank, TOTVS, Stone..." style={{flex:1,background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"14px 18px",fontSize:13.5,color:"#0f172a",fontFamily:"inherit",outline:"none",boxShadow:"0 1px 3px rgba(15,23,42,.06)",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
-          <button onClick={handleSearch} disabled={loading||!inputVal.trim()} style={{background:loading||!inputVal.trim()?"#e2e8f0":"linear-gradient(135deg,#4361EE,#3451d1)",color:loading||!inputVal.trim()?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 28px",fontSize:13,fontWeight:600,cursor:loading||!inputVal.trim()?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:loading||!inputVal.trim()?"none":"0 4px 14px rgba(67,97,238,.35)",transition:"all .2s",whiteSpace:"nowrap"}}>
+          <input value={inputVal} onChange={function(e){setInputVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleSearch();}} placeholder="Ex: Nubank, TOTVS, Stone..." style={{flex:1,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:12,padding:"14px 18px",fontSize:13.5,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",boxShadow:"0 1px 3px rgba(0,0,0,0.1)",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+          <button onClick={handleSearch} disabled={loading||!inputVal.trim()} style={{background:loading||!inputVal.trim()?"#e2e8f0":"linear-gradient(135deg,#6366f1,#4f46e5)",color:loading||!inputVal.trim()?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 28px",fontSize:13,fontWeight:600,cursor:loading||!inputVal.trim()?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:loading||!inputVal.trim()?"none":"0 4px 14px rgba(99,102,241,.35)",transition:"all .2s",whiteSpace:"nowrap"}}>
             {loading?"Buscando na internet...":"Analisar"}
           </button>
         </div>
 
-        <div style={{marginTop:12,background:"#f8fafc",border:"1.5px dashed #e2e8f0",borderRadius:12,padding:"13px 16px",cursor:"pointer",transition:"all .2s"}}
-          onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.background="#f0f3ff";}}
-          onMouseLeave={function(e){e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.background="#f8fafc";}}
+        <div style={{marginTop:12,background:"rgba(255,255,255,.03)",border:"1.5px dashed rgba(255,255,255,.08)",borderRadius:12,padding:"13px 16px",cursor:"pointer",transition:"all .2s"}}
+          onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.background="rgba(99,102,241,.12)";}}
+          onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.background="rgba(255,255,255,.06)";}}
           onClick={function(){document.getElementById("mpipe-attach").click();}}>
           <input id="mpipe-attach" type="file" accept=".pdf,.xlsx,.xls,.docx,.doc,.txt" style={{display:"none"}} onChange={function(e){
             var file=e.target.files&&e.target.files[0];
@@ -2485,60 +2485,60 @@ function SearchView(props) {
             reader.readAsDataURL(file);
           }}/>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <div style={{width:32,height:32,borderRadius:8,background:attachment?"rgba(67,97,238,.12)":"#fff",border:"1px solid "+(attachment?"#4361EE":"#e2e8f0"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={attachment?"#4361EE":"#94a3b8"} strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <div style={{width:32,height:32,borderRadius:8,background:attachment?"rgba(99,102,241,.12)":"#fff",border:"1px solid "+(attachment?"#6366f1":"#e2e8f0"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={attachment?"#6366f1":"#94a3b8"} strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:12,fontWeight:600,color:attachment?"#4361EE":"#475569",marginBottom:2}}>{attachment?"Arquivo anexado":"Deseja enriquecer a sua pesquisa?"}</div>
-              <div style={{fontSize:11,color:"#94a3b8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment?attachName:"Anexe aqui o RI da empresa, relatorios, etc (pdf, xlsx, docx)"}</div>
+              <div style={{fontSize:12,fontWeight:600,color:attachment?"#6366f1":"#475569",marginBottom:2}}>{attachment?"Arquivo anexado":"Deseja enriquecer a sua pesquisa?"}</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment?attachName:"Anexe aqui o RI da empresa, relatorios, etc (pdf, xlsx, docx)"}</div>
             </div>
             {attachment&&(
-              <button onClick={function(e){e.stopPropagation();setAttachment(null);setAttachName("");}} style={{background:"none",border:"1px solid #e2e8f0",borderRadius:6,color:"#94a3b8",cursor:"pointer",fontSize:11,padding:"3px 8px",fontFamily:"inherit",flexShrink:0}}>{"Remover"}</button>
+              <button onClick={function(e){e.stopPropagation();setAttachment(null);setAttachName("");}} style={{background:"none",border:"1px solid rgba(255,255,255,.08)",borderRadius:6,color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:11,padding:"3px 8px",fontFamily:"inherit",flexShrink:0}}>{"Remover"}</button>
             )}
           </div>
         </div>
         {searchError && (
-          <div style={{marginTop:12,background:"#fffbeb",border:"1px solid #fde68a",borderRadius:12,padding:"12px 16px",fontSize:12,color:"#92400e"}}>{searchError}</div>
+          <div style={{marginTop:12,background:"rgba(251,191,36,.1)",border:"1px solid rgba(251,191,36,.3)",borderRadius:12,padding:"12px 16px",fontSize:12,color:"#92400e"}}>{searchError}</div>
         )}
         {duplicate && (
-          <div style={{marginTop:14,background:"#fff7ed",border:"1.5px solid #fb923c",borderRadius:14,padding:"14px 18px"}}>
+          <div style={{marginTop:14,background:"#fff7ed",border:"1.5px solid rgba(251,146,60,.4)",borderRadius:14,padding:"14px 18px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
               <div>
-                <div style={{fontSize:13,fontWeight:700,color:"#9a3412",marginBottom:3}}>{"Conta jÃ¡ mapeada: "+duplicate.nome}</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#9a3412",marginBottom:3}}>{"Conta já mapeada: "+duplicate.nome}</div>
                 <div style={{fontSize:11,color:"#c2410c"}}>{duplicate.setor + " , " + (STATUS_CONFIG[duplicate.status]&&STATUS_CONFIG[duplicate.status].label)}</div>
               </div>
               <div style={{display:"flex",gap:8}}>
                 <button onClick={function(){props.onOpenAccount(duplicate);}} style={{background:"#ea580c",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
                   {"Ver mapeamento"}
                 </button>
-                <button onClick={function(){setDuplicate(null);}} style={{background:"none",border:"1px solid #fb923c",color:"#ea580c",borderRadius:10,padding:"8px 12px",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>x</button>
+                <button onClick={function(){setDuplicate(null);}} style={{background:"none",border:"1px solid rgba(251,146,60,.4)",color:"#ea580c",borderRadius:10,padding:"8px 12px",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>x</button>
               </div>
             </div>
           </div>
         )}
         {done && (
-          <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10,background:"#f0f3ff",border:"1px solid #86efac",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#2d3a8c",fontWeight:600}}>
+          <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10,background:"rgba(99,102,241,.1)",border:"1px solid rgba(52,211,153,.35)",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#818cf8",fontWeight:600}}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             {done + " mapeado e salvo em Contas!"}
           </div>
         )}
       </div>
-      <div style={{background:"linear-gradient(160deg,#f0fdf8 0%,#fff 60%)",border:"1px solid rgba(67,97,238,.2)",borderRadius:20,padding:"20px 24px",marginBottom:24,position:"relative",overflow:"hidden"}}>
-        <div style={{fontSize:10,fontWeight:700,color:"#4361EE",letterSpacing:2,textTransform:"uppercase",marginBottom:16}}>Como funciona o + Pipe</div>
+      <div style={{background:"linear-gradient(160deg,#f0fdf8 0%,#fff 60%)",border:"1px solid rgba(99,102,241,.2)",borderRadius:20,padding:"20px 24px",marginBottom:24,position:"relative",overflow:"hidden"}}>
+        <div style={{fontSize:10,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:16}}>Como funciona o + Pipe</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:14}}>
           {[
             {n:"1",title:"Busca",desc:"Analise qualquer empresa Mid Market e gere o account mapping completo com fit de CX, dores, stakeholders e mensagens."},
-            {n:"2",title:"Contas",desc:"Todas as empresas ficam salvas com status de prospecÃ§Ã£o, organizadas por fit, tier e estÃ¡gio."},
-            {n:"3",title:"SequÃªncias",desc:"Gere cadÃªncias de 6 toques personalizadas por stakeholder com scripts prontos para copiar e usar."},
-            {n:"4",title:"Pipeline",desc:"Kanban visual para acompanhar cada conta do mapeamento atÃ© a conversÃ£o."},
+            {n:"2",title:"Contas",desc:"Todas as empresas ficam salvas com status de prospecção, organizadas por fit, tier e estágio."},
+            {n:"3",title:"Sequências",desc:"Gere cadências de 6 toques personalizadas por stakeholder com scripts prontos para copiar e usar."},
+            {n:"4",title:"Pipeline",desc:"Kanban visual para acompanhar cada conta do mapeamento até a conversão."},
           ].map(function(item) {
             return (
               <div key={item.n}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                  <div style={{width:24,height:24,borderRadius:7,background:"rgba(67,97,238,.1)",border:"1px solid rgba(67,97,238,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#3451d1",flexShrink:0}}>{item.n}</div>
-                  <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a"}}>{item.title}</div>
+                  <div style={{width:24,height:24,borderRadius:7,background:"rgba(99,102,241,.1)",border:"1px solid rgba(99,102,241,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#a5b4fc",flexShrink:0}}>{item.n}</div>
+                  <div style={{fontSize:12.5,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{item.title}</div>
                 </div>
-                <div style={{fontSize:11,color:"#64748b",lineHeight:1.55}}>{item.desc}</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,.55)",lineHeight:1.55}}>{item.desc}</div>
               </div>
             );
           })}
@@ -2616,23 +2616,23 @@ function AccountsView(props) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Contas</div>
-          <div style={{fontSize:13,color:"#64748b"}}>{accounts.length + " conta" + (accounts.length!==1?"s":"") + " na lista"}</div>
+          <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>Contas</div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,.55)"}}>{accounts.length + " conta" + (accounts.length!==1?"s":"") + " na lista"}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"8px 12px",fontSize:12,color:"rgba(255,255,255,.6)",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
             <option value="date">Mais recente</option>
             <option value="az">A - Z</option>
             <option value="za">Z - A</option>
           </select>
-          <div style={{display:"flex",background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,overflow:"hidden"}}>
-            <button onClick={function(){setViewMode("cards");}} title="Cards" style={{padding:"8px 12px",border:"none",background:viewMode==="cards"?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:viewMode==="cards"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1,fontFamily:"inherit"}}>
+          <div style={{display:"flex",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,overflow:"hidden"}}>
+            <button onClick={function(){setViewMode("cards");}} title="Cards" style={{padding:"8px 12px",border:"none",background:viewMode==="cards"?"linear-gradient(135deg,#6366f1,#4f46e5)":"transparent",color:viewMode==="cards"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1,fontFamily:"inherit"}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                 <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
               </svg>
             </button>
-            <button onClick={function(){setViewMode("list");}} title="Lista" style={{padding:"8px 12px",border:"none",background:viewMode==="list"?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:viewMode==="list"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1,fontFamily:"inherit"}}>
+            <button onClick={function(){setViewMode("list");}} title="Lista" style={{padding:"8px 12px",border:"none",background:viewMode==="list"?"linear-gradient(135deg,#6366f1,#4f46e5)":"transparent",color:viewMode==="list"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1,fontFamily:"inherit"}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
                 <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
@@ -2642,53 +2642,53 @@ function AccountsView(props) {
         </div>
       </div>
       {usage && (
-        <div style={{background:"#fff",border:"1.5px solid #e8edf4",borderRadius:16,padding:"14px 18px",marginBottom:18}}>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:16,padding:"14px 18px",marginBottom:18}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:8}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <span style={{fontSize:9,fontWeight:700,color:"#fff",background:usage.planColor,borderRadius:6,padding:"3px 8px",textTransform:"uppercase",letterSpacing:.5}}>{usage.planLabel}</span>
-              <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
+              <span style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
             </div>
-            <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mÃªs"}</span>
+            <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mês"}</span>
           </div>
-          <div style={{height:8,background:"#f1f5f9",borderRadius:8,overflow:"hidden"}}>
-            <div style={{height:"100%",width:Math.min(100,Math.round((usage.used/usage.limit)*100))+"%",background:usage.remaining<=3?"linear-gradient(90deg,#ef4444,#f59e0b)":"linear-gradient(90deg,"+usage.planColor+",#3451d1)",borderRadius:8,transition:"width .4s"}}/>
+          <div style={{height:8,background:"rgba(255,255,255,.05)",borderRadius:8,overflow:"hidden"}}>
+            <div style={{height:"100%",width:Math.min(100,Math.round((usage.used/usage.limit)*100))+"%",background:usage.remaining<=3?"linear-gradient(90deg,#ef4444,#f59e0b)":"linear-gradient(90deg,"+usage.planColor+",#4f46e5)",borderRadius:8,transition:"width .4s"}}/>
           </div>
         </div>
       )}
       {selectedCount>0 && (
-        <div style={{background:"linear-gradient(135deg,rgba(67,97,238,.08),rgba(14,165,233,.05))",border:"1.5px solid rgba(67,97,238,.2)",borderRadius:14,padding:"12px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
-          <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{selectedCount + " selecionada" + (selectedCount!==1?"s":"")}</span>
+        <div style={{background:"linear-gradient(135deg,rgba(99,102,241,.08),rgba(14,165,233,.05))",border:"1.5px solid rgba(99,102,241,.2)",borderRadius:14,padding:"12px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+          <span style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{selectedCount + " selecionada" + (selectedCount!==1?"s":"")}</span>
           <div style={{display:"flex",gap:8}}>
-            <button onClick={function(){setSelected({});}} style={{background:"#fff",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Limpar"}</button>
-            <button onClick={mapSelected} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 12px rgba(67,97,238,.25)"}}>{"Mapear selecionadas"}</button>
+            <button onClick={function(){setSelected({});}} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Limpar"}</button>
+            <button onClick={mapSelected} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 12px rgba(99,102,241,.25)"}}>{"Mapear selecionadas"}</button>
           </div>
         </div>
       )}
       {csvPreview && (
-        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.65)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
-          <div style={{background:"#fff",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.25)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
-            <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:6}}>{"Importar contas"}</div>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
+          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(0,0,0,0.4)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{fontSize:17,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:6}}>{"Importar contas"}</div>
             {csvPreview.error ? (
-              <div style={{fontSize:13,color:"#ef4444",background:"#fff1f2",border:"1px solid #fecdd3",borderRadius:10,padding:"12px 14px",marginTop:8}}>{csvPreview.error}</div>
+              <div style={{fontSize:13,color:"#ef4444",background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",borderRadius:10,padding:"12px 14px",marginTop:8}}>{csvPreview.error}</div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",minHeight:0}}>
-                <div style={{fontSize:12,color:"#64748b",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas como nao mapeadas (sem consumir creditos)."}</div>
-                <div style={{overflowY:"auto",border:"1px solid #f1f5f9",borderRadius:10,marginBottom:16}}>
+                <div style={{fontSize:12,color:"rgba(255,255,255,.55)",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas como nao mapeadas (sem consumir creditos)."}</div>
+                <div style={{overflowY:"auto",border:"1px solid rgba(255,255,255,.06)",borderRadius:10,marginBottom:16}}>
                   {csvPreview.rows.slice(0,50).map(function(r,i){
                     return (
                       <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderBottom:i<csvPreview.rows.length-1?"1px solid #f8fafc":"none"}}>
-                        <span style={{fontSize:12,fontWeight:600,color:"#0f172a",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
-                        {r.site && <span style={{fontSize:10,color:"#94a3b8",flexShrink:0}}>{r.site}</span>}
+                        <span style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,.92)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
+                        {r.site && <span style={{fontSize:10,color:"rgba(255,255,255,.4)",flexShrink:0}}>{r.site}</span>}
                       </div>
                     );
                   })}
-                  {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"#94a3b8"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
+                  {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"rgba(255,255,255,.4)"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
                 </div>
               </div>
             )}
             <div style={{display:"flex",gap:8}}>
-              <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"#f8fafc",border:"1px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
-              {!csvPreview.error && <button onClick={confirmImport} style={{flex:2,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{"Importar " + csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"")}</button>}
+              <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              {!csvPreview.error && <button onClick={confirmImport} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{"Importar " + csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"")}</button>}
             </div>
           </div>
         </div>
@@ -2700,37 +2700,37 @@ function AccountsView(props) {
           var isActive = filter.status === s;
           return (
             <div key={s} onClick={function(){toggleStatus(s);}} style={{flexShrink:0,background:isActive?sc.bg:"#fff",border:"1.5px solid "+(isActive?sc.border:"#e8edf4"),borderRadius:14,padding:"12px 16px",cursor:"pointer",transition:"all .2s",textAlign:"center",minWidth:100}}>
-              <div style={{fontSize:20,fontWeight:800,color:isActive?sc.color:"#64748b"}}>{cnt}</div>
-              <div style={{fontSize:9,fontWeight:600,color:isActive?sc.color:"#6b7280",textTransform:"uppercase",letterSpacing:.8,marginTop:2}}>{sc.label}</div>
+              <div style={{fontSize:20,fontWeight:800,color:isActive?sc.color:"rgba(255,255,255,.55)"}}>{cnt}</div>
+              <div style={{fontSize:9,fontWeight:600,color:isActive?sc.color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.8,marginTop:2}}>{sc.label}</div>
             </div>
           );
         })}
       </div>
       <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="Buscar por nome ou setor..." style={{flex:1,minWidth:200,background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
-        <select value={filter.fit} onChange={function(e){changeFit(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.fit?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="Buscar por nome ou setor..." style={{flex:1,minWidth:200,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+        <select value={filter.fit} onChange={function(e){changeFit(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.fit?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
           <option value="">Fit</option>
           <option value="ALTO">Fit Alto</option>
-          <option value="MEDIO">Fit MÃ©dio</option>
+          <option value="MEDIO">Fit Médio</option>
           <option value="BAIXO">Fit Baixo</option>
         </select>
-        <select value={filter.tier} onChange={function(e){changeTier(e.target.value);}} style={{background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.tier?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+        <select value={filter.tier} onChange={function(e){changeTier(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.tier?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
           <option value="">Tier</option>
           <option value="Tier 1">Tier 1</option>
           <option value="Tier 2">Tier 2</option>
           <option value="Tier 3">Tier 3</option>
         </select>
         {hasFilter && (
-          <button onClick={clearFilters} style={{background:"#fee2e2",border:"1px solid #fecdd3",color:"#991b1b",borderRadius:10,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+          <button onClick={clearFilters} style={{background:"rgba(248,113,113,.14)",border:"1px solid rgba(248,113,113,.3)",color:"#991b1b",borderRadius:10,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
             {"Limpar"}
           </button>
         )}
       </div>
       {filtered.length===0 ? (
-        <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
-          <div style={{fontSize:36,marginBottom:12}}>{"ð"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{accounts.length===0?"Nenhuma conta ainda":"Nenhuma conta com esses filtros"}</div>
-          <div style={{fontSize:12,color:"#6b7280"}}>{accounts.length===0?"Importe uma lista CSV ou va para Busca para analisar empresas":"Tente limpar os filtros"}</div>
+        <div style={{textAlign:"center",padding:"64px 0",background:"rgba(255,255,255,.03)",borderRadius:20,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+          <div style={{fontSize:36,marginBottom:12}}>{"🔍"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.75)",marginBottom:6}}>{accounts.length===0?"Nenhuma conta ainda":"Nenhuma conta com esses filtros"}</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>{accounts.length===0?"Importe uma lista CSV ou va para Busca para analisar empresas":"Tente limpar os filtros"}</div>
         </div>
       ) : viewMode==="cards" ? (
         <div className="card-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
@@ -2746,30 +2746,30 @@ function AccountsView(props) {
             if (!acc.mapped) {
               var isMapping = props.mappingId===acc.id;
               return (
-                <div key={acc.id} style={{background:"#fff",border:"1px solid "+(selected[acc.id]?"#4361EE":"#e8edf4"),borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-                  <input type="checkbox" checked={!!selected[acc.id]} onChange={function(){toggleSelect(acc.id);}} disabled={isMapping} style={{width:16,height:16,accentColor:"#4361EE",cursor:"pointer",flexShrink:0}}/>
+                <div key={acc.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid "+(selected[acc.id]?"#6366f1":"#e8edf4"),borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                  <input type="checkbox" checked={!!selected[acc.id]} onChange={function(){toggleSelect(acc.id);}} disabled={isMapping} style={{width:16,height:16,accentColor:"#6366f1",cursor:"pointer",flexShrink:0}}/>
                   <div style={{flex:1,minWidth:120}}>
-                    <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-                    <div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>{acc.site||"Importada da lista"}</div>
+                    <div style={{fontSize:13.5,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginTop:2}}>{acc.site||"Importada da lista"}</div>
                   </div>
-                  <span style={{fontSize:8,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fde68a",borderRadius:6,padding:"3px 8px",flexShrink:0,textTransform:"uppercase",letterSpacing:.5}}>{"NÃ£o mapeada"}</span>
-                  <button onClick={function(){if(!isMapping)props.onMap(acc);}} disabled={isMapping} style={{background:isMapping?"#f1f5f9":"linear-gradient(135deg,#4361EE,#3451d1)",color:isMapping?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:11,fontWeight:700,cursor:isMapping?"default":"pointer",fontFamily:"inherit",flexShrink:0}}>{isMapping?"Mapeando...":"Mapear"}</button>
-                  <button onClick={function(){props.onDelete(acc.id);}} disabled={isMapping} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"6px 9px",fontSize:10,cursor:isMapping?"default":"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
+                  <span style={{fontSize:8,fontWeight:700,color:"#92400e",background:"rgba(251,191,36,.14)",border:"1px solid rgba(251,191,36,.3)",borderRadius:6,padding:"3px 8px",flexShrink:0,textTransform:"uppercase",letterSpacing:.5}}>{"Não mapeada"}</span>
+                  <button onClick={function(){if(!isMapping)props.onMap(acc);}} disabled={isMapping} style={{background:isMapping?"#f1f5f9":"linear-gradient(135deg,#6366f1,#4f46e5)",color:isMapping?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:11,fontWeight:700,cursor:isMapping?"default":"pointer",fontFamily:"inherit",flexShrink:0}}>{isMapping?"Mapeando...":"Mapear"}</button>
+                  <button onClick={function(){props.onDelete(acc.id);}} disabled={isMapping} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"6px 9px",fontSize:10,cursor:isMapping?"default":"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
                 </div>
               );
             }
             return (
-              <div key={acc.id} style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="#4361EE";e.currentTarget.style.boxShadow="0 2px 12px rgba(67,97,238,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e8edf4";e.currentTarget.style.boxShadow="";}}>
+              <div key={acc.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.boxShadow="";}}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-                  <div style={{fontSize:11,color:"#6b7280",marginTop:2}}>{acc.setor}</div>
+                  <div style={{fontSize:13.5,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:2}}>{acc.setor}</div>
                 </div>
                 <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:700,flexShrink:0}}>{"FIT "+acc.fit}</span>
-                <span style={{background:"#f8fafc",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:700,flexShrink:0}}>{acc.tier}</span>
+                <span style={{background:"rgba(255,255,255,.03)",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:700,flexShrink:0}}>{acc.tier}</span>
                 <span style={{background:sc.bg,border:"1px solid "+sc.border,color:sc.color,borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:600,flexShrink:0,whiteSpace:"nowrap"}}>{sc.label}</span>
-                <span style={{fontSize:10,color:"#6b7280",flexShrink:0}}>{fmtDate(acc.savedAt)}</span>
-                <button onClick={function(){props.onOpen(acc);}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Ver</button>
-                <button onClick={function(){props.onDelete(acc.id);}} style={{background:"none",border:"1px solid #fee2e2",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
+                <span style={{fontSize:10,color:"rgba(255,255,255,.5)",flexShrink:0}}>{fmtDate(acc.savedAt)}</span>
+                <button onClick={function(){props.onOpen(acc);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Ver</button>
+                <button onClick={function(){props.onDelete(acc.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
               </div>
             );
           })}
@@ -2845,8 +2845,8 @@ function exportRelatoriosPDF(accounts, filters) {
   });
   var byStatus = {};
   STATUS_ORDER.forEach(function(s){byStatus[s]=filtered.filter(function(a){return a.status===s;}).length;});
-  var html = "<html><head><title>RelatÃ³rios Mais Pipe</title><style>body{font-family:Verdana,sans-serif;padding:32px;color:#0f172a;font-size:12px}h1{color:#059669;font-size:18px}h2{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#4361EE;margin:20px 0 8px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:8px}th{background:#f8fafc;padding:8px 12px;text-align:left;font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.8px}td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:11px}.fit-alto{color:#065f46;background:#dcfce7;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.fit-medio{color:#92400e;background:#fef3c7;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.fit-baixo{color:#991b1b;background:#fee2e2;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.footer{margin-top:24px;border-top:1px solid #e2e8f0;padding-top:10px;font-size:10px;color:#94a3b8}</style></head><body>";
-  html += "<h1>RelatÃ³rio de ProspecÃ§Ã£o , Mais Pipe Beta</h1>";
+  var html = "<html><head><title>Relatórios Mais Pipe</title><style>body{font-family:Verdana,sans-serif;padding:32px;color:#0f172a;font-size:12px}h1{color:#059669;font-size:18px}h2{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#6366f1;margin:20px 0 8px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:8px}th{background:#f8fafc;padding:8px 12px;text-align:left;font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.8px}td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:11px}.fit-alto{color:#065f46;background:#dcfce7;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.fit-medio{color:#92400e;background:#fef3c7;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.fit-baixo{color:#991b1b;background:#fee2e2;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700}.footer{margin-top:24px;border-top:1px solid #e2e8f0;padding-top:10px;font-size:10px;color:#94a3b8}</style></head><body>";
+  html += "<h1>Relatório de Prospecção , Mais Pipe Beta</h1>";
   html += "<p style='color:#64748b;font-size:11px'>Gerado em "+new Date().toLocaleDateString("pt-BR")+" - "+filtered.length+" contas</p>";
   html += "<h2>Funil de Status</h2><table><tr>";
   STATUS_ORDER.forEach(function(s){html+="<th>"+STATUS_CONFIG[s].label+"</th>";});
@@ -2942,26 +2942,26 @@ function InsightsView(props) {
   var convSteps = [
     {label:"Mapeado",   count:total,     pct:100},
     {label:"Contatado", count:contacted, pct:total?Math.round(contacted/total*100):0},
-    {label:"ReuniÃ£o",   count:meeting,   pct:total?Math.round(meeting/total*100):0},
+    {label:"Reunião",   count:meeting,   pct:total?Math.round(meeting/total*100):0},
     {label:"Proposta",  count:proposal,  pct:total?Math.round(proposal/total*100):0},
     {label:"Ganho",     count:won,       pct:total?Math.round(won/total*100):0},
   ];
   // -- KPI cards
   var kpis = [
-    {label:"Total Mapeado",    value:total,     sub:"empresas",          color:"#0f172a", icon:"T"},
-    {label:"Fit Alto",         value:byFit[0]&&byFit[0].count||0, sub:"prospects prime",  color:"#2d3a8c", icon:"A"},
+    {label:"Total Mapeado",    value:total,     sub:"empresas",          color:"rgba(255,255,255,.92)", icon:"T"},
+    {label:"Fit Alto",         value:byFit[0]&&byFit[0].count||0, sub:"prospects prime",  color:"#818cf8", icon:"A"},
     {label:"Em Andamento",     value:contacted, sub:"contatados ou mais", color:"#7c3aed", icon:"C"},
-    {label:"Taxa de Ganho",    value:(total?Math.round(won/total*100):0)+"%", sub:"dos mapeados",color:"#3451d1", icon:"G"},
+    {label:"Taxa de Ganho",    value:(total?Math.round(won/total*100):0)+"%", sub:"dos mapeados",color:"#a5b4fc", icon:"G"},
   ];
   if (total === 0) {
     return (
       <div>
-        <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"RelatÃ³rios"}</div>
-        <div style={{fontSize:13,color:"#64748b",marginBottom:32}}>{"Dashboard de performance da sua prospecÃ§Ã£o."}</div>
-        <div style={{textAlign:"center",padding:"64px 0",background:"#f8fafc",borderRadius:20,border:"1.5px dashed #e2e8f0"}}>
-          <div style={{fontSize:36,marginBottom:12}}>{"ð"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>Nenhum dado ainda</div>
-          <div style={{fontSize:12,color:"#6b7280"}}>Mapeie sua primeira empresa em Busca para comeÃ§ar a ver insights.</div>
+        <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
+        <div style={{fontSize:13,color:"rgba(255,255,255,.55)",marginBottom:32}}>{"Dashboard de performance da sua prospecção."}</div>
+        <div style={{textAlign:"center",padding:"64px 0",background:"rgba(255,255,255,.03)",borderRadius:20,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+          <div style={{fontSize:36,marginBottom:12}}>{"📊"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.75)",marginBottom:6}}>Nenhum dado ainda</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Mapeie sua primeira empresa em Busca para começar a ver insights.</div>
         </div>
       </div>
     );
@@ -2980,9 +2980,9 @@ function InsightsView(props) {
   var areaPath = linePath + " L " + linePts[linePts.length-1].x.toFixed(1) + " " + (lineH-24) + " L " + linePts[0].x.toFixed(1) + " " + (lineH-24) + " Z";
 
   // Pie data for fit (using DonutChart segments)
-  var FITCOL = {ALTO:"#4361EE", MEDIO:"#0ea5e9", "MÃDIO":"#0ea5e9", BAIXO:"#94a3b8"};
+  var FITCOL = {ALTO:"#6366f1", MEDIO:"#0ea5e9", "MÉDIO":"#0ea5e9", BAIXO:"#94a3b8"};
   var fitSeg = byFit.map(function(f){ return {label:f.fit, value:f.count, color:FITCOL[f.fit]||"#7c3aed"}; });
-  var TIERCOL = {"Tier 1":"#4361EE","Tier 2":"#7c3aed","Tier 3":"#c084fc"};
+  var TIERCOL = {"Tier 1":"#6366f1","Tier 2":"#7c3aed","Tier 3":"#c084fc"};
   var tierSeg = byTier.map(function(t){ return {label:t.tier, value:t.count, color:TIERCOL[t.tier]||"#94a3b8"}; });
 
   return (
@@ -2991,10 +2991,10 @@ function InsightsView(props) {
       {/* HEADER */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:24,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",letterSpacing:"-0.6px"}}>{"RelatÃ³rios"}</div>
-          <div style={{fontSize:13,color:"#64748b",marginTop:2}}>{"Dashboard de performance da sua prospecÃ§Ã£o."}</div>
+          <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,.55)",marginTop:2}}>{"Dashboard de performance da sua prospecção."}</div>
         </div>
-        <button onClick={function(){exportRelatoriosPDF(accounts,pdfFilters);}} style={{display:"flex",alignItems:"center",gap:7,background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:11,padding:"10px 18px",fontSize:12.5,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(67,97,238,.3)"}}>
+        <button onClick={function(){exportRelatoriosPDF(accounts,pdfFilters);}} style={{display:"flex",alignItems:"center",gap:7,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:11,padding:"10px 18px",fontSize:12.5,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.3)"}}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           {"Exportar PDF"}
         </button>
@@ -3004,11 +3004,11 @@ function InsightsView(props) {
       <div className="kpi-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:18}}>
         {kpis.map(function(k, i) {
           return (
-            <div key={k.label} style={{background:"linear-gradient(145deg,#fff,#fbfcff)",border:"1px solid #e8edf4",borderRadius:18,padding:"20px 22px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.08)+"s",position:"relative",overflow:"hidden"}}>
+            <div key={k.label} style={{background:"linear-gradient(145deg,#fff,#fbfcff)",border:"1px solid rgba(255,255,255,.08)",borderRadius:18,padding:"20px 22px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.08)+"s",position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",top:-20,right:-20,width:80,height:80,borderRadius:"50%",background:"radial-gradient(circle,"+k.color+"14,transparent 70%)"}}/>
-              <div style={{fontSize:11,color:"#94a3b8",fontWeight:600,marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>{k.label}</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,.4)",fontWeight:600,marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>{k.label}</div>
               <div style={{fontSize:34,fontWeight:900,color:k.color,lineHeight:1,letterSpacing:"-1px"}}>{k.value}</div>
-              <div style={{fontSize:11,color:"#64748b",marginTop:6}}>{k.sub}</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,.55)",marginTop:6}}>{k.sub}</div>
             </div>
           );
         })}
@@ -3016,18 +3016,18 @@ function InsightsView(props) {
 
       {/* ROW: Funnel + Conversion */}
       <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1.4fr 1fr",gap:16,marginBottom:16}}>
-        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .1s both"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Funil de ConversÃ£o"}</div>
-          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"Jornada do mapeamento ao ganho"}</div>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .1s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Funil de Conversão"}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:18}}>{"Jornada do mapeamento ao ganho"}</div>
           {convSteps.map(function(step, i) {
-            var grad = ["#4361EE","#5566f0","#6a6ef0","#8b6ee8","#a855f7"][i] || "#4361EE";
+            var grad = ["#6366f1","#5566f0","#6a6ef0","#8b6ee8","#a855f7"][i] || "#6366f1";
             return (
               <div key={step.label} style={{marginBottom:14}}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                  <span style={{fontSize:12,fontWeight:600,color:"#334155"}}>{step.label}</span>
-                  <span style={{fontSize:12,color:"#64748b"}}>{step.count + " Â· " + step.pct + "%"}</span>
+                  <span style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,.75)"}}>{step.label}</span>
+                  <span style={{fontSize:12,color:"rgba(255,255,255,.55)"}}>{step.count + " · " + step.pct + "%"}</span>
                 </div>
-                <div style={{height:26,background:"#f1f5f9",borderRadius:8,overflow:"hidden"}}>
+                <div style={{height:26,background:"rgba(255,255,255,.05)",borderRadius:8,overflow:"hidden"}}>
                   <div style={{height:"100%",width:Math.max(step.pct,3)+"%",background:"linear-gradient(90deg,"+grad+","+grad+"cc)",borderRadius:8,animation:"repFunnelGrow .8s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.12+0.2)+"s",display:"flex",alignItems:"center",paddingLeft:10}}>
                     <span style={{fontSize:10,fontWeight:700,color:"#fff"}}>{step.pct+"%"}</span>
                   </div>
@@ -3036,9 +3036,9 @@ function InsightsView(props) {
             );
           })}
         </div>
-        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .18s both",display:"flex",flexDirection:"column"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"DistribuiÃ§Ã£o por Fit"}</div>
-          <div style={{fontSize:11,color:"#94a3b8",marginBottom:10}}>{"Qualidade dos prospects"}</div>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .18s both",display:"flex",flexDirection:"column"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Distribuição por Fit"}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:10}}>{"Qualidade dos prospects"}</div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
             <DonutChart segments={fitSeg} size={150} centerLabel={String(total)} centerSub="contas"/>
           </div>
@@ -3046,8 +3046,8 @@ function InsightsView(props) {
             {fitSeg.map(function(s){return (
               <div key={s.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:11.5}}>
                 <span style={{width:10,height:10,borderRadius:3,background:s.color,flexShrink:0}}/>
-                <span style={{color:"#475569",fontWeight:600,flex:1}}>{"Fit "+s.label}</span>
-                <span style={{color:"#94a3b8"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
+                <span style={{color:"rgba(255,255,255,.6)",fontWeight:600,flex:1}}>{"Fit "+s.label}</span>
+                <span style={{color:"rgba(255,255,255,.4)"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
               </div>
             );})}
           </div>
@@ -3056,31 +3056,31 @@ function InsightsView(props) {
 
       {/* ROW: Velocity line + Tier donut */}
       <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1.4fr 1fr",gap:16,marginBottom:16}}>
-        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .24s both"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Velocidade de Mapeamento"}</div>
-          <div style={{fontSize:11,color:"#94a3b8",marginBottom:16}}>{"Contas mapeadas nas Ãºltimas 8 semanas"}</div>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .24s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Velocidade de Mapeamento"}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:16}}>{"Contas mapeadas nas últimas 8 semanas"}</div>
           <svg width="100%" viewBox={"0 0 "+lineW+" "+lineH} style={{display:"block"}}>
             <defs>
               <linearGradient id="repArea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#4361EE" stopOpacity="0.25"/>
-                <stop offset="100%" stopColor="#4361EE" stopOpacity="0"/>
+                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25"/>
+                <stop offset="100%" stopColor="#6366f1" stopOpacity="0"/>
               </linearGradient>
             </defs>
             {[0,0.5,1].map(function(g,gi){var gy=lineH-24-g*(lineH-50);return <line key={gi} x1={lpad} y1={gy} x2={lineW-lpad} y2={gy} stroke="#f1f5f9" strokeWidth="1"/>;})}
             <path d={areaPath} fill="url(#repArea)"/>
-            <path d={linePath} fill="none" stroke="#4361EE" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1000" style={{animation:"repLineDraw 1.4s ease .3s both"}}/>
+            <path d={linePath} fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1000" style={{animation:"repLineDraw 1.4s ease .3s both"}}/>
             {linePts.map(function(p,i){return (
               <g key={i}>
-                <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#4361EE" strokeWidth="2.5" style={{animation:"repFadeUp .4s ease both",animationDelay:(0.6+i*0.08)+"s"}}/>
-                <text x={p.x} y={p.y-10} textAnchor="middle" fontSize="10" fontWeight="700" fill="#4361EE">{p.count>0?p.count:""}</text>
+                <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#6366f1" strokeWidth="2.5" style={{animation:"repFadeUp .4s ease both",animationDelay:(0.6+i*0.08)+"s"}}/>
+                <text x={p.x} y={p.y-10} textAnchor="middle" fontSize="10" fontWeight="700" fill="#6366f1">{p.count>0?p.count:""}</text>
                 <text x={p.x} y={lineH-8} textAnchor="middle" fontSize="9" fill="#94a3b8">{p.label}</text>
               </g>
             );})}
           </svg>
         </div>
-        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .3s both",display:"flex",flexDirection:"column"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"DistribuiÃ§Ã£o por Tier"}</div>
-          <div style={{fontSize:11,color:"#94a3b8",marginBottom:10}}>{"Prioridade estratÃ©gica"}</div>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .3s both",display:"flex",flexDirection:"column"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Distribuição por Tier"}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:10}}>{"Prioridade estratégica"}</div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
             <DonutChart segments={tierSeg} size={150} centerLabel={String(byTier.length)} centerSub="tiers"/>
           </div>
@@ -3088,8 +3088,8 @@ function InsightsView(props) {
             {tierSeg.map(function(s){return (
               <div key={s.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:11.5}}>
                 <span style={{width:10,height:10,borderRadius:3,background:s.color,flexShrink:0}}/>
-                <span style={{color:"#475569",fontWeight:600,flex:1}}>{s.label}</span>
-                <span style={{color:"#94a3b8"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
+                <span style={{color:"rgba(255,255,255,.6)",fontWeight:600,flex:1}}>{s.label}</span>
+                <span style={{color:"rgba(255,255,255,.4)"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
               </div>
             );})}
           </div>
@@ -3098,33 +3098,33 @@ function InsightsView(props) {
 
       {/* ROW: Sector bar chart + Status pipeline */}
       <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .36s both"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Top Setores"}</div>
-          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"ConcentraÃ§Ã£o da carteira"}</div>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .36s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Top Setores"}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:18}}>{"Concentração da carteira"}</div>
           <div style={{display:"flex",alignItems:"flex-end",gap:10,height:160,paddingTop:10}}>
             {bySetor.slice(0,6).map(function(s,i){
               var h = Math.max((s.count/maxSetor)*130, 8);
-              var grad = ["#4361EE","#5566f0","#6a6ef0","#8b6ee8","#a855f7","#c084fc"][i]||"#4361EE";
+              var grad = ["#6366f1","#5566f0","#6a6ef0","#8b6ee8","#a855f7","#c084fc"][i]||"#6366f1";
               return (
                 <div key={s.setor} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-                  <span style={{fontSize:12,fontWeight:700,color:"#334155"}}>{s.count}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.75)"}}>{s.count}</span>
                   <div style={{width:"100%",maxWidth:40,height:h,background:"linear-gradient(180deg,"+grad+","+grad+"99)",borderRadius:"7px 7px 0 0",transformOrigin:"bottom",animation:"repBarGrow .7s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.1+0.3)+"s"}}/>
-                  <span style={{fontSize:9,color:"#94a3b8",textAlign:"center",lineHeight:1.2,maxWidth:54,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",width:"100%"}} title={s.setor}>{s.setor}</span>
+                  <span style={{fontSize:9,color:"rgba(255,255,255,.4)",textAlign:"center",lineHeight:1.2,maxWidth:54,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",width:"100%"}} title={s.setor}>{s.setor}</span>
                 </div>
               );
             })}
           </div>
         </div>
-        <div style={{background:"#fff",border:"1px solid #e8edf4",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .42s both"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Pipeline por Status"}</div>
-          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"DistribuiÃ§Ã£o atual das contas"}</div>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .42s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Pipeline por Status"}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:18}}>{"Distribuição atual das contas"}</div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {funnel.map(function(f,i){
               var pct = total?Math.round(f.count/total*100):0;
               return (
                 <div key={f.status} style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:11,fontWeight:600,color:"#475569",width:90,flexShrink:0}}>{f.label}</span>
-                  <div style={{flex:1,height:18,background:"#f1f5f9",borderRadius:6,overflow:"hidden"}}>
+                  <span style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,.6)",width:90,flexShrink:0}}>{f.label}</span>
+                  <div style={{flex:1,height:18,background:"rgba(255,255,255,.05)",borderRadius:6,overflow:"hidden"}}>
                     <div style={{height:"100%",width:Math.max(pct,2)+"%",background:f.color,borderRadius:6,animation:"repFunnelGrow .7s ease both",animationDelay:(i*0.08+0.4)+"s"}}/>
                   </div>
                   <span style={{fontSize:11,fontWeight:700,color:f.color,width:32,textAlign:"right",flexShrink:0}}>{f.count}</span>
@@ -3171,49 +3171,49 @@ function BetaBanner() {
     });
   }
   function update(field, val) { setForm(function(f){ var n=Object.assign({},f); if(field==="nome")n.nome=val; else if(field==="assunto")n.assunto=val; else n.mensagem=val; return n; }); }
-  var inputStyle = {width:"100%",background:"#fff",border:"1.5px solid #e2e8f0",borderRadius:8,padding:"9px 12px",fontSize:12,color:"#0f172a",fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+  var inputStyle = {width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:8,padding:"9px 12px",fontSize:12,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
   return (
     <div style={{position:"relative",zIndex:200}}>
-      <div style={{background:"linear-gradient(90deg,#0A0A0F 0%,#0d0d1a 100%)",borderBottom:"1px solid rgba(67,97,238,.25)",padding:"0 20px",height:40,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+      <div style={{background:"linear-gradient(90deg,#0a0a14 0%,#0d0d1a 100%)",borderBottom:"1px solid rgba(99,102,241,.25)",padding:"0 20px",height:40,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <span style={{background:"rgba(67,97,238,.15)",border:"1px solid rgba(67,97,238,.3)",color:"#4361EE",borderRadius:6,padding:"2px 9px",fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>{"Beta"}</span>
-          <span style={{fontSize:12,color:"#ffffff",opacity:.85}}>{"Esta Ã© uma versÃ£o Beta , deixe sua sugestÃ£o ou comentÃ¡rio no botÃ£o ao lado"}</span>
+          <span style={{background:"rgba(99,102,241,.15)",border:"1px solid rgba(99,102,241,.3)",color:"#a5b4fc",borderRadius:6,padding:"2px 9px",fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>{"Beta"}</span>
+          <span style={{fontSize:12,color:"#ffffff",opacity:.8}}>{"Esta é uma versão Beta , deixe sua sugestão ou comentário no botão ao lado"}</span>
         </div>
-        <button onClick={function(){setOpen(true);setSent(false);setErr("");}} style={{background:"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:8,padding:"6px 16px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(67,97,238,.3)",letterSpacing:.3}}>
+        <button onClick={function(){setOpen(true);setSent(false);setErr("");}} style={{background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:8,padding:"6px 16px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(99,102,241,.35)",letterSpacing:.3}}>
           {"Enviar Feedback"}
         </button>
       </div>
       {open && (
-        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(2px)"}} onClick={function(){setOpen(false);}}>
-          <div style={{background:"#fff",borderRadius:20,padding:"28px 32px",width:"100%",maxWidth:440,boxShadow:"0 32px 80px rgba(15,23,42,.25)"}} onClick={function(e){e.stopPropagation();}}>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(2px)"}} onClick={function(){setOpen(false);}}>
+          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,padding:"28px 32px",width:"100%",maxWidth:440,boxShadow:"0 32px 80px rgba(0,0,0,0.4)"}} onClick={function(e){e.stopPropagation();}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
               <div>
-                <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:2}}>{"Feedback , Mais Pipe Beta"}</div>
-                <div style={{fontSize:11,color:"#6b7280"}}>{"Sua mensagem serÃ¡ enviada para a equipe Mais Pipe"}</div>
+                <div style={{fontSize:17,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:2}}>{"Feedback , Mais Pipe Beta"}</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{"Sua mensagem será enviada para a equipe Mais Pipe"}</div>
               </div>
-              <button onClick={function(){setOpen(false);}} style={{background:"#f1f5f9",border:"none",borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:14,color:"#64748b",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>{"x"}</button>
+              <button onClick={function(){setOpen(false);}} style={{background:"rgba(255,255,255,.05)",border:"none",borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:14,color:"rgba(255,255,255,.55)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>{"x"}</button>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
               <div>
-                <label style={{fontSize:11,fontWeight:600,color:"#64748b",display:"block",marginBottom:5}}>{"Nome"}</label>
-                <input value={form.nome} onChange={function(e){update("nome",e.target.value);}} placeholder="Seu nome" style={inputStyle} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+                <label style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,.55)",display:"block",marginBottom:5}}>{"Nome"}</label>
+                <input value={form.nome} onChange={function(e){update("nome",e.target.value);}} placeholder="Seu nome" style={inputStyle} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
               </div>
               <div>
-                <label style={{fontSize:11,fontWeight:600,color:"#64748b",display:"block",marginBottom:5}}>{"Assunto"}</label>
-                <input value={form.assunto} onChange={function(e){update("assunto",e.target.value);}} placeholder="Ex: SugestÃ£o de funcionalidade, Bug encontrado..." style={inputStyle} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+                <label style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,.55)",display:"block",marginBottom:5}}>{"Assunto"}</label>
+                <input value={form.assunto} onChange={function(e){update("assunto",e.target.value);}} placeholder="Ex: Sugestão de funcionalidade, Bug encontrado..." style={inputStyle} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
               </div>
               <div>
-                <label style={{fontSize:11,fontWeight:600,color:"#64748b",display:"block",marginBottom:5}}>{"Mensagem"}</label>
-                <textarea value={form.mensagem} onChange={function(e){update("mensagem",e.target.value);}} placeholder="Descreva sua sugestÃ£o, problema ou comentÃ¡rio em detalhes..." rows={4} style={Object.assign({},inputStyle,{resize:"vertical",lineHeight:1.6})} onFocus={function(e){e.target.style.borderColor="#4361EE";}} onBlur={function(e){e.target.style.borderColor="#e2e8f0";}}/>
+                <label style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,.55)",display:"block",marginBottom:5}}>{"Mensagem"}</label>
+                <textarea value={form.mensagem} onChange={function(e){update("mensagem",e.target.value);}} placeholder="Descreva sua sugestão, problema ou comentário em detalhes..." rows={4} style={Object.assign({},inputStyle,{resize:"vertical",lineHeight:1.6})} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
               </div>
-              {err && <div style={{fontSize:11,color:"#ef4444",background:"#fff1f2",border:"1px solid #fecdd3",borderRadius:8,padding:"7px 12px"}}>{err}</div>}
+              {err && <div style={{fontSize:11,color:"#ef4444",background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",borderRadius:8,padding:"7px 12px"}}>{err}</div>}
               <div style={{display:"flex",gap:8,marginTop:4}}>
-                <button onClick={handleSend} disabled={sending} style={{flex:1,background:sending?"#94a3b8":"linear-gradient(135deg,#4361EE,#3451d1)",color:"#fff",border:"none",borderRadius:10,padding:"11px 0",fontSize:12,fontWeight:700,cursor:sending?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:sending?"none":"0 4px 12px rgba(67,97,238,.3)",transition:"all .2s"}}>
+                <button onClick={handleSend} disabled={sending} style={{flex:1,background:sending?"#94a3b8":"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"11px 0",fontSize:12,fontWeight:700,cursor:sending?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:sending?"none":"0 4px 12px rgba(99,102,241,.3)",transition:"all .2s"}}>
                   {sending?"Enviando...":"Enviar Feedback"}
                 </button>
-                <button onClick={function(){setOpen(false);}} style={{background:"#f8fafc",border:"1.5px solid #e2e8f0",color:"#64748b",borderRadius:10,padding:"11px 20px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+                <button onClick={function(){setOpen(false);}} style={{background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"11px 20px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
               </div>
-              <div style={{fontSize:10,color:"#cbd5e1",textAlign:"center"}}>{"Sua mensagem sera enviada diretamente para a equipe + Pipe."}</div>
+              <div style={{fontSize:10,color:"rgba(255,255,255,.35)",textAlign:"center"}}>{"Sua mensagem sera enviada diretamente para a equipe + Pipe."}</div>
             </div>
           </div>
         </div>
@@ -3234,7 +3234,7 @@ export default function App() {
   var _st_usage = useState(null); var usage = _st_usage[0]; var setUsage = _st_usage[1];
   var _st_mappingId = useState(null); var mappingId = _st_mappingId[0]; var setMappingId = _st_mappingId[1];
   var _st_seqRequest = useState(null); var seqRequest = _st_seqRequest[0]; var setSeqRequest = _st_seqRequest[1];
-  // Dispara a geraÃ§Ã£o de uma sequÃªncia a partir de um contato real (nome + cargo).
+  // Dispara a geração de uma sequência a partir de um contato real (nome + cargo).
   function generateSequenceFromContact(contact) {
     setSeqRequest({
       contact: contact,
@@ -3250,14 +3250,14 @@ export default function App() {
     var isDifferent = !usage || usage.plan !== planId;
     setPlan(planId, isDifferent).then(function(){ refreshUsage(); });
   }
-  // Verifica e consome 1 crÃ©dito para uma busca manual. Retorna Promise<bool>.
+  // Verifica e consome 1 crédito para uma busca manual. Retorna Promise<bool>.
   function requestMapCredit() {
     return new Promise(function(resolve) {
       consumeMapping().then(function(res) {
         setUsage(res.usage);
         if (!res.ok) {
           if (res.reason === "limit") {
-            showToast("Limite do plano atingido (" + res.usage.used + "/" + res.usage.limit + "). FaÃ§a upgrade para mapear mais.", "#ef4444");
+            showToast("Limite do plano atingido (" + res.usage.used + "/" + res.usage.limit + "). Faça upgrade para mapear mais.", "#ef4444");
           } else {
             showToast("Nao foi possivel registrar o uso.", "#ef4444");
           }
@@ -3269,7 +3269,7 @@ export default function App() {
     });
   }
   function showToast(msg, color) {
-    setToast({msg:msg,color:color||"#3451d1"});
+    setToast({msg:msg,color:color||"#4f46e5"});
     setTimeout(function(){setToast(null);}, 3000);
   }
   useEffect(function() {
@@ -3289,7 +3289,7 @@ export default function App() {
   }, []);
   function saveAccount(nome, data, liveMode, attachData, attachFileName) {
     var id = "acc:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
-    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estratÃ©gia&&data.estratÃ©gia.tier)||"Tier 2", status:"prospecting", mapped:true, liveMode:liveMode||false, savedAt:Date.now(), data:data, attachData:attachData||null, attachFileName:attachFileName||"" };
+    var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estratégia&&data.estratégia.tier)||"Tier 2", status:"prospecting", mapped:true, liveMode:liveMode||false, savedAt:Date.now(), data:data, attachData:attachData||null, attachFileName:attachFileName||"" };
     storageSet(id, acc).then(function() {
       setAccounts(function(prev){return [acc].concat(prev);});
     });
@@ -3330,13 +3330,13 @@ export default function App() {
     return created.length;
   }
 
-  // Mapeia uma conta sob demanda -> consome 1 crÃ©dito do plano
+  // Mapeia uma conta sob demanda -> consome 1 crédito do plano
   function mapAccount(acc) {
     return new Promise(function(resolve) {
       consumeMapping().then(function(res) {
         if (!res.ok) {
           if (res.reason === "limit") {
-            showToast("Limite do plano atingido (" + res.usage.used + "/" + res.usage.limit + "). FaÃ§a upgrade para mapear mais.", "#ef4444");
+            showToast("Limite do plano atingido (" + res.usage.used + "/" + res.usage.limit + "). Faça upgrade para mapear mais.", "#ef4444");
           } else {
             showToast("Nao foi possivel registrar o uso.", "#ef4444");
           }
@@ -3367,7 +3367,7 @@ export default function App() {
       mapped:true, liveMode:liveMode, data:data,
       setor:(data.empresa&&data.empresa.setor)||"Empresa",
       fit:(data.fit&&data.fit.score)||"ALTO",
-      tier:(data.estratÃ©gia&&data.estratÃ©gia.tier)||"Tier 2",
+      tier:(data.estratégia&&data.estratégia.tier)||"Tier 2",
       mappedAt:Date.now()
     });
     storageSet(acc.id, updated);
@@ -3397,74 +3397,85 @@ export default function App() {
   }
   var css = [
     "*{box-sizing:border-box;margin:0;padding:0}",
-    "body{font-family:Inter,system-ui,Verdana,sans-serif;background:linear-gradient(135deg,#f0fdf8 0%,#f8fafc 50%,#f0f4ff 100%);min-height:100vh}",
+    ":root{--mp-bg:#070712;--mp-bg-2:#0c0c1a;--mp-surface:rgba(255,255,255,.04);--mp-surface-2:rgba(255,255,255,.06);--mp-border:rgba(255,255,255,.08);--mp-border-2:rgba(255,255,255,.14);--mp-text:rgba(255,255,255,.92);--mp-text-2:rgba(255,255,255,.55);--mp-text-3:rgba(255,255,255,.35);--mp-indigo:#6366f1;--mp-violet:#8b5cf6;--mp-grad:linear-gradient(135deg,#6366f1 0%,#7c3aed 100%);--mp-grad-soft:linear-gradient(135deg,rgba(99,102,241,.22),rgba(139,92,246,.15))}",
+    "body{font-family:Inter,system-ui,Verdana,sans-serif;background:#070712;min-height:100vh;color:var(--mp-text)}",
     "@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}",
     "@keyframes toastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}",
+    "@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}",
     "::-webkit-scrollbar{width:5px;height:5px}",
-    "::-webkit-scrollbar-track{background:#f1f5f9}",
-    "::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}",
+    "::-webkit-scrollbar-track{background:transparent}",
+    "::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}",
+    "::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.22)}",
     "@media(max-width:768px){html,body{overflow-x:hidden!important;max-width:100vw!important}.main-content{padding:16px 12px!important;width:100%!important;box-sizing:border-box!important;min-width:0!important}.g2{grid-template-columns:1fr!important}.modal-grid{grid-template-columns:1fr!important}.kpi-grid{grid-template-columns:1fr 1fr!important}.chart-grid{grid-template-columns:1fr!important}.card-grid{grid-template-columns:1fr!important}.modal-box{max-width:calc(100vw - 16px)!important;border-radius:16px!important;width:100%!important}.modal-tabs{overflow-x:auto!important}.modal-tabs button{font-size:10px!important;padding:8px 10px!important}.status-chips{overflow-x:auto!important}}",
     "@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}",
-    "@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}50%{box-shadow:0 0 0 6px rgba(67,97,238,.1)}}",
+    "@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}50%{box-shadow:0 0 0 6px rgba(99,102,241,.12)}}",
     "@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}",
     ".sidebar{transition:width .3s cubic-bezier(.22,1,.36,1)}",
     ".sidebar-label{transition:opacity .3s cubic-bezier(.4,0,.2,1),transform .3s cubic-bezier(.4,0,.2,1);white-space:nowrap;overflow:hidden}",
     ".sidebar-label.hidden{opacity:0;transform:translateX(-6px);pointer-events:none;width:0}",
     ".sidebar-label.visible{opacity:1;transform:translateX(0)}",
     ".toggle-btn{transition:all .25s cubic-bezier(.22,1,.36,1)}",
-    ".toggle-btn:hover{background:rgba(67,97,238,.1) !important}",
+    ".toggle-btn:hover{background:rgba(99,102,241,.14) !important}",
     ".card-hover{transition:all .25s cubic-bezier(.22,1,.36,1)}",
-    ".card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(15,23,42,.12)}",
-    ".glass{background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}",
-    ".gradient-border{position:relative;background:#fff;border-radius:18px}",
-    ".gradient-border::before{content:'';position:absolute;inset:-1.5px;border-radius:19px;background:linear-gradient(135deg,#10b981,#0ea5e9,#8b5cf6);z-index:-1;opacity:.4}",
+    ".card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.4)}",
+    ".glass{background:var(--mp-surface);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}",
+    ".mp-ambient{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}",
+    ".mp-orb{position:absolute;border-radius:50%;filter:blur(48px)}",
+    ".mp-orb1{width:480px;height:480px;background:radial-gradient(circle,rgba(99,102,241,.22),transparent 70%);top:-140px;right:-90px}",
+    ".mp-orb2{width:360px;height:360px;background:radial-gradient(circle,rgba(139,92,246,.15),transparent 70%);bottom:-80px;left:8%}",
+    ".mp-orb3{width:260px;height:260px;background:radial-gradient(circle,rgba(34,211,238,.10),transparent 70%);top:30%;right:18%}",
+    ".mp-gridlines{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:32px 32px}",
+    ".gradient-border{position:relative;background:var(--mp-surface);border-radius:18px}",
+    ".gradient-border::before{content:'';position:absolute;inset:-1.5px;border-radius:19px;background:linear-gradient(135deg,#6366f1,#8b5cf6,#22d3ee);z-index:-1;opacity:.5}",
     ".badge-glow{animation:glow 2.5s ease-in-out infinite}",
+    "input::placeholder,textarea::placeholder{color:rgba(255,255,255,.28)}",
   ].join("");
   var NAV = [
-    {id:"home",         emoji:"ð ", label:"Home"},
-    {id:"search",       emoji:"ð", label:"Busca"},
-    {id:"accounts",     emoji:"ð", label:"Contas"},
-    {id:"contacts",     emoji:"ð¥", label:"Contatos"},
-    {id:"sequences",    emoji:"ð¬", label:"SequÃªncias"},
-    {id:"biblioteca",   emoji:"ð", label:"Biblioteca"},
-    {id:"pipeline",     emoji:"ð", label:"Pipeline"},
-    {id:"relatorios",   emoji:"ð", label:"RelatÃ³rios"},
-    {id:"integracoes",  emoji:"ð", label:"IntegraÃ§Ãµes"},
+    {id:"home",         emoji:"🏠", label:"Home"},
+    {id:"search",       emoji:"🔍", label:"Busca"},
+    {id:"accounts",     emoji:"📁", label:"Contas"},
+    {id:"contacts",     emoji:"👥", label:"Contatos"},
+    {id:"sequences",    emoji:"📬", label:"Sequências"},
+    {id:"biblioteca",   emoji:"📚", label:"Biblioteca"},
+    {id:"pipeline",     emoji:"📊", label:"Pipeline"},
+    {id:"relatorios",   emoji:"📈", label:"Relatórios"},
+    {id:"integracoes",  emoji:"🔌", label:"Integrações"},
   ];
   return (
-    <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#f8fafc",overflowX:"clip",maxWidth:"100vw"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#070712",overflowX:"clip",maxWidth:"100vw"}}>
       <BetaBanner/>
     <div style={{display:"flex",flex:1,overflowX:"clip",minWidth:0,width:"100%"}}>
       <style>{css}</style>
-      <div className="sidebar" style={{width:sidebarExpanded?224:64,background:"#0A0A0F",borderRight:"1px solid #1a1a2e",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .35s cubic-bezier(.4,0,.2,1)"}}>
-        <div style={{height:3,background:"linear-gradient(90deg,#4361EE,#7B5EA7,#A78BFA)",flexShrink:0}}/>
+      <div className="sidebar" style={{width:sidebarExpanded?224:64,background:"rgba(255,255,255,.03)",borderRight:"1px solid rgba(255,255,255,.07)",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .35s cubic-bezier(.4,0,.2,1)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",zIndex:2}}>
+        <div style={{height:3,background:"linear-gradient(90deg,#6366f1,#7c3aed,#a78bfa)",flexShrink:0}}/>
         {sidebarExpanded ? (
           <div style={{padding:"14px 14px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",gap:9,overflow:"hidden",flex:1,minWidth:0}}>
                             <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACYAKEDASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAAAAEHBggCBAUD/8QAQxAAAQIEAgYECwUGBwAAAAAAAAECAwQFEQYhBxIxQWGRE1FxsiY1UlNkc4GTlLPRFBUiVXQWIzM2YsElMkJjg4Tw/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAQFAgYHAQP/xAAzEQACAQICBQkJAQEAAAAAAAAAAQIDBAURBhIhcdETMTM0QVKRobEVFiI1UVNhcsEUgf/aAAwDAQACEQMRAD8A0yAAAAAAAAAAAABKJdcj2aXhWv1KAkeSpc1FhrsejLNXsVbX9h9qNvVrvVpRcn+FmYynGCzk8jxQd+rUepUqJ0dQkpiWcuzpGKiL2LsX2HQMKlOdKTjNZP8AJ6pKSzQABgegAAAAAAAAAE3AAIAAAAAAAAABKbQDPtEOGYFWn41SnoSRJaUsjYbku18Rc0vwRM7b7oXQz8KIm5Cv9B+WHZ1fS0+W0sC9zsmi9rSo4dCUVtltf52s1nEJynWefYdOtU+Uq0jEkZ+EkWBESyou1q9adSp1mueIKdEpNZmqfEW7oEVzL9aJsX2pZTZZ6ZGv+k7+d6n61O40p9OLan/np1svizy/5k+BKwmb13HsyMaBKEHMy8AAAAAAAAAAAAAJIAAAAAAABJCAAuTQgvg/Op6Uny2lhohXmg9P8AnV9KTuNLERTtmjvyylufqzVr3p5HF+w1/0nfzvU/XJ3GmwD8kNftJy3xxU/XJ3WlNpx1GH7L0ZKwrpXu/qMaABywvwAAAAAAAAAAAAAAAATqr2e09yBAJ1V4cxqrw5jJggltr5ko3PO3MK1b5KnMZMFy6EEvhyd/Vp8tpn7MtpgOg1fB6ezS32tPltLAVM8jtejvy2lu/rNWvenkcYmZr/AKTUtjep+uTuNL/dkUDpOS+OKna38VN/9DSm036jD9l6MlYV0r3f1GMA5aq8OZGqvDmctyZfggnVXhzGqvDmMmCASqKm1CDwAkgAAAAAAltrpfYAZ3owwZCrrolQqSPSRhO1EY1bLFdvS+5E327OstiFQKLAhJCg0mRYxNiJAav9jytFPR/sHTuj23io/r1tdbmULkp2XR/C7a3soSUU3JJt79prF5cTnVkm9iZ0EpFLalvuuS+Hb9CUo1JXbS5L4dv0O+uYvYvOQpd1eBF15fU85aRS2rlS5L4dv0OTaRSnJnTJK/qG/Q7yhMhyFLurwGvL6nwlpSXlWqyWl4UFqrdUhsRqKvXkfdFJVSLH0UVBZRRjmSqXQ6cWm06LFdFjU+UiRHZuc+C1VXtVUO4ihczyUIzXxLMJtHnOpFLVfFcj8O36D7mpabKXJfDt+h6KC6XMFQpd1eBlryPPSjUq+dLkfcN+hzSk0lE8VSPw7fod29jjrZh29LurwDlJ9pi2KME0WsS0RIcpBkptU/dx4LEbnu1kTJUKKqUnHkJ6NJzLFZGgvVj2ruVDaBbauZQ+lxYC45n+htsho+3laiX/ALGiaZ4bQhRjcwilLPJ5duxvx2FthdxNydN7VkYeADnJdgAAAAAGa6NcaLhyM+TnWvi0+M7Wcjc3QnbNZE38U4XQtiWxdhmYgtjNrki1HbokTUcnai5oa5HNIsREsj3InabNhmlN1Y0uRyUormz7PPmIFxh9OtLW5mbHuxRhq3j6m/EIcFxThz89p3v0Nc+li+cdzJSNE847mWfvxc/bXnxI6wmHeZsYzFGG99epqf8AOgdijDd8q9Tffoa6dM9P9buZxWLE8t3MLTm5+2vPiPZMO8zZqnVGRqMJ0WQm4E0xrtVzoL9ZEXqO3uMA0HLfDs85y3X7Uma+raZ9tN9wu7ld2sK8lk3xKivTVKo4LsCnnzGIKFKTL5abrEhAisWzmRIyNc1eKHoZWKB0nOezG9U1XOT98mxf6GkHSHFqmGUI1aaTzeW3c+B9rO2VxNxby2F0vxPhpNlfpq/9hDimKMN/n1O9+hrn00Ty3cx0sTzjuZqHvxc/bXnxLH2TDvM2MXFGG/z6m+/QJifDaJ4+pvv0NculiecdzJSLE8t3Me/Nz9tefEeyYd5l3Yo0i0WnysSHTorahNqlmJDv0bV61dv7EKUnpmPOTcWZmYixI0Vyve5dqqp8nOVy3VVVTia/i+N3OKSXK7EuZLmJ1taQt18POwT2kApiSTlxBAAAAAAJQgAAAAE2yIABc2hBfB2d/Vp8tpYLSvdB/iCd/VJ8tpYNrKds0d+W0tz9Wate9PIPyQ1+0mOVcbVS/nk7rTYB65FAaT1RccVO3nU7jSm046jD9l6MlYV0r3cDGQAcsL8AAAAAAAAAAAAAAAAAAAAAAAAufQcng7Or6Wny2lgXK+0Hu8HZ1PS0+W0sFM0O2aO/LaW5+rNWvenkcX2sa/6Tktjepp/up3GmwERFtka/aTFVcbVO/nU7rSm046jD9l6Ml4V0r3cDGwAcsL4AAAAAAAlCAAAAAAAAAAAAAASm0gAGcaK8UQKHUIsnPPVknNat3rshvTY5eCpkvsLwgq2LBZGhOSIx6Xa5i3RU4Khqwm253pKsVSSh9FJ1GclmeTBjuYnJFsbfgmlU8Po8hVjrRXN9UVl3h/LS14vJmw+I63T6BIPnKhFRiIn4ISf54jtzWp/6xrrWp+LU6rMz8b+JHiOiKm5LrsTs2ew+c3NzE3FWLMx4seIqWV8R6uVfap8CFjukFTFXGOWrBdn5+rPtZ2at03nm2CATwNdJpAAAAAAAAAJy4ggAAAAAAAAAAAAAAAAAAAAbgAAAAAAAAAACb8AAAf/Z" alt="+pipe" style={{width:36,height:36,borderRadius:10,objectFit:"contain",flexShrink:0}}/>
               <div style={{minWidth:0,overflow:"hidden"}}>
-                <div style={{fontSize:14,fontWeight:800,letterSpacing:"-0.3px",lineHeight:1.2,whiteSpace:"nowrap"}}><span style={{color:"#4361EE"}}>+</span><span style={{color:"#ffffff"}}> pipe</span></div>
-                <div style={{fontSize:7.5,color:"#6b7280",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
+                <div style={{fontSize:14,fontWeight:800,letterSpacing:"-0.3px",lineHeight:1.2,whiteSpace:"nowrap"}}><span style={{color:"#818cf8"}}>+</span><span style={{color:"#ffffff"}}> pipe</span></div>
+                <div style={{fontSize:7.5,color:"rgba(255,255,255,.35)",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
               </div>
             </div>
-            <button onClick={function(){setSidebarExpanded(false);}} title="Recolher menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",flexShrink:0,padding:0,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#6b7280";}}>
+            <button onClick={function(){setSidebarExpanded(false);}} title="Recolher menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,.5)",flexShrink:0,padding:0,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
           </div>
         ) : (
           <div style={{padding:"14px 0 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
                       <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACYAKEDASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAAAAEHBggCBAUD/8QAQxAAAQIEAgYECwUGBwAAAAAAAAECAwQFEQYhBxIxQWGRE1FxsiY1UlNkc4GTlLPRFBUiVXQWIzM2YsElMkJjg4Tw/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAQFAgYHAQP/xAAzEQACAQICBQkJAQEAAAAAAAAAAQIDBAURBhIhcdETMTM0QVKRobEVFiI1UVNhcsEUgf/aAAwDAQACEQMRAD8A0yAAAAAAAAAAAABKJdcj2aXhWv1KAkeSpc1FhrsejLNXsVbX9h9qNvVrvVpRcn+FmYynGCzk8jxQd+rUepUqJ0dQkpiWcuzpGKiL2LsX2HQMKlOdKTjNZP8AJ6pKSzQABgegAAAAAAAAAE3AAIAAAAAAAAABKbQDPtEOGYFWn41SnoSRJaUsjYbku18Rc0vwRM7b7oXQz8KIm5Cv9B+WHZ1fS0+W0sC9zsmi9rSo4dCUVtltf52s1nEJynWefYdOtU+Uq0jEkZ+EkWBESyou1q9adSp1mueIKdEpNZmqfEW7oEVzL9aJsX2pZTZZ6ZGv+k7+d6n61O40p9OLan/np1svizy/5k+BKwmb13HsyMaBKEHMy8AAAAAAAAAAAAAJIAAAAAAABJCAAuTQgvg/Op6Uny2lhohXmg9P8AnV9KTuNLERTtmjvyylufqzVr3p5HF+w1/0nfzvU/XJ3GmwD8kNftJy3xxU/XJ3WlNpx1GH7L0ZKwrpXu/qMaABywvwAAAAAAAAAAAAAAAATqr2e09yBAJ1V4cxqrw5jJggltr5ko3PO3MK1b5KnMZMFy6EEvhyd/Vp8tpn7MtpgOg1fB6ezS32tPltLAVM8jtejvy2lu/rNWvenkcYmZr/AKTUtjep+uTuNL/dkUDpOS+OKna38VN/9DSm036jD9l6MlYV0r3f1GMA5aq8OZGqvDmctyZfggnVXhzGqvDmMmCASqKm1CDwAkgAAAAAAltrpfYAZ3owwZCrrolQqSPSRhO1EY1bLFdvS+5E327OstiFQKLAhJCg0mRYxNiJAav9jytFPR/sHTuj23io/r1tdbmULkp2XR/C7a3soSUU3JJt79prF5cTnVkm9iZ0EpFLalvuuS+Hb9CUo1JXbS5L4dv0O+uYvYvOQpd1eBF15fU85aRS2rlS5L4dv0OTaRSnJnTJK/qG/Q7yhMhyFLurwGvL6nwlpSXlWqyWl4UFqrdUhsRqKvXkfdFJVSLH0UVBZRRjmSqXQ6cWm06LFdFjU+UiRHZuc+C1VXtVUO4ihczyUIzXxLMJtHnOpFLVfFcj8O36D7mpabKXJfDt+h6KC6XMFQpd1eBlryPPSjUq+dLkfcN+hzSk0lE8VSPw7fod29jjrZh29LurwDlJ9pi2KME0WsS0RIcpBkptU/dx4LEbnu1kTJUKKqUnHkJ6NJzLFZGgvVj2ruVDaBbauZQ+lxYC45n+htsho+3laiX/ALGiaZ4bQhRjcwilLPJ5duxvx2FthdxNydN7VkYeADnJdgAAAAAGa6NcaLhyM+TnWvi0+M7Wcjc3QnbNZE38U4XQtiWxdhmYgtjNrki1HbokTUcnai5oa5HNIsREsj3InabNhmlN1Y0uRyUormz7PPmIFxh9OtLW5mbHuxRhq3j6m/EIcFxThz89p3v0Nc+li+cdzJSNE847mWfvxc/bXnxI6wmHeZsYzFGG99epqf8AOgdijDd8q9Tffoa6dM9P9buZxWLE8t3MLTm5+2vPiPZMO8zZqnVGRqMJ0WQm4E0xrtVzoL9ZEXqO3uMA0HLfDs85y3X7Uma+raZ9tN9wu7ld2sK8lk3xKivTVKo4LsCnnzGIKFKTL5abrEhAisWzmRIyNc1eKHoZWKB0nOezG9U1XOT98mxf6GkHSHFqmGUI1aaTzeW3c+B9rO2VxNxby2F0vxPhpNlfpq/9hDimKMN/n1O9+hrn00Ty3cx0sTzjuZqHvxc/bXnxLH2TDvM2MXFGG/z6m+/QJifDaJ4+pvv0NculiecdzJSLE8t3Me/Nz9tefEeyYd5l3Yo0i0WnysSHTorahNqlmJDv0bV61dv7EKUnpmPOTcWZmYixI0Vyve5dqqp8nOVy3VVVTia/i+N3OKSXK7EuZLmJ1taQt18POwT2kApiSTlxBAAAAAAJQgAAAAE2yIABc2hBfB2d/Vp8tpYLSvdB/iCd/VJ8tpYNrKds0d+W0tz9Wate9PIPyQ1+0mOVcbVS/nk7rTYB65FAaT1RccVO3nU7jSm046jD9l6MlYV0r3cDGQAcsL8AAAAAAAAAAAAAAAAAAAAAAAAufQcng7Or6Wny2lgXK+0Hu8HZ1PS0+W0sFM0O2aO/LaW5+rNWvenkcX2sa/6Tktjepp/up3GmwERFtka/aTFVcbVO/nU7rSm046jD9l6Ml4V0r3cDGwAcsL4AAAAAAAlCAAAAAAAAAAAAAASm0gAGcaK8UQKHUIsnPPVknNat3rshvTY5eCpkvsLwgq2LBZGhOSIx6Xa5i3RU4Khqwm253pKsVSSh9FJ1GclmeTBjuYnJFsbfgmlU8Po8hVjrRXN9UVl3h/LS14vJmw+I63T6BIPnKhFRiIn4ISf54jtzWp/6xrrWp+LU6rMz8b+JHiOiKm5LrsTs2ew+c3NzE3FWLMx4seIqWV8R6uVfap8CFjukFTFXGOWrBdn5+rPtZ2at03nm2CATwNdJpAAAAAAAAAJy4ggAAAAAAAAAAAAAAAAAAAAbgAAAAAAAAAACb8AAAf/Z" alt="+pipe" style={{width:40,height:40,borderRadius:12,objectFit:"contain"}}/>
-            <button onClick={function(){setSidebarExpanded(true);}} title="Expandir menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",padding:0}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#6b7280";}}>
+            <button onClick={function(){setSidebarExpanded(true);}} title="Expandir menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,.5)",padding:0}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
         )}
-        <div style={{height:1,background:"#f1f5f9",margin:"0 10px 8px",flexShrink:0}}/>
+        <div style={{height:1,background:"rgba(255,255,255,.07)",margin:"0 10px 8px",flexShrink:0}}/>
         <nav style={{padding:"0 8px",flex:1,overflow:"hidden"}}>
           {NAV.map(function(item) {
             var active = nav===item.id;
             return (
-              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarExpanded?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarExpanded?"10px 12px":"8px 0",justifyContent:sidebarExpanded?"flex-start":"center",borderRadius:12,border:"none",background:active?"linear-gradient(135deg,#4361EE,#3451d1)":"transparent",color:active?"#fff":"#6b7280",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?600:500,marginBottom:4,transition:"all .3s cubic-bezier(.4,0,.2,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(67,97,238,.3)":"none",position:"relative",willChange:"background,color"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="rgba(67,97,238,.12)";e.currentTarget.style.color="#ffffff";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#6b7280";}}}>
+              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarExpanded?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarExpanded?"10px 12px":"8px 0",justifyContent:sidebarExpanded?"flex-start":"center",borderRadius:11,border:"1px solid "+(active?"rgba(99,102,241,.3)":"transparent"),background:active?"linear-gradient(135deg,rgba(99,102,241,.22),rgba(139,92,246,.15))":"transparent",color:active?"#c7d2fe":"rgba(255,255,255,.5)",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?600:500,marginBottom:3,transition:"all .25s cubic-bezier(.4,0,.2,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(99,102,241,.25)":"none",position:"relative",willChange:"background,color"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="rgba(255,255,255,.05)";e.currentTarget.style.color="rgba(255,255,255,.85)";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}}>
+                {active && <span style={{position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",width:3,height:18,background:"linear-gradient(180deg,#6366f1,#8b5cf6)",borderRadius:"0 3px 3px 0"}}/>}
                 <span style={{fontSize:sidebarExpanded?16:20,flexShrink:0,transition:"font-size .2s ease"}}>{item.emoji}</span>
                 <span className={"sidebar-label " + (sidebarExpanded?"visible":"hidden")} style={{flex:1}}>
                   {item.label}
@@ -3474,19 +3485,33 @@ export default function App() {
           })}
         </nav>
         {sidebarExpanded && (
-          <div style={{padding:"10px 14px 18px",borderTop:"1px solid #f1f5f9",flexShrink:0}}>
-            <div style={{fontSize:10,color:"#6b7280",lineHeight:1.6}}>
-              {accounts.length+" conta"+(accounts.length!==1?"s":"")+" salva"+(accounts.length!==1?"s":"")}
-            </div>
+          <div style={{padding:"12px 14px 16px",borderTop:"1px solid rgba(255,255,255,.07)",flexShrink:0}}>
+            {usage ? (
+              <div style={{background:"rgba(99,102,241,.1)",border:"1px solid rgba(99,102,241,.2)",borderRadius:11,padding:"11px 13px"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:7}}>
+                  <span style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#818cf8"}}>{"Plano "+(usage.planLabel||"")}</span>
+                  <span style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,.5)"}}>{usage.used+"/"+usage.limit}</span>
+                </div>
+                <div style={{background:"rgba(255,255,255,.08)",borderRadius:4,height:5,overflow:"hidden"}}>
+                  <div style={{background:"linear-gradient(90deg,#6366f1,#8b5cf6)",borderRadius:4,height:5,width:Math.min(100,Math.round((usage.used/(usage.limit||1))*100))+"%",transition:"width .4s ease"}}/>
+                </div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,.4)",marginTop:6}}>{usage.remaining+" mapeamento"+(usage.remaining!==1?"s":"")+" restante"+(usage.remaining!==1?"s":"")}</div>
+              </div>
+            ) : (
+              <div style={{fontSize:10,color:"rgba(255,255,255,.4)",lineHeight:1.6}}>
+                {accounts.length+" conta"+(accounts.length!==1?"s":"")+" salva"+(accounts.length!==1?"s":"")}
+              </div>
+            )}
           </div>
         )}
       </div>
-      <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0,minWidth:0,width:0}}>
-        <div className="main-content" style={{flex:1,overflowY:"auto",padding:"24px 28px",boxSizing:"border-box",width:"100%",minWidth:0}}>
+      <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0,minWidth:0,width:0,position:"relative"}}>
+        <div className="mp-ambient"><div className="mp-orb mp-orb1"/><div className="mp-orb mp-orb2"/><div className="mp-orb mp-orb3"/><div className="mp-gridlines"/></div>
+        <div className="main-content" style={{flex:1,overflowY:"auto",padding:"24px 28px",boxSizing:"border-box",width:"100%",minWidth:0,position:"relative",zIndex:1}}>
           {loading ? (
             <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",gap:12}}>
-              <div style={{width:8,height:8,borderRadius:"50%",background:"#4361EE"}}/>
-              <span style={{color:"#6b7280",fontSize:13}}>Carregando...</span>
+              <div style={{width:8,height:8,borderRadius:"50%",background:"#818cf8",animation:"pulseDot 1s infinite"}}/>
+              <span style={{color:"rgba(255,255,255,.5)",fontSize:13}}>Carregando...</span>
             </div>
           ) : (
             <div key={nav} style={{animation:"fadeUp .4s cubic-bezier(.4,0,.2,1) both"}}>
@@ -3500,8 +3525,8 @@ export default function App() {
               {nav==="integracoes" && <IntegrationsView/>}
               {nav==="pipeline"  && (
                 <div>
-                  <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Pipeline</div>
-                  <div style={{fontSize:13,color:"#64748b",marginBottom:24}}>{"Arraste os cards entre colunas para avanÃ§ar ou recuar o estÃ¡gio da prospecÃ§Ã£o."}</div>
+                  <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>Pipeline</div>
+                  <div style={{fontSize:13,color:"rgba(255,255,255,.55)",marginBottom:24}}>{"Arraste os cards entre colunas para avançar ou recuar o estágio da prospecção."}</div>
                   <PipelineView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus}/>
                 </div>
               )}
@@ -3512,7 +3537,7 @@ export default function App() {
       {openAcc && <AccountModal acc={openAcc} onClose={function(){setOpenAcc(null);}} onStatusChange={updateStatus}/>}
       {openSeq && <SequenceModal seq={openSeq} onClose={function(){setOpenSeq(null);}}/>}
       {toast && (
-        <div style={{position:"fixed",bottom:28,right:28,background:toast.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(15,23,42,.2),0 0 0 1px rgba(255,255,255,.15)",animation:"toastIn .35s cubic-bezier(.22,1,.36,1)",zIndex:300,maxWidth:340,display:"flex",alignItems:"center",gap:10}}>
+        <div style={{position:"fixed",bottom:28,right:28,background:toast.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(0,0,0,0.32),0 0 0 1px rgba(255,255,255,.15)",animation:"toastIn .35s cubic-bezier(.22,1,.36,1)",zIndex:300,maxWidth:340,display:"flex",alignItems:"center",gap:10}}>
           {toast.msg}
         </div>
       )}
