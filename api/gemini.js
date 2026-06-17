@@ -55,7 +55,7 @@ export default async function handler(req, res) {
   const fallbackModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const modelResumo = process.env.GEMINI_MODEL_RESUMO || fallbackModel;
   const modelSequencia = process.env.GEMINI_MODEL_SEQUENCIA || fallbackModel;
-  const { mode, empresa, setor, cargo, angulo, pain, touches, rawContext } = req.body || {};
+  const { mode, empresa, setor, cargo, angulo, pain, touches, rawContext, contato } = req.body || {};
 
   // ── MODO RESUMO ────────────────────────────────────────────────────────────
   if (mode === "resumo") {
@@ -112,6 +112,7 @@ export default async function handler(req, res) {
     "- Empresa: " + (empresa || "a empresa"),
     "- Setor: " + (setor || "tecnologia"),
     "- Cargo do decisor: " + (cargo || "Decisor"),
+    contato ? "- Nome do contato (use no inicio das mensagens, ex: 'Ola " + String(contato).trim().split(/\s+/)[0] + "'): " + contato : "- Nome do contato: desconhecido (use [Nome] como placeholder)",
     "- Angulo/responsabilidade: " + (angulo || "impacto no negocio"),
     "- Dor principal: " + (pain || "dores do atendimento"),
     "",
