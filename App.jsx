@@ -47,7 +47,7 @@ function storageDel(key) {
 var PLANS = {
   "starter":      { id:"starter",      label:"Starter",      limit:30,  color:"#0ea5e9" },
   "professional": { id:"professional", label:"Professional", limit:100, color:"#a5b4fc" },
-  "free":         { id:"free",         label:"Trial",        limit:5,   color:"rgba(255,255,255,.55)" },
+  "free":         { id:"free",         label:"Trial",        limit:5,   color:"#52617a" },
 };
 var USAGE_KEY = "usage_state";
 
@@ -167,7 +167,7 @@ function parseCSV(text) {
 
 // -- CONSTANTS ----------------------------------------------------------------
 var STATUS_CONFIG = {
-  "prospecting": { label:"Em prospecção", color:"rgba(255,255,255,.55)", bg:"#f8fafc", border:"#e2e8f0" },
+  "prospecting": { label:"Em prospecção", color:"#52617a", bg:"#f8fafc", border:"#e2e8f0" },
   "contacted":   { label:"Contatado",     color:"#0369a1", bg:"#eff6ff", border:"#bfdbfe" },
   "meeting":     { label:"Reunião",       color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe" },
   "won":         { label:"Convertido",    color:"#818cf8", bg:"#f0f3ff", border:"#c7d0fa" },
@@ -187,7 +187,7 @@ var TOUCH_TYPES = {
   whatsapp: { label:"WhatsApp",     icon:"W", color:"#16a34a", bg:"#f0f3ff" },
   call:     { label:"Cold Call",    icon:"C", color:"#92400e", bg:"#fffbeb" },
   follow:   { label:"Follow-up",    icon:"F", color:"#7c3aed", bg:"#f5f3ff" },
-  breakup:  { label:"Breakup",      icon:"B", color:"rgba(255,255,255,.55)", bg:"#f8fafc" },
+  breakup:  { label:"Breakup",      icon:"B", color:"#52617a", bg:"#f8fafc" },
 };
 var STAKEHOLDER_PROFILES = [
   { id:"headcx", label:"Head de CX / Diretor de Atendimento", angle:"CSAT, SLA e escala do time",    pain:"volume crescendo mais rápido que headcount, CSAT caindo" },
@@ -492,25 +492,25 @@ function SequenceView(props) {
     return (
       <div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-          <div style={{fontSize:22,fontWeight:800,color:"rgba(255,255,255,.92)"}}>{"Sequências Salvas"}</div>
+          <div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{"Sequências Salvas"}</div>
           <button onClick={function(){setView("builder");}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Nova sequência"}</button>
         </div>
         {saved.length === 0 ? (
-          <div style={{textAlign:"center",padding:"48px 0",background:"rgba(255,255,255,.03)",borderRadius:16,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+          <div style={{textAlign:"center",padding:"48px 0",background:"#fbfbfd",borderRadius:16,border:"1.5px dashed #e6e9ef"}}>
             <div style={{fontSize:32,marginBottom:10}}>{"📬"}</div>
-            <div style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,.75)"}}>Nenhuma sequência salva</div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,.5)",marginTop:4}}>Toda sequência gerada é salva aqui automaticamente</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#334155"}}>Nenhuma sequência salva</div>
+            <div style={{fontSize:12,color:"#64748b",marginTop:4}}>Toda sequência gerada é salva aqui automaticamente</div>
           </div>
         ) : (
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
             {saved.map(function(seq) {
               var fc = FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
               return (
-                <div key={seq.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:16,padding:"18px 20px",cursor:"pointer",transition:"all .2s"}} onClick={function(){setOpenSeq(seq);}}>
+                <div key={seq.id} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:16,padding:"18px 20px",cursor:"pointer",transition:"all .2s"}} onClick={function(){setOpenSeq(seq);}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
                     <div>
-                      <div style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:2}}>{seq.account&&seq.account.nome}</div>
-                      <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{seq.profile&&seq.profile.label}</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:2}}>{seq.account&&seq.account.nome}</div>
+                      <div style={{fontSize:11,color:"#64748b"}}>{seq.profile&&seq.profile.label}</div>
                     </div>
                     <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"2px 9px",fontSize:9,fontWeight:700}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
                   </div>
@@ -538,17 +538,17 @@ function SequenceView(props) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:22,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:3}}>{"Gerador de Sequências"}</div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,.55)"}}>Selecione a conta e o perfil para gerar uma cadência de 6 toques.</div>
+          <div style={{fontSize:22,fontWeight:800,color:"#0f172a",marginBottom:3}}>{"Gerador de Sequências"}</div>
+          <div style={{fontSize:13,color:"#52617a"}}>Selecione a conta e o perfil para gerar uma cadência de 6 toques.</div>
         </div>
-        <button onClick={function(){setView("library");}} style={{background:"rgba(255,255,255,.03)",color:"rgba(255,255,255,.6)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Biblioteca ("+saved.length+")"}</button>
+        <button onClick={function(){setView("library");}} style={{background:"#fbfbfd",color:"#475569",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"9px 18px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Biblioteca ("+saved.length+")"}</button>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:24}}>
         <div>
           <div style={{fontSize:10,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>{"1. Selecione a conta"}</div>
           {accounts.length === 0 ? (
-            <div style={{background:"rgba(255,255,255,.03)",border:"1.5px dashed rgba(255,255,255,.08)",borderRadius:12,padding:"20px",textAlign:"center"}}>
-              <div style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Nenhuma conta mapeada. Va para Busca.</div>
+            <div style={{background:"#fbfbfd",border:"1.5px dashed #e6e9ef",borderRadius:12,padding:"20px",textAlign:"center"}}>
+              <div style={{fontSize:12,color:"#64748b"}}>Nenhuma conta mapeada. Va para Busca.</div>
             </div>
           ) : (
             <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
@@ -558,8 +558,8 @@ function SequenceView(props) {
                 return (
                   <div key={acc.id} onClick={function(){setSelAcc(acc);setGenerated(null);}} style={{background:active?"#f0f3ff":"#fff",border:"1.5px solid "+(active?"#6366f1":"#e8edf4"),borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:12.5,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+                      <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                      <div style={{fontSize:10,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
                     </div>
                     <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:5,padding:"2px 7px",fontSize:8,fontWeight:700,flexShrink:0}}>{"FIT "+acc.fit}</span>
                     {active && <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",flexShrink:0}}/>}
@@ -577,18 +577,18 @@ function SequenceView(props) {
               return (
                 <div key={p.id} onClick={function(){setCustomProfile(null);setSelProfile(p);setGenerated(null);}} style={{background:active?"#f0f3ff":"#fff",border:"1.5px solid "+(active?"#6366f1":"#e8edf4"),borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
                   <div style={{flex:1}}>
-                    <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{p.label}</div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginTop:2}}>{"Angulo: "+p.angle}</div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#0f172a"}}>{p.label}</div>
+                    <div style={{fontSize:10,color:"#64748b",marginTop:2}}>{"Angulo: "+p.angle}</div>
                   </div>
                   {active && <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",flexShrink:0}}/>}
                 </div>
               );
             })}
             <div style={{border:"1.5px dashed "+(customProfile?"#6366f1":"#e2e8f0"),borderRadius:10,padding:"10px 14px",background:customProfile?"#f0f3ff":"#fafafa"}}>
-              <div style={{fontSize:10,fontWeight:600,color:"rgba(255,255,255,.55)",marginBottom:7}}>{"+ Cargo personalizado"}</div>
+              <div style={{fontSize:10,fontWeight:600,color:"#52617a",marginBottom:7}}>{"+ Cargo personalizado"}</div>
               <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-                <input value={customLabel} onChange={function(e){setCustomLabel(e.target.value);}} placeholder="Ex: Head de DevOps..." style={{flex:1,minWidth:110,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
-                <input value={customAngle} onChange={function(e){setCustomAngle(e.target.value);}} placeholder="Angulo de abordagem..." style={{flex:1,minWidth:110,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
+                <input value={customLabel} onChange={function(e){setCustomLabel(e.target.value);}} placeholder="Ex: Head de DevOps..." style={{flex:1,minWidth:110,background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
+                <input value={customAngle} onChange={function(e){setCustomAngle(e.target.value);}} placeholder="Angulo de abordagem..." style={{flex:1,minWidth:110,background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:7,padding:"6px 10px",fontSize:11,fontFamily:"inherit",outline:"none"}}/>
                 <button onClick={function(){if(!customLabel.trim())return;var cp={id:"custom",label:customLabel.trim(),angle:customAngle.trim()||"abordagem customizada",pain:"dores especificas do cargo"};setCustomProfile(cp);setSelProfile(cp);setGenerated(null);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:7,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>Usar cargo</button>
               </div>
               {customProfile && <div style={{marginTop:6,fontSize:10,color:"#a5b4fc",fontWeight:600}}>{"v Usando: "+customProfile.label}</div>}
@@ -611,7 +611,7 @@ function SequenceView(props) {
               <span style={{fontSize:10,fontWeight:700,color:"#92400e",background:"rgba(251,191,36,.14)",border:"1px solid rgba(251,191,36,.3)",borderRadius:7,padding:"4px 10px"}}>{"Template local (IA indisponível)"}</span>
             )}
             {generated.contactName && (
-              <span style={{fontSize:10,fontWeight:700,color:"#a5b4fc",background:"#eef2ff",border:"1px solid rgba(99,102,241,.3)",borderRadius:7,padding:"4px 10px",display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:10,fontWeight:700,color:"#4f46e5",background:"#eef2ff",border:"1px solid rgba(99,102,241,.3)",borderRadius:7,padding:"4px 10px",display:"flex",alignItems:"center",gap:5}}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 {"Para: " + generated.contactName + (generated.profile && generated.profile.label ? " · " + generated.profile.label : "")}
               </span>
@@ -621,22 +621,22 @@ function SequenceView(props) {
           {safeArr(generated.touches).map(function(touch,i) {
             var tc = TOUCH_TYPES[touch.type]||TOUCH_TYPES.email;
             return (
-              <div key={i} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:14,overflow:"hidden"}}>
+              <div key={i} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:14,overflow:"hidden"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",background:tc.bg,borderBottom:"1px solid #f1f5f9"}}>
                   <div style={{width:28,height:28,borderRadius:8,background:tc.color+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:tc.color,flexShrink:0}}>{tc.icon}</div>
                   <div style={{flex:1}}>
-                    <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{tc.label+" , Dia "+touch.day}</div>
-                    {touch.subject && <div style={{fontSize:10,color:"rgba(255,255,255,.55)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{"Assunto: "+touch.subject}</div>}
+                    <div style={{fontSize:12,fontWeight:700,color:"#0f172a"}}>{tc.label+" , Dia "+touch.day}</div>
+                    {touch.subject && <div style={{fontSize:10,color:"#52617a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{"Assunto: "+touch.subject}</div>}
                   </div>
-                  <button onClick={function(){regenerateTouch(i);}} title="Gerar nova versao" style={{background:"none",border:"1px solid rgba(255,255,255,.08)",borderRadius:7,padding:"4px 8px",cursor:"pointer",color:"rgba(255,255,255,.4)",display:"flex",alignItems:"center",gap:4,fontSize:10,fontFamily:"inherit",transition:"all .2s"}}
+                  <button onClick={function(){regenerateTouch(i);}} title="Gerar nova versao" style={{background:"none",border:"1px solid #e6e9ef",borderRadius:7,padding:"4px 8px",cursor:"pointer",color:"#94a3b8",display:"flex",alignItems:"center",gap:4,fontSize:10,fontFamily:"inherit",transition:"all .2s"}}
                     onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.color="#a5b4fc";}}
-                    onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.color="rgba(255,255,255,.4)";}}>
+                    onMouseLeave={function(e){e.currentTarget.style.borderColor="#e6e9ef";e.currentTarget.style.color="#94a3b8";}}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                     Recarregar
                   </button>
                   <CopyBtn text={(touch.subject?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
                 </div>
-                <div style={{padding:"14px 16px",fontSize:12.5,color:"rgba(255,255,255,.9)",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+tc.color}}>{touch.body}</div>
+                <div style={{padding:"14px 16px",fontSize:12.5,color:"#0f172a",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+tc.color}}>{touch.body}</div>
               </div>
             );
           })}
@@ -651,27 +651,27 @@ function SequenceView(props) {
 function SequenceModal(props) {
   var seq = props.seq;
   return (
-    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"12px 10px",overflowY:"auto",overflowX:"hidden",WebkitOverflowScrolling:"touch"}} onClick={function(e){if(e.target===e.currentTarget)props.onClose();}}>
-      <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:18,width:"100%",maxWidth:660,boxShadow:"0 24px 80px rgba(0,0,0,0.48)",marginBottom:16,flexShrink:0}} onClick={function(e){e.stopPropagation();}}>
+    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(15,23,42,.32)",zIndex:9999,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"12px 10px",overflowY:"auto",overflowX:"hidden",WebkitOverflowScrolling:"touch"}} onClick={function(e){if(e.target===e.currentTarget)props.onClose();}}>
+      <div style={{background:"#ffffff",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid #dde1e8",borderRadius:18,width:"100%",maxWidth:660,boxShadow:"0 24px 80px rgba(15,23,42,.3)",marginBottom:16,flexShrink:0}} onClick={function(e){e.stopPropagation();}}>
         <div style={{padding:"14px 14px",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
           <div style={{minWidth:0,flex:1}}>
-            <div style={{fontSize:15,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account && seq.account.nome}</div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{seq.profile && seq.profile.label + ", " + fmtDate(seq.createdAt)}</div>
+            <div style={{fontSize:15,fontWeight:800,color:"#0f172a",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account && seq.account.nome}</div>
+            <div style={{fontSize:11,color:"#64748b"}}>{seq.profile && seq.profile.label + ", " + fmtDate(seq.createdAt)}</div>
           </div>
-          <button onClick={props.onClose} style={{background:"rgba(255,255,255,.05)",border:"none",borderRadius:8,padding:"6px 10px",cursor:"pointer",color:"rgba(255,255,255,.55)",fontSize:15,lineHeight:1,fontFamily:"inherit",flexShrink:0}}>{"x"}</button>
+          <button onClick={props.onClose} style={{background:"#f6f7f9",border:"none",borderRadius:8,padding:"6px 10px",cursor:"pointer",color:"#52617a",fontSize:15,lineHeight:1,fontFamily:"inherit",flexShrink:0}}>{"x"}</button>
         </div>
         <div style={{padding:"12px 10px",display:"flex",flexDirection:"column",gap:10}}>
           {safeArr(seq.touches).map(function(touch, idx) {
             var tc = TOUCH_TYPES[touch.type] || TOUCH_TYPES.email;
             return (
-              <div key={idx} style={{border:"1.5px solid rgba(255,255,255,.08)",borderRadius:12,overflow:"hidden"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",background:"rgba(255,255,255,.03)",borderBottom:"1px solid #f1f5f9",flexWrap:"wrap"}}>
+              <div key={idx} style={{border:"1.5px solid #e6e9ef",borderRadius:12,overflow:"hidden"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",background:"#fbfbfd",borderBottom:"1px solid #f1f5f9",flexWrap:"wrap"}}>
                   <span style={{fontSize:10,fontWeight:700,color:tc.color,flexShrink:0}}>{tc.label}</span>
                   <span style={{background:tc.bg,color:tc.color,borderRadius:20,padding:"1px 7px",fontSize:9,fontWeight:700,flexShrink:0}}>{"Dia " + touch.day}</span>
-                  <div style={{flex:1,minWidth:40,fontSize:10,color:"rgba(255,255,255,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
+                  <div style={{flex:1,minWidth:40,fontSize:10,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{touch.subject}</div>
                   <CopyBtn text={(touch.type==="email"||touch.type==="linkedin"?"Assunto: "+touch.subject+"\n\n":"")+touch.body}/>
                 </div>
-                <div style={{padding:"10px",fontSize:12,color:"rgba(255,255,255,.9)",whiteSpace:"pre-wrap",lineHeight:1.75,wordBreak:"break-word",overflowWrap:"break-word"}}>{touch.body}</div>
+                <div style={{padding:"10px",fontSize:12,color:"#0f172a",whiteSpace:"pre-wrap",lineHeight:1.75,wordBreak:"break-word",overflowWrap:"break-word"}}>{touch.body}</div>
               </div>
             );
           })}
@@ -692,13 +692,13 @@ function AccountCard(props) {
   if (!acc.mapped) {
     var isMapping = props.mapping;
     return (
-      <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid "+(props.selected?"#6366f1":"rgba(228,235,244,.8)"),borderRadius:20,padding:"20px 22px",position:"relative",boxShadow:props.selected?"0 4px 16px rgba(99,102,241,.12)":"0 2px 12px rgba(0,0,0,0.1)",transition:"all .25s"}}>
+      <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid "+(props.selected?"#6366f1":"rgba(228,235,244,.8)"),borderRadius:20,padding:"20px 22px",position:"relative",boxShadow:props.selected?"0 4px 16px rgba(99,102,241,.12)":"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,gap:10}}>
           <div style={{display:"flex",alignItems:"flex-start",gap:10,flex:1,minWidth:0}}>
             <input type="checkbox" checked={!!props.selected} onChange={function(){props.onToggleSelect(acc.id);}} disabled={isMapping} style={{marginTop:2,width:16,height:16,accentColor:"#6366f1",cursor:"pointer",flexShrink:0}}/>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-              <div style={{fontSize:11,color:"rgba(255,255,255,.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.site || "Importada da lista"}</div>
+              <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+              <div style={{fontSize:11,color:"#94a3b8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.site || "Importada da lista"}</div>
             </div>
           </div>
           <span style={{fontSize:8,fontWeight:700,color:"#92400e",background:"rgba(251,191,36,.14)",border:"1px solid rgba(251,191,36,.3)",borderRadius:6,padding:"3px 8px",flexShrink:0,textTransform:"uppercase",letterSpacing:.5}}>{"Não mapeada"}</span>
@@ -715,17 +715,17 @@ function AccountCard(props) {
 
   // ── Estado MAPEADO (card completo original) ─────────────────────────────
   return (
-    <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid rgba(228,235,244,.8)",borderRadius:20,padding:"20px 22px",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-5px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(0,0,0,0.22)";e.currentTarget.style.borderColor="rgba(99,102,241,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.1)";e.currentTarget.style.borderColor="rgba(228,235,244,.8)";}}>
+    <div style={{background:"rgba(255,255,255,.95)",border:"1.5px solid rgba(228,235,244,.8)",borderRadius:20,padding:"20px 22px",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",boxShadow:"0 2px 12px rgba(15,23,42,.06)"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-5px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(15,23,42,.08)";e.currentTarget.style.borderColor="rgba(99,102,241,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";e.currentTarget.style.borderColor="rgba(228,235,244,.8)";}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+          <div style={{fontSize:11,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
         </div>
         <MiniGauge score={acc.fit}/>
       </div>
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
         <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700}}>{"FIT "+acc.fit}</span>
-        <span style={{background:"rgba(255,255,255,.03)",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
+        <span style={{background:"#fbfbfd",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div style={{position:"relative"}}>
@@ -734,11 +734,11 @@ function AccountCard(props) {
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           {menuOpen && (
-            <div onClick={function(e){e.stopPropagation();}} style={{position:"absolute",bottom:"calc(100% + 6px)",left:0,background:"rgba(16,16,30,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:12,boxShadow:"0 12px 40px rgba(0,0,0,0.5)",zIndex:50,minWidth:160,overflow:"hidden"}}>
+            <div onClick={function(e){e.stopPropagation();}} style={{position:"absolute",bottom:"calc(100% + 6px)",left:0,background:"#ffffff",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:"1px solid #dde1e8",borderRadius:12,boxShadow:"0 12px 40px rgba(15,23,42,.3)",zIndex:50,minWidth:160,overflow:"hidden"}}>
               {STATUS_ORDER.map(function(s) {
                 var sc2 = STATUS_CONFIG[s];
                 return (
-                  <div key={s} onClick={function(){handleStatus(s);}} style={{padding:"9px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:11,fontWeight:600,color:sc2.color,background:acc.status===s?sc2.bg:"#fff"}} onMouseEnter={function(e){if(acc.status!==s)e.currentTarget.style.background="rgba(255,255,255,.06)";}} onMouseLeave={function(e){if(acc.status!==s)e.currentTarget.style.background="rgba(255,255,255,.04)";}}>
+                  <div key={s} onClick={function(){handleStatus(s);}} style={{padding:"9px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:11,fontWeight:600,color:sc2.color,background:acc.status===s?sc2.bg:"#fff"}} onMouseEnter={function(e){if(acc.status!==s)e.currentTarget.style.background="#f1f3f6";}} onMouseLeave={function(e){if(acc.status!==s)e.currentTarget.style.background="#fff";}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:sc2.color}}/>
                     {sc2.label}
                     {acc.status===s && <svg style={{marginLeft:"auto"}} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
@@ -749,7 +749,7 @@ function AccountCard(props) {
           )}
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
-          <span style={{fontSize:10,color:"rgba(255,255,255,.5)"}}>{fmtDate(acc.savedAt)}</span>
+          <span style={{fontSize:10,color:"#64748b"}}>{fmtDate(acc.savedAt)}</span>
           <button onClick={function(e){e.stopPropagation();props.onOpen(acc);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ver</button>
           <button onClick={function(e){e.stopPropagation();props.onDelete(acc.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>x</button>
         </div>
@@ -874,19 +874,19 @@ function PipelineView(props) {
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:sc.color}}/>
                   <div style={{fontSize:9,fontWeight:700,color:sc.color,textTransform:"uppercase",letterSpacing:.8}}>{sc.label}</div>
-                  <div style={{marginLeft:"auto",fontSize:10,fontWeight:700,color:"rgba(255,255,255,.5)",background:"rgba(255,255,255,.1)",borderRadius:20,padding:"1px 7px"}}>{cards.length}</div>
+                  <div style={{marginLeft:"auto",fontSize:10,fontWeight:700,color:"#64748b",background:"#eceef2",borderRadius:20,padding:"1px 7px"}}>{cards.length}</div>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:8,minHeight:60}}>
                   {cards.map(function(acc) {
                     var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
                     var isDragging = dragId===acc.id;
                     return (
-                      <div key={acc.id} onMouseDown={function(e){startMouseDrag(e,acc,col);}} onTouchStart={function(e){startTouchDrag(e,acc,col);}} style={{background:"rgba(255,255,255,.04)",border:"1px solid "+(isDragging?"#6366f1":"#edf0f7"),borderRadius:14,padding:"12px 14px",cursor:isDragging?"grabbing":"grab",touchAction:"none",opacity:isDragging?0.25:1,transition:"opacity .1s",position:"relative"}}>
+                      <div key={acc.id} onMouseDown={function(e){startMouseDrag(e,acc,col);}} onTouchStart={function(e){startTouchDrag(e,acc,col);}} style={{background:"#ffffff",border:"1px solid "+(isDragging?"#6366f1":"#edf0f7"),borderRadius:14,padding:"12px 14px",cursor:isDragging?"grabbing":"grab",touchAction:"none",opacity:isDragging?0.25:1,transition:"opacity .1s",position:"relative"}}>
                         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:3}}>
-                          <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{acc.nome}</div>
-                          <div style={{fontSize:11,color:"rgba(255,255,255,.35)",marginLeft:6,flexShrink:0,letterSpacing:2}}>{"..."}</div>
+                          <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{acc.nome}</div>
+                          <div style={{fontSize:11,color:"#94a3b8",marginLeft:6,flexShrink:0,letterSpacing:2}}>{"..."}</div>
                         </div>
-                        <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
+                        <div style={{fontSize:10,color:"#64748b",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.setor}</div>
                         <div style={{display:"flex",gap:5}}>
                           <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700}}>{"FIT "+acc.fit}</span>
                           <span style={{fontSize:8,color:TIER_COLOR[acc.tier]||"#94a3b8",fontWeight:700}}>{acc.tier}</span>
@@ -905,16 +905,16 @@ function PipelineView(props) {
           })}
         </div>
         {dragId&&(
-          <div style={{marginTop:10,textAlign:"center",fontSize:11,color:"rgba(255,255,255,.5)"}}>
+          <div style={{marginTop:10,textAlign:"center",fontSize:11,color:"#64748b"}}>
             {"Solte sobre a coluna de destino"}
           </div>
         )}
       </div>
       {dragId && dragAcc && (
-        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:ghostW,boxSizing:"border-box",zIndex:9999,pointerEvents:"none",boxShadow:"0 12px 32px rgba(0,0,0,0.35)",borderRadius:14,opacity:.95}}>
-          <div style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(99,102,241,.4)",borderRadius:14,padding:"12px 14px",boxSizing:"border-box"}}>
-            <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{dragAcc.nome}</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{dragAcc.setor}</div>
+        <div style={{position:"fixed",left:ghostPos.x,top:ghostPos.y,width:ghostW,boxSizing:"border-box",zIndex:9999,pointerEvents:"none",boxShadow:"0 12px 32px rgba(15,23,42,.10)",borderRadius:14,opacity:.95}}>
+          <div style={{background:"#ffffff",border:"1.5px solid rgba(99,102,241,.4)",borderRadius:14,padding:"12px 14px",boxSizing:"border-box"}}>
+            <div style={{fontSize:12,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{dragAcc.nome}</div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{dragAcc.setor}</div>
             {ghostFc&&(
               <span style={{background:ghostFc.bg,border:"1px solid "+ghostFc.border,color:ghostFc.text,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700}}>{"FIT "+dragAcc.fit}</span>
             )}
@@ -956,7 +956,7 @@ function AttachmentAnalysis(props) {
   if (loading) return (
     <div style={{display:"flex",alignItems:"center",gap:12,padding:"32px 0",justifyContent:"center"}}>
       <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",animation:"pulse 1s infinite"}}/>
-      <span style={{color:"rgba(255,255,255,.5)",fontSize:13}}>{"Analisando documento com IA..."}</span>
+      <span style={{color:"#64748b",fontSize:13}}>{"Analisando documento com IA..."}</span>
     </div>
   );
   if (!analysis) return null;
@@ -967,20 +967,20 @@ function AttachmentAnalysis(props) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         <span style={{fontSize:11,color:"#a5b4fc",fontWeight:600}}>{acc.attachFileName||"Documento anexado"}</span>
       </div>
-      <div style={{background:"rgba(255,255,255,.03)",borderRadius:14,padding:"16px 18px",border:"1px solid rgba(255,255,255,.08)"}}>
+      <div style={{background:"#fbfbfd",borderRadius:14,padding:"16px 18px",border:"1px solid #e6e9ef"}}>
         <div style={{fontSize:9,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>Resumo Executivo</div>
-        <div style={{fontSize:13,color:"rgba(255,255,255,.75)",lineHeight:1.7}}>{analysis.resumo}</div>
+        <div style={{fontSize:13,color:"#334155",lineHeight:1.7}}>{analysis.resumo}</div>
       </div>
       {analysis.insights&&analysis.insights.length>0&&(
         <div>
           <div style={{fontSize:9,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Insights para Prospecção</div>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {analysis.insights.map(function(ins,i){return (
-              <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px"}}>
+              <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:10,padding:"10px 14px"}}>
                 <div style={{width:20,height:20,borderRadius:6,background:"linear-gradient(135deg,#6366f1,#4f46e5)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   <span style={{fontSize:9,fontWeight:700,color:"#fff"}}>{i+1}</span>
                 </div>
-                <span style={{fontSize:12,color:"rgba(255,255,255,.75)",lineHeight:1.6}}>{ins}</span>
+                <span style={{fontSize:12,color:"#334155",lineHeight:1.6}}>{ins}</span>
               </div>
             );})}
           </div>
@@ -1197,33 +1197,33 @@ function AccountModal(props) {
   var concorrentes=safeArr(sd("mercado.competidores_provedor"));
   var CHANNELS=[{key:"emails",label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)",isObj:true},{key:"inmails",label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)",isObj:true},{key:"whatsapps",label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)",isObj:false},{key:"cold_calls",label:"Cold Call",color:"#92400e",bg:"#fef3c7",isObj:false}];
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"20px 16px",overflowY:"auto",backdropFilter:"blur(10px)"}}>
-      <div className="modal-box" style={{background:"rgba(255,255,255,.99)",borderRadius:24,width:"100%",maxWidth:820,boxShadow:"0 32px 100px rgba(0,0,0,0.48)"}}>
+    <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"20px 16px",overflowY:"auto",backdropFilter:"blur(10px)"}}>
+      <div className="modal-box" style={{background:"rgba(255,255,255,.99)",borderRadius:24,width:"100%",maxWidth:820,boxShadow:"0 32px 100px rgba(15,23,42,.3)"}}>
         <div style={{padding:"22px 28px 0",borderBottom:"1px solid #f1f5f9"}}>
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,marginBottom:16}}>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-                <div style={{fontSize:21,fontWeight:800,color:"rgba(255,255,255,.92)",lineHeight:1.2}}>{acc.nome}</div>
-                {acc.liveMode&&<span style={{background:"rgba(99,102,241,.12)",border:"1px solid rgba(52,211,153,.35)",color:"#818cf8",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:700}}>LIVE</span>}
+                <div style={{fontSize:21,fontWeight:800,color:"#0f172a",lineHeight:1.2}}>{acc.nome}</div>
+                {acc.liveMode&&<span style={{background:"rgba(99,102,241,.12)",border:"1px solid rgba(52,211,153,.35)",color:"#4f46e5",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:700}}>LIVE</span>}
               </div>
-              <div style={{fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:10}}>{acc.setor}</div>
+              <div style={{fontSize:12,color:"#64748b",marginBottom:10}}>{acc.setor}</div>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{"FIT "+fit}</span>
-                <span style={{background:"rgba(255,255,255,.03)",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
+                <span style={{background:"#fbfbfd",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{acc.tier}</span>
                 <span style={{background:sc.bg,border:"1px solid "+sc.border,color:sc.color,borderRadius:8,padding:"4px 12px",fontSize:9,fontWeight:700}}>{sc.label}</span>
-                <span style={{background:"rgba(255,255,255,.03)",color:"rgba(255,255,255,.5)",borderRadius:8,padding:"4px 12px",fontSize:9}}>{"Salvo "+fmtDate(acc.savedAt)}</span>
+                <span style={{background:"#fbfbfd",color:"#64748b",borderRadius:8,padding:"4px 12px",fontSize:9}}>{"Salvo "+fmtDate(acc.savedAt)}</span>
               </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0,alignItems:"flex-end"}}>
               <div style={{display:"flex",gap:4,flexWrap:"wrap",maxWidth:200}}>
-                {STATUS_ORDER.map(function(s){var sc2=STATUS_CONFIG[s];return <button key={s} onClick={function(){props.onStatusChange(acc.id,s);}} style={{background:acc.status===s?sc2.bg:"#f8fafc",border:"1px solid "+(acc.status===s?sc2.border:"#e2e8f0"),color:acc.status===s?sc2.color:"rgba(255,255,255,.5)",borderRadius:6,padding:"3px 8px",fontSize:9,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{sc2.label}</button>;})}
+                {STATUS_ORDER.map(function(s){var sc2=STATUS_CONFIG[s];return <button key={s} onClick={function(){props.onStatusChange(acc.id,s);}} style={{background:acc.status===s?sc2.bg:"#f8fafc",border:"1px solid "+(acc.status===s?sc2.border:"#e2e8f0"),color:acc.status===s?sc2.color:"#64748b",borderRadius:6,padding:"3px 8px",fontSize:9,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{sc2.label}</button>;})}
               </div>
               <div style={{display:"flex",gap:6}}>
                 <button onClick={function(){exportAccountPDF(acc,d);}} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(99,102,241,.1)",border:"1px solid rgba(56,189,248,.3)",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"#0369a1",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                   {"PDF"}
                 </button>
-                <button onClick={props.onClose} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"rgba(255,255,255,.55)",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>{"Fechar"}</button>
+                <button onClick={props.onClose} style={{background:"#fbfbfd",border:"1px solid #e6e9ef",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"#52617a",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>{"Fechar"}</button>
               </div>
             </div>
           </div>
@@ -1234,14 +1234,14 @@ function AccountModal(props) {
         <div style={{padding:"22px 28px",maxHeight:"60vh",overflowY:"auto"}}>
           {activeTab==="overview"&&(
             <div>
-              {empresa.resumo&&<Sec title={empresa.resumoAI?"Resumo da Empresa · IA":"Resumo da Empresa"}><p style={{fontSize:13,lineHeight:1.8,color:"rgba(255,255,255,.75)",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["Estágio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"rgba(99,102,241,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#818cf8",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"rgba(255,255,255,.92)",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
-              {fitJust&&<Sec title="Fit Zendesk"><p style={{fontSize:13,lineHeight:1.7,color:"rgba(255,255,255,.75)",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.25)",color:"#a5b4fc",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
+              {empresa.resumo&&<Sec title={empresa.resumoAI?"Resumo da Empresa · IA":"Resumo da Empresa"}><p style={{fontSize:13,lineHeight:1.8,color:"#334155",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["Estágio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"rgba(99,102,241,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#818cf8",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"#0f172a",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
+              {fitJust&&<Sec title="Fit Zendesk"><p style={{fontSize:13,lineHeight:1.7,color:"#334155",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.25)",color:"#4f46e5",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
               {useCases.length>0&&<Sec title="Use Cases Prioritários">{useCases.map(function(u,i){return <R key={i} icon=">" color="#6366f1">{u}</R>;})}</Sec>}
               {dores.length>0&&<Sec title="Possiveis dores para mapear">{dores.map(function(d2,i){return <R key={i} icon="!" color="#ef4444">{d2}</R>;})} {exposicao.length>0&&<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>{exposicao.map(function(r,i){return <span key={i} style={{background:"rgba(251,191,36,.14)",border:"1px solid rgba(245,158,11,.4)",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{r}</span>;})}</div>}</Sec>}
               {triggers.length>0&&<Sec title="Gatilhos Comerciais">{triggers.map(function(t,i){return <R key={i} icon="T" color="#7c3aed">{t}</R>;})}</Sec>}
               {sinais.length>0&&<Sec title="Sinais de Intenção"><div style={{background:"#0c2340",borderRadius:12,padding:"12px 16px"}}>{sinais.map(function(s,i){return <div key={i} style={{fontSize:11.5,color:"#7dd3fc",lineHeight:1.6,display:"flex",gap:8,marginBottom:5}}><span style={{color:"#38bdf8",flexShrink:0}}>o</span>{s}</div>;})}</div></Sec>}
               {concorrentes.length>0&&<Sec title="Concorrentes Prováveis"><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{concorrentes.map(function(cc,i){return <span key={i} style={{background:"rgba(251,191,36,.14)",border:"1px solid rgba(245,158,11,.4)",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{cc}</span>;})}</div></Sec>}
-              {noticias.length>0&&<Sec title="Notícias e Contexto">{noticias.map(function(n,i){return <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:12,padding:"12px 14px",marginBottom:8}}>{n.url?<a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12.5,fontWeight:700,color:"#0ea5e9",textDecoration:"none",display:"block",marginBottom:3}}>{n.titulo}</a>:<div style={{fontSize:12.5,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:3}}>{n.titulo}</div>}<div style={{fontSize:11.5,color:"rgba(255,255,255,.55)",lineHeight:1.6,marginBottom:3}}>{n.resumo}</div><div style={{fontSize:10,color:"#a5b4fc",fontWeight:600}}>{"-> "+n.relevancia}</div></div>;})}</Sec>}
+              {noticias.length>0&&<Sec title="Notícias e Contexto">{noticias.map(function(n,i){return <div key={i} style={{background:"#fbfbfd",border:"1px solid #e6e9ef",borderRadius:12,padding:"12px 14px",marginBottom:8}}>{n.url?<a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12.5,fontWeight:700,color:"#0ea5e9",textDecoration:"none",display:"block",marginBottom:3}}>{n.titulo}</a>:<div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",marginBottom:3}}>{n.titulo}</div>}<div style={{fontSize:11.5,color:"#52617a",lineHeight:1.6,marginBottom:3}}>{n.resumo}</div><div style={{fontSize:10,color:"#a5b4fc",fontWeight:600}}>{"-> "+n.relevancia}</div></div>;})}</Sec>}
             </div>
           )}
           {activeTab==="stakeholders"&&(
@@ -1251,20 +1251,20 @@ function AccountModal(props) {
                   <div style={{fontSize:9,fontWeight:700,letterSpacing:1.5,color:"#a5b4fc",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
                     <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",boxShadow:"0 0 8px rgba(16,185,129,.5)"}}/>
                     {"Contatos Reais Encontrados , "+enrichedContacts.length+" perfil"+(enrichedContacts.length>1?"s":"")}
-                    {enrichedSources.map(function(s,i){return <span key={i} style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.2)",color:"#a5b4fc",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:600}}>{s}</span>;})}
+                    {enrichedSources.map(function(s,i){return <span key={i} style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.2)",color:"#4f46e5",borderRadius:6,padding:"2px 8px",fontSize:8,fontWeight:600}}>{s}</span>;})}
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:10,marginBottom:16}}>
                     {enrichedContacts.map(function(contact,i){
                       return (
                         <div key={i} style={{background:"linear-gradient(145deg,#f0fdf4,#fff)",border:"1.5px solid rgba(99,102,241,.25)",borderRadius:14,padding:"14px 16px"}}>
-                          <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:1}}>{contact.nome||contact.name||""}</div>
+                          <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:1}}>{contact.nome||contact.name||""}</div>
                           {(contact.cargo||contact.title)&&<div style={{fontSize:10,color:"#a5b4fc",marginBottom:6,fontWeight:600}}>{contact.cargo||contact.title}</div>}
                           <div style={{display:"flex",flexDirection:"column",gap:5}}>
                             {contact.email&&(
                               <a href={"mailto:"+contact.email} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"#0ea5e9",textDecoration:"none",background:"rgba(14,165,233,.06)",borderRadius:6,padding:"4px 8px"}}>
                                 <span>{"@"}</span>
                                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{contact.email}</span>
-                                {contact.email_confidence>0&&<span style={{fontSize:8,color:"rgba(255,255,255,.5)",marginLeft:"auto",flexShrink:0}}>{contact.email_confidence+"%"}</span>}
+                                {contact.email_confidence>0&&<span style={{fontSize:8,color:"#64748b",marginLeft:"auto",flexShrink:0}}>{contact.email_confidence+"%"}</span>}
                               </a>
                             )}
                             {contact.linkedin&&(
@@ -1272,8 +1272,8 @@ function AccountModal(props) {
                                 <span>in</span><span>Ver perfil LinkedIn</span>
                               </a>
                             )}
-                            {contact.phone&&<span style={{fontSize:10,color:"rgba(255,255,255,.55)",padding:"2px 0"}}>{contact.phone}</span>}
-                            <span style={{fontSize:8,color:"rgba(255,255,255,.5)",fontStyle:"italic"}}>{contact.source}</span>
+                            {contact.phone&&<span style={{fontSize:10,color:"#52617a",padding:"2px 0"}}>{contact.phone}</span>}
+                            <span style={{fontSize:8,color:"#64748b",fontStyle:"italic"}}>{contact.source}</span>
                           </div>
                         </div>
                       );
@@ -1290,7 +1290,7 @@ function AccountModal(props) {
                   return (
                     <div key={i} style={{background:match?"linear-gradient(145deg,#f0fdf4,#fff)":"#f8fafc",border:"1.5px solid "+(match?"rgba(99,102,241,.3)":"#e8edf4"),borderRadius:14,padding:"14px 16px",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 4px 16px rgba(99,102,241,.1)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor=match?"rgba(99,102,241,.3)":"#e8edf4";e.currentTarget.style.boxShadow="";}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
-                        <div style={{fontSize:12.5,fontWeight:700,color:"rgba(255,255,255,.92)",lineHeight:1.3,flex:1}}>{s.cargo}</div>
+                        <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a",lineHeight:1.3,flex:1}}>{s.cargo}</div>
                         <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",marginLeft:8,flexShrink:0}}>
                           <span style={{background:pc+"20",border:"1px solid "+pc,color:pc,borderRadius:6,padding:"2px 7px",fontSize:8,fontWeight:700,whiteSpace:"nowrap"}}>{s.prioridade}</span>
                           <span style={{fontSize:8,color:uc,fontWeight:600}}>{"Urgência: "+s.urgencia}</span>
@@ -1305,7 +1305,7 @@ function AccountModal(props) {
                           </div>
                         </div>
                       )}
-                      <div style={{fontSize:11,color:"rgba(255,255,255,.55)",lineHeight:1.6}}>{s.angulo}</div>
+                      <div style={{fontSize:11,color:"#52617a",lineHeight:1.6}}>{s.angulo}</div>
                     </div>
                   );
                 })}
@@ -1323,7 +1323,7 @@ function AccountModal(props) {
                   return (
                     <div key={i} style={{display:"flex",gap:10,padding:"10px 0",borderBottom:"1px solid #f1f5f9",alignItems:"flex-start"}}>
                       <span style={{background:tc+"20",border:"1px solid "+tc+"50",color:tc,borderRadius:6,padding:"2px 8px",fontSize:9,fontWeight:800,flexShrink:0,marginTop:1}}>{tipo}</span>
-                      <span style={{fontSize:12.5,color:"rgba(255,255,255,.75)",lineHeight:1.6,flex:1}}>{clean}</span>
+                      <span style={{fontSize:12.5,color:"#334155",lineHeight:1.6,flex:1}}>{clean}</span>
                       <CopyBtn text={clean}/>
                     </div>
                   );
@@ -1335,12 +1335,12 @@ function AccountModal(props) {
                     var objTxt = o.objeção || o.objecao || o.objection || "";
                     var respTxt = o.resposta || o.response || "";
                     return (
-                      <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:14,padding:"14px 16px",marginBottom:10}}>
+                      <div key={i} style={{background:"#fbfbfd",border:"1.5px solid #e6e9ef",borderRadius:14,padding:"14px 16px",marginBottom:10}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8,gap:8}}>
                           <div style={{fontSize:12,fontWeight:700,color:"#92400e",lineHeight:1.4,flex:1}}>{'"'+objTxt+'"'}</div>
                           <CopyBtn text={'"'+objTxt+'"\n-> '+respTxt}/>
                         </div>
-                        <div style={{fontSize:12,color:"rgba(255,255,255,.75)",lineHeight:1.65}}>{"-> "+respTxt}</div>
+                        <div style={{fontSize:12,color:"#334155",lineHeight:1.65}}>{"-> "+respTxt}</div>
                       </div>
                     );
                   })}
@@ -1355,13 +1355,13 @@ function AccountModal(props) {
             <div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:18}}>
                 <Sec title="AE , Ações Imediatas">
-                  {ae.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#a5b4fc",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"rgba(255,255,255,.75)",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
+                  {ae.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#a5b4fc",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"#334155",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
                 </Sec>
                 <Sec title="BDR , Ações de Suporte">
-                  {bdr.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#f59e0b",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"rgba(255,255,255,.75)",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
+                  {bdr.map(function(a,i){return <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid #f1f5f9",gap:8}}><div style={{display:"flex",gap:8,flex:1}}><span style={{color:"#f59e0b",flexShrink:0,fontWeight:700}}>{">"}</span><span style={{fontSize:12,color:"#334155",lineHeight:1.5}}>{a}</span></div><CopyBtn text={a}/></div>;})}
                 </Sec>
               </div>
-              {prazo&&<div style={{background:"rgba(99,102,241,.06)",border:"1px solid rgba(99,102,241,.2)",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}><div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#6366f1,#4f46e5)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div><div><div style={{fontSize:9,color:"#a5b4fc",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Prazo</div><div style={{fontSize:13,color:"rgba(255,255,255,.92)",fontWeight:600}}>{prazo}</div></div></div>}
+              {prazo&&<div style={{background:"rgba(99,102,241,.06)",border:"1px solid rgba(99,102,241,.2)",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}><div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#6366f1,#4f46e5)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div><div><div style={{fontSize:9,color:"#a5b4fc",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Prazo</div><div style={{fontSize:13,color:"#0f172a",fontWeight:600}}>{prazo}</div></div></div>}
             </div>
           )}
         </div>
@@ -1380,14 +1380,14 @@ function CollapsibleChannels(props) {
         if(!items.length)return null;
         var isOpen=open[cfg.key];
         return (
-          <div key={cfg.key} style={{border:"1.5px solid rgba(255,255,255,.08)",borderRadius:16,overflow:"hidden",transition:"all .25s"}}>
+          <div key={cfg.key} style={{border:"1.5px solid #e6e9ef",borderRadius:16,overflow:"hidden",transition:"all .25s"}}>
             <div onClick={function(){toggle(cfg.key);}} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 18px",background:isOpen?cfg.bg:"#fafafa",cursor:"pointer",userSelect:"none",transition:"background .2s"}}>
               <div style={{width:32,height:32,borderRadius:9,background:cfg.bg,border:"1.5px solid "+cfg.color+"40",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                 <span style={{fontSize:11,fontWeight:800,color:cfg.color}}>{cfg.label.slice(0,2)}</span>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{cfg.label}</div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,.5)"}}>{items.length+" template"+(items.length>1?"s":"")}</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{cfg.label}</div>
+                <div style={{fontSize:10,color:"#64748b"}}>{items.length+" template"+(items.length>1?"s":"")}</div>
               </div>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{transition:"transform .25s cubic-bezier(.22,1,.36,1)",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>
                 <polyline points="6 9 12 15 18 9"/>
@@ -1399,13 +1399,13 @@ function CollapsibleChannels(props) {
                   var text=cfg.isObj?item.corpo:item;
                   var ck=cfg.key+"-"+i;
                   return (
-                    <div key={i} style={{border:"1px solid rgba(255,255,255,.08)",borderRadius:12,overflow:"hidden"}}>
+                    <div key={i} style={{border:"1px solid #e6e9ef",borderRadius:12,overflow:"hidden"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,padding:"9px 14px",background:cfg.bg}}>
                         <span style={{fontSize:10,fontWeight:700,color:cfg.color}}>{"Template "+(i+1)}</span>
-                        {cfg.isObj&&item.assunto&&<span style={{fontSize:11,color:"rgba(255,255,255,.55)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{", "+item.assunto}</span>}
+                        {cfg.isObj&&item.assunto&&<span style={{fontSize:11,color:"#52617a",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{", "+item.assunto}</span>}
                         <CopyBtn text={(cfg.isObj&&item.assunto?"Assunto: "+item.assunto+"\n\n":"")+text}/>
                       </div>
-                      <div style={{padding:"14px 16px",fontSize:12.5,color:"rgba(255,255,255,.9)",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+cfg.color}}>{text}</div>
+                      <div style={{padding:"14px 16px",fontSize:12.5,color:"#0f172a",whiteSpace:"pre-wrap",lineHeight:1.85,borderLeft:"3px solid "+cfg.color}}>{text}</div>
                     </div>
                   );
                 })}
@@ -1454,21 +1454,21 @@ function BibliotecaView(props) {
       props.showToast("Sequencia removida.","#ef4444");
     });
   }
-  if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}><div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1"}}/><span style={{color:"rgba(255,255,255,.5)",fontSize:13}}>Carregando...</span></div>;
+  if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}><div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1"}}/><span style={{color:"#64748b",fontSize:13}}>Carregando...</span></div>;
   return (
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>Biblioteca</div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,.55)"}}>{seqs.length+" sequência"+(seqs.length!==1?"s":"")+" salva"+(seqs.length!==1?"s":"")}</div>
+          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Biblioteca</div>
+          <div style={{fontSize:13,color:"#52617a"}}>{seqs.length+" sequência"+(seqs.length!==1?"s":"")+" salva"+(seqs.length!==1?"s":"")}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"8px 12px",fontSize:12,color:"rgba(255,255,255,.6)",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
             <option value="date">Mais recente</option>
             <option value="az">A -> Z</option>
             <option value="za">Z -> A</option>
           </select>
-          <div style={{display:"flex",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,overflow:"hidden"}}>
+          <div style={{display:"flex",background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,overflow:"hidden"}}>
             <button onClick={function(){setViewMode("cards");}} title="Cards" style={{padding:"8px 12px",border:"none",background:viewMode==="cards"?"linear-gradient(135deg,#6366f1,#4f46e5)":"transparent",color:viewMode==="cards"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
             </button>
@@ -1479,10 +1479,10 @@ function BibliotecaView(props) {
         </div>
       </div>
       {seqs.length===0 ? (
-        <div style={{textAlign:"center",padding:"64px 0",background:"rgba(255,255,255,.03)",borderRadius:20,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+        <div style={{textAlign:"center",padding:"64px 0",background:"#fbfbfd",borderRadius:20,border:"1.5px dashed #e6e9ef"}}>
           <div style={{fontSize:36,marginBottom:12}}>{"📚"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.75)",marginBottom:6}}>{"Nenhuma sequência salva ainda"}</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,.5)",lineHeight:1.6}}>{"Vá para Sequências e gere uma cadência — ela é salva aqui automaticamente."}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{"Nenhuma sequência salva ainda"}</div>
+          <div style={{fontSize:12,color:"#64748b",lineHeight:1.6}}>{"Vá para Sequências e gere uma cadência — ela é salva aqui automaticamente."}</div>
         </div>
       ) : (
         viewMode==="cards" ? (
@@ -1493,14 +1493,14 @@ function BibliotecaView(props) {
             return (b.createdAt||0)-(a.createdAt||0);
           }).map(function(seq){
             var fc = FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
-            var TOUCH_TYPES_LOCAL = {email:{label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)"},linkedin:{label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)"},whatsapp:{label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)"},call:{label:"Cold Call",color:"#92400e",bg:"#fef3c7"},follow:{label:"Follow-up",color:"#7c3aed",bg:"#f5f3ff"},breakup:{label:"Breakup",color:"rgba(255,255,255,.55)",bg:"#f8fafc"}};
+            var TOUCH_TYPES_LOCAL = {email:{label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)"},linkedin:{label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)"},whatsapp:{label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)"},call:{label:"Cold Call",color:"#92400e",bg:"#fef3c7"},follow:{label:"Follow-up",color:"#7c3aed",bg:"#f5f3ff"},breakup:{label:"Breakup",color:"#52617a",bg:"#f8fafc"}};
             return (
-              <div key={seq.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:20,padding:"20px 22px",boxShadow:"0 2px 12px rgba(0,0,0,0.1)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 12px 40px rgba(0,0,0,0.19)";e.currentTarget.style.borderColor="rgba(99,102,241,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.1)";e.currentTarget.style.borderColor="rgba(255,255,255,.08)";}}>
+              <div key={seq.id} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:20,padding:"20px 22px",boxShadow:"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 12px 40px rgba(15,23,42,.08)";e.currentTarget.style.borderColor="rgba(99,102,241,.3)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";e.currentTarget.style.borderColor="#e6e9ef";}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.profile&&seq.profile.label}</div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,.35)"}}>{fmtDate(seq.createdAt)}</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
+                    <div style={{fontSize:11,color:"#64748b",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.profile&&seq.profile.label}</div>
+                    <div style={{fontSize:10,color:"#94a3b8"}}>{fmtDate(seq.createdAt)}</div>
                   </div>
                   <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:8,padding:"3px 10px",fontSize:9,fontWeight:700,flexShrink:0,marginLeft:8}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
                 </div>
@@ -1528,13 +1528,13 @@ function BibliotecaView(props) {
           }).map(function(seq){
             var fc=FIT_CONFIG[(seq.account&&seq.account.fit)||"ALTO"]||FIT_CONFIG.ALTO;
             return (
-              <div key={seq.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.boxShadow="";}}>
+              <div key={seq.id} style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e6e9ef";e.currentTarget.style.boxShadow="";}}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13.5,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:1}}>{seq.profile&&seq.profile.label}</div>
+                  <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.account&&seq.account.nome}</div>
+                  <div style={{fontSize:11,color:"#64748b",marginTop:1}}>{seq.profile&&seq.profile.label}</div>
                 </div>
                 <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"2px 8px",fontSize:9,fontWeight:700,flexShrink:0}}>{"FIT "+(seq.account&&seq.account.fit)}</span>
-                <span style={{fontSize:10,color:"rgba(255,255,255,.5)",flexShrink:0}}>{fmtDate(seq.createdAt)}</span>
+                <span style={{fontSize:10,color:"#64748b",flexShrink:0}}>{fmtDate(seq.createdAt)}</span>
                 <button onClick={function(){props.onOpenSeq(seq);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Abrir</button>
                 <button onClick={function(){downloadSeqPDF(seq);}} style={{background:"rgba(99,102,241,.1)",border:"1px solid rgba(56,189,248,.3)",color:"#0369a1",borderRadius:8,padding:"5px 10px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>PDF</button>
                 <button onClick={function(){deleteSeq(seq.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
@@ -1559,7 +1559,7 @@ function Sec(props) {
   );
 }
 function R(props) {
-  return <div style={{display:"flex",gap:8,padding:"7px 0",borderBottom:"1px solid #f1f5f9",fontSize:12.5,color:"rgba(255,255,255,.75)",lineHeight:1.55}}><span style={{color:props.color,flexShrink:0,fontWeight:700}}>{props.icon}</span>{props.children}</div>;
+  return <div style={{display:"flex",gap:8,padding:"7px 0",borderBottom:"1px solid #f1f5f9",fontSize:12.5,color:"#334155",lineHeight:1.55}}><span style={{color:props.color,flexShrink:0,fontWeight:700}}>{props.icon}</span>{props.children}</div>;
 }
 // -- SEARCH VIEW ---------------------------------------------------------------
 function LoadingStatus() {
@@ -1582,13 +1582,13 @@ function LoadingStatus() {
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
         <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1",boxShadow:"0 0 0 3px rgba(99,102,241,.2)",animation:"pulse 1s ease-in-out infinite",flexShrink:0}}/>
         <span style={{fontSize:13,color:"#a5b4fc",fontWeight:700}}>Mais Pipe com IA</span>
-        <span style={{fontSize:10,color:"rgba(255,255,255,.5)",marginLeft:"auto"}}>{"análise em tempo real"}</span>
+        <span style={{fontSize:10,color:"#64748b",marginLeft:"auto"}}>{"análise em tempo real"}</span>
       </div>
-      <div style={{fontSize:13,color:"rgba(255,255,255,.75)",lineHeight:1.6,display:"flex",alignItems:"center",gap:8}}>
+      <div style={{fontSize:13,color:"#334155",lineHeight:1.6,display:"flex",alignItems:"center",gap:8}}>
         <span style={{fontSize:16}}>{steps[step].icon}</span>
         <span style={{transition:"opacity .3s"}}>{steps[step].text}</span>
       </div>
-      <div style={{marginTop:12,height:3,background:"rgba(255,255,255,.1)",borderRadius:3,overflow:"hidden"}}>
+      <div style={{marginTop:12,height:3,background:"#eceef2",borderRadius:3,overflow:"hidden"}}>
         <div style={{height:"100%",background:"linear-gradient(90deg,#10b981,#0ea5e9)",borderRadius:3,animation:"shimmer 1.5s ease-in-out infinite",backgroundSize:"200% 100%"}}/>
       </div>
     </div>
@@ -1694,12 +1694,12 @@ function ContactsView(props) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:22,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:3,letterSpacing:"-0.4px"}}>{"Contatos"}</div>
-          <div style={{fontSize:12.5,color:"rgba(255,255,255,.55)"}}>{contacts.length===0 ? "Os contatos aparecem aqui ao mapear contas com IA." : contacts.length + " contato" + (contacts.length!==1?"s":"") + " · busque o e-mail e gere uma sequência em 1 clique"}</div>
+          <div style={{fontSize:22,fontWeight:800,color:"#0f172a",marginBottom:3,letterSpacing:"-0.4px"}}>{"Contatos"}</div>
+          <div style={{fontSize:12.5,color:"#52617a"}}>{contacts.length===0 ? "Os contatos aparecem aqui ao mapear contas com IA." : contacts.length + " contato" + (contacts.length!==1?"s":"") + " · busque o e-mail e gere uma sequência em 1 clique"}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder={"Buscar..."} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",minWidth:160,flex:1}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
-          <select value={csort} onChange={function(e){setCsort(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 12px",fontSize:12,color:"rgba(255,255,255,.6)",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder={"Buscar..."} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",minWidth:160,flex:1}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+          <select value={csort} onChange={function(e){setCsort(e.target.value);}} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"9px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
             <option value="az">A - Z</option>
             <option value="za">Z - A</option>
           </select>
@@ -1707,9 +1707,9 @@ function ContactsView(props) {
         </div>
       </div>
       {addModal && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}} onClick={function(e){if(e.target===e.currentTarget)setAddModal(false);}}>
-          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,width:"100%",maxWidth:440,padding:"24px",boxShadow:"0 24px 80px rgba(0,0,0,0.4)"}} onClick={function(e){e.stopPropagation();}}>
-            <div style={{fontSize:16,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:16}}>{"Adicionar Contato"}</div>
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}} onClick={function(e){if(e.target===e.currentTarget)setAddModal(false);}}>
+          <div style={{background:"#ffffff",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid #dde1e8",borderRadius:20,width:"100%",maxWidth:440,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.12)"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar Contato"}</div>
             {[
               {label:"Nome completo", val:newNome, set:setNewNome, ph:"Ex: Ana Lima"},
               {label:"Cargo", val:newCargo, set:setNewCargo, ph:"Ex: VP de Operacoes"},
@@ -1720,13 +1720,13 @@ function ContactsView(props) {
             ].map(function(f) {
               return (
                 <div key={f.label} style={{marginBottom:10}}>
-                  <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,.55)",marginBottom:4,textTransform:"uppercase",letterSpacing:.5}}>{f.label}</div>
-                  <input value={f.val} onChange={function(e){f.set(e.target.value);}} placeholder={f.ph} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 12px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+                  <div style={{fontSize:10,fontWeight:700,color:"#52617a",marginBottom:4,textTransform:"uppercase",letterSpacing:.5}}>{f.label}</div>
+                  <input value={f.val} onChange={function(e){f.set(e.target.value);}} placeholder={f.ph} style={{width:"100%",boxSizing:"border-box",background:"#fbfbfd",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"9px 12px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
                 </div>
               );
             })}
             <div style={{display:"flex",gap:8,marginTop:16}}>
-              <button onClick={function(){setAddModal(false);}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={function(){setAddModal(false);}} style={{flex:1,background:"#fbfbfd",border:"1px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
               <button onClick={addContactManual} disabled={saving||(!newNome&&!newCargo)} style={{flex:2,background:(saving||(!newNome&&!newCargo))?"#e2e8f0":"linear-gradient(135deg,#6366f1,#4f46e5)",color:(saving||(!newNome&&!newCargo))?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:(saving||(!newNome&&!newCargo))?"default":"pointer",fontFamily:"inherit"}}>
                 {saving ? "Salvando..." : "Salvar contato"}
               </button>
@@ -1737,13 +1737,13 @@ function ContactsView(props) {
       {loadingC ? (
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"64px 0",gap:10}}>
           <div style={{width:8,height:8,borderRadius:"50%",background:"#6366f1"}}/>
-          <span style={{color:"rgba(255,255,255,.5)",fontSize:13}}>{"Carregando..."}</span>
+          <span style={{color:"#64748b",fontSize:13}}>{"Carregando..."}</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{textAlign:"center",padding:"64px 0",background:"rgba(255,255,255,.03)",borderRadius:20,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+        <div style={{textAlign:"center",padding:"64px 0",background:"#fbfbfd",borderRadius:20,border:"1.5px dashed #e6e9ef"}}>
           <div style={{fontSize:36,marginBottom:12}}>{"👥"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.75)",marginBottom:6}}>{search ? "Nenhum contato encontrado" : "Nenhum contato ainda"}</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,.5)",lineHeight:1.6}}>{search ? "Tente outro termo de busca." : "Os contatos sao criados automaticamente ao fazer uma pesquisa com IA que retorne stakeholders."}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{search ? "Nenhum contato encontrado" : "Nenhum contato ainda"}</div>
+          <div style={{fontSize:12,color:"#64748b",lineHeight:1.6}}>{search ? "Tente outro termo de busca." : "Os contatos sao criados automaticamente ao fazer uma pesquisa com IA que retorne stakeholders."}</div>
         </div>
       ) : (
         <div style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -1760,26 +1760,26 @@ function ContactsView(props) {
                 <div key={empresa}>
                   <div onClick={function(){toggleGroup(empresa);}} style={{display:"flex",alignItems:"center",gap:8,marginBottom:expandedGroups[empresa]?10:0,padding:"10px 14px",background:"linear-gradient(135deg,rgba(99,102,241,.07),rgba(14,165,233,.04))",border:"1px solid rgba(99,102,241,.14)",borderRadius:expandedGroups[empresa]?"12px 12px 0 0":12,cursor:"pointer",userSelect:"none",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(99,102,241,.12),rgba(14,165,233,.07))";}} onMouseLeave={function(e){e.currentTarget.style.background="linear-gradient(135deg,rgba(99,102,241,.07),rgba(14,165,233,.04))";}}>
                     <span style={{fontSize:14}}>{"🏢"}</span>
-                    <span style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{empresa}</span>
-                    <span style={{fontSize:10,color:"rgba(255,255,255,.5)",marginLeft:"auto",marginRight:6}}>{group.length + " contato" + (group.length!==1?"s":"")}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{empresa}</span>
+                    <span style={{fontSize:10,color:"#64748b",marginLeft:"auto",marginRight:6}}>{group.length + " contato" + (group.length!==1?"s":"")}</span>
                     <span style={{fontSize:10,color:"#a5b4fc",fontWeight:700,transition:"transform .2s",display:"inline-block",transform:expandedGroups[empresa]?"rotate(0deg)":"rotate(-90deg)"}}>{"▼"}</span>
                   </div>
                   {expandedGroups[empresa] && <div style={{display:"flex",flexDirection:"column",gap:8,paddingLeft:8,paddingBottom:4,border:"1px solid rgba(99,102,241,.14)",borderTop:"none",borderRadius:"0 0 12px 12px",background:"#fafbff",padding:"10px 8px 10px 12px"}}>
                     {group.map(function(c) {
                       var canSeq = !!(c.cargo || c.nome);
                       return (
-                        <div key={c.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.boxShadow="";}}>
+                        <div key={c.id} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e6e9ef";e.currentTarget.style.boxShadow="";}}>
                           <div style={{width:32,height:32,borderRadius:9,background:"linear-gradient(135deg,#6366f1,#0ea5e9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                             <span style={{fontSize:12,color:"#fff",fontWeight:700}}>{(c.nome||c.cargo||"?")[0].toUpperCase()}</span>
                           </div>
                           <div style={{flex:1,minWidth:120}}>
-                            <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome||c.cargo}</div>
-                            {c.nome && c.cargo && c.nome!==c.cargo && <div style={{fontSize:11,color:"rgba(255,255,255,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo}</div>}
+                            <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome||c.cargo}</div>
+                            {c.nome && c.cargo && c.nome!==c.cargo && <div style={{fontSize:11,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo}</div>}
                           </div>
                           {c.email ? (
-                            <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:8,padding:"5px 8px",maxWidth:260,minWidth:0}}>
+                            <div style={{display:"flex",alignItems:"center",gap:6,background:"#fbfbfd",border:"1px solid #eef0f4",borderRadius:8,padding:"5px 8px",maxWidth:260,minWidth:0}}>
                               <span style={{fontSize:11,color:c.emailValidated?"#0f766e":"#64748b",fontWeight:c.emailValidated?600:400,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{c.email}</span>
-                              {c.emailValidated && <span title={"Confianca "+(c.emailConfidence||"")+"%"} style={{fontSize:8,fontWeight:700,color:"#10b981",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:5,padding:"1px 5px",flexShrink:0}}>{c.emailConfidence?c.emailConfidence+"%":"OK"}</span>}
+                              {c.emailValidated && <span title={"Confianca "+(c.emailConfidence||"")+"%"} style={{fontSize:8,fontWeight:700,color:"#047857",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:5,padding:"1px 5px",flexShrink:0}}>{c.emailConfidence?c.emailConfidence+"%":"OK"}</span>}
                               <CopyBtn text={c.email}/>
                             </div>
                           ) : (
@@ -1806,7 +1806,7 @@ function ContactsView(props) {
         </div>
       )}
       {toastC && (
-        <div style={{position:"fixed",bottom:28,right:28,background:toastC.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(0,0,0,0.32)",zIndex:400,maxWidth:340}}>
+        <div style={{position:"fixed",bottom:28,right:28,background:toastC.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(15,23,42,.10)",zIndex:400,maxWidth:340}}>
           {toastC.msg}
         </div>
       )}
@@ -1874,26 +1874,26 @@ function IntegrationsView() {
   return (
     <div>
       <div style={{marginBottom:28}}>
-        <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>{"Integrações"}</div>
-        <div style={{fontSize:13,color:"rgba(255,255,255,.55)"}}>{"Conecte o + Pipe ao seu CRM e ferramentas de vendas."}</div>
+        <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Integrações"}</div>
+        <div style={{fontSize:13,color:"#52617a"}}>{"Conecte o + Pipe ao seu CRM e ferramentas de vendas."}</div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16,marginBottom:32}}>
         {INTEGRATIONS.map(function(int) {
           var st = intStates[int.id] || {};
           var isConn = st.connected;
           return (
-            <div key={int.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid "+(isConn?"#bbf7d0":"#e8edf4"),borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(0,0,0,0.1)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.16)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.1)";}}>
+            <div key={int.id} style={{background:"#ffffff",border:"1.5px solid "+(isConn?"#bbf7d0":"#e8edf4"),borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(15,23,42,.06)",transition:"all .25s"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(15,23,42,.07)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 12px rgba(15,23,42,.06)";}}>
               <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
                 <div style={{width:44,height:44,borderRadius:12,background:int.color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{int.logo}</div>
                 <div>
-                  <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{int.name}</div>
-                  {isConn && <div style={{fontSize:9,fontWeight:700,color:"#10b981",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CONECTADO"}</div>}
+                  <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>{int.name}</div>
+                  {isConn && <div style={{fontSize:9,fontWeight:700,color:"#047857",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CONECTADO"}</div>}
                 </div>
               </div>
-              <div style={{fontSize:12,color:"rgba(255,255,255,.55)",lineHeight:1.6,marginBottom:16}}>{int.desc}</div>
+              <div style={{fontSize:12,color:"#52617a",lineHeight:1.6,marginBottom:16}}>{int.desc}</div>
               {isConn ? (
                 <div style={{display:"flex",gap:8}}>
-                  <div style={{flex:1,background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:10,padding:"8px 12px",fontSize:11,color:"#10b981",fontWeight:600}}>{"Ativo"}</div>
+                  <div style={{flex:1,background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:10,padding:"8px 12px",fontSize:11,color:"#047857",fontWeight:600}}>{"Ativo"}</div>
                   <button onClick={function(){disconnect(int.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:10,padding:"8px 12px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{"Desconectar"}</button>
                 </div>
               ) : (
@@ -1904,47 +1904,47 @@ function IntegrationsView() {
         })}
         {customs.map(function(c) {
           return (
-            <div key={c.id} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(52,211,153,.3)",borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}}>
+            <div key={c.id} style={{background:"#ffffff",border:"1.5px solid rgba(52,211,153,.3)",borderRadius:20,padding:"24px",boxShadow:"0 2px 12px rgba(15,23,42,.06)"}}>
               <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-                <div style={{width:44,height:44,borderRadius:12,background:"rgba(255,255,255,.03)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{"🔌"}</div>
+                <div style={{width:44,height:44,borderRadius:12,background:"#fbfbfd",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{"🔌"}</div>
                 <div>
-                  <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{c.name}</div>
-                  <div style={{fontSize:9,fontWeight:700,color:"#10b981",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CUSTOMIZADO"}</div>
+                  <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>{c.name}</div>
+                  <div style={{fontSize:9,fontWeight:700,color:"#047857",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:6,padding:"1px 7px",display:"inline-block",marginTop:2}}>{"CUSTOMIZADO"}</div>
                 </div>
               </div>
-              <div style={{fontSize:11,color:"rgba(255,255,255,.55)",marginBottom:14,wordBreak:"break-all"}}>{c.webhookURL || "Webhook configurado"}</div>
+              <div style={{fontSize:11,color:"#52617a",marginBottom:14,wordBreak:"break-all"}}>{c.webhookURL || "Webhook configurado"}</div>
               <button onClick={function(){removeCustom(c.id);}} style={{width:"100%",background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:10,padding:"8px 0",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{"Remover"}</button>
             </div>
           );
         })}
-        <button onClick={function(){setCustomModal(true);}} style={{background:"rgba(255,255,255,.03)",border:"2px dashed rgba(255,255,255,.08)",borderRadius:20,padding:"24px",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,transition:"all .2s",minHeight:180}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.background="rgba(99,102,241,.12)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.background="rgba(255,255,255,.06)";}}>
+        <button onClick={function(){setCustomModal(true);}} style={{background:"#fbfbfd",border:"2px dashed #e6e9ef",borderRadius:20,padding:"24px",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,transition:"all .2s",minHeight:180}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.background="rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e6e9ef";e.currentTarget.style.background="#f1f3f6";}}>
           <span style={{fontSize:32}}>{"+"}</span>
-          <span style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,.55)"}}>{"Adicionar integração"}</span>
-          <span style={{fontSize:11,color:"rgba(255,255,255,.4)"}}>{"Via webhook ou API key"}</span>
+          <span style={{fontSize:13,fontWeight:600,color:"#52617a"}}>{"Adicionar integração"}</span>
+          <span style={{fontSize:11,color:"#94a3b8"}}>{"Via webhook ou API key"}</span>
         </button>
       </div>
       {modalInt && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
-          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(0,0,0,0.45)"}}>
-            <div style={{fontSize:18,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{modalInt.logo + " Conectar " + modalInt.name}</div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:20}}>{"Insira sua API Key do " + modalInt.name + " para ativar a integracao."}</div>
-            <input value={apiKey} onChange={function(e){setApiKey(e.target.value);}} placeholder={"API Key do " + modalInt.name} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+          <div style={{background:"#ffffff",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid #dde1e8",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(15,23,42,.28)"}}>
+            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:4}}>{modalInt.logo + " Conectar " + modalInt.name}</div>
+            <div style={{fontSize:12,color:"#64748b",marginBottom:20}}>{"Insira sua API Key do " + modalInt.name + " para ativar a integracao."}</div>
+            <input value={apiKey} onChange={function(e){setApiKey(e.target.value);}} placeholder={"API Key do " + modalInt.name} style={{width:"100%",boxSizing:"border-box",background:"#fbfbfd",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={function(){setModalInt(null);setApiKey("");}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={function(){setModalInt(null);setApiKey("");}} style={{flex:1,background:"#fbfbfd",border:"1px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
               <button onClick={function(){connect(modalInt.id);}} disabled={!apiKey} style={{flex:2,background:apiKey?"linear-gradient(135deg,#6366f1,#4f46e5)":"#e2e8f0",color:apiKey?"#fff":"#94a3b8",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:apiKey?"pointer":"default",fontFamily:"inherit"}}>{"Conectar " + modalInt.name}</button>
             </div>
           </div>
         </div>
       )}
       {customModal && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
-          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(0,0,0,0.45)"}}>
-            <div style={{fontSize:18,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:16}}>{"Adicionar integração personalizada"}</div>
-            <input value={customName} onChange={function(e){setCustomName(e.target.value);}} placeholder={"Nome da ferramenta (ex: RD Station)"} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
-            <input value={customURL} onChange={function(e){setCustomURL(e.target.value);}} placeholder={"Webhook URL (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
-            <input value={customKey} onChange={function(e){setCustomKey(e.target.value);}} placeholder={"API Key (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+          <div style={{background:"#ffffff",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid #dde1e8",borderRadius:24,width:"100%",maxWidth:460,padding:"28px",boxShadow:"0 32px 100px rgba(15,23,42,.28)"}}>
+            <div style={{fontSize:18,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar integração personalizada"}</div>
+            <input value={customName} onChange={function(e){setCustomName(e.target.value);}} placeholder={"Nome da ferramenta (ex: RD Station)"} style={{width:"100%",boxSizing:"border-box",background:"#fbfbfd",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+            <input value={customURL} onChange={function(e){setCustomURL(e.target.value);}} placeholder={"Webhook URL (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"#fbfbfd",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:10}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+            <input value={customKey} onChange={function(e){setCustomKey(e.target.value);}} placeholder={"API Key (opcional)"} style={{width:"100%",boxSizing:"border-box",background:"#fbfbfd",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:16}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={function(){setCustomModal(false);}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={function(){setCustomModal(false);}} style={{flex:1,background:"#fbfbfd",border:"1px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
               <button onClick={addCustom} disabled={!customName} style={{flex:2,background:customName?"linear-gradient(135deg,#6366f1,#4f46e5)":"#e2e8f0",color:customName?"#fff":"#94a3b8",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:customName?"pointer":"default",fontFamily:"inherit"}}>{"Adicionar"}</button>
             </div>
           </div>
@@ -1997,28 +1997,28 @@ function HomeView(props) {
 
   return (
     <div>
-      <div style={{position:"relative",borderRadius:24,overflow:"hidden",marginBottom:28,background:"linear-gradient(135deg,#0a0a14 0%,#171430 45%,#1e1b4b 100%)",border:"1px solid rgba(255,255,255,.08)",padding:"40px 40px 36px"}}>
+      <div style={{position:"relative",borderRadius:24,overflow:"hidden",marginBottom:28,background:"linear-gradient(135deg,#0a0a14 0%,#171430 45%,#1e1b4b 100%)",border:"1px solid #e6e9ef",padding:"40px 40px 36px"}}>
         <div style={{position:"absolute",top:-80,right:-60,width:320,height:320,borderRadius:"50%",background:"radial-gradient(circle,rgba(99,102,241,.4),transparent 70%)",filter:"blur(20px)"}}/>
         <div style={{position:"absolute",bottom:-100,left:-40,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,.3),transparent 70%)",filter:"blur(20px)"}}/>
         <div style={{position:"relative",zIndex:2}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:18}}>
-            <span style={{fontSize:10,fontWeight:700,color:"#a5b4fc",background:"rgba(99,102,241,.15)",border:"1px solid rgba(129,140,248,.3)",borderRadius:20,padding:"4px 12px",letterSpacing:.5}}>{"BETA"}</span>
-            <span style={{fontSize:12,color:"rgba(255,255,255,.4)"}}>{greet + ", vamos gerar pipeline"}</span>
+            <span style={{fontSize:10,fontWeight:700,color:"#4f46e5",background:"rgba(99,102,241,.15)",border:"1px solid rgba(129,140,248,.3)",borderRadius:20,padding:"4px 12px",letterSpacing:.5}}>{"BETA"}</span>
+            <span style={{fontSize:12,color:"#94a3b8"}}>{greet + ", vamos gerar pipeline"}</span>
           </div>
           <div style={{fontSize:38,fontWeight:900,letterSpacing:"-1.2px",lineHeight:1.05,color:"#fff",marginBottom:10}}>
             <span style={{color:"#818cf8"}}>{"+"}</span>{"pipe"}
-            <span style={{display:"block",fontSize:18,fontWeight:600,color:"rgba(255,255,255,.35)",letterSpacing:"-.3px",marginTop:6}}>{"Account mapping com IA para times de vendas"}</span>
+            <span style={{display:"block",fontSize:18,fontWeight:600,color:"#94a3b8",letterSpacing:"-.3px",marginTop:6}}>{"Account mapping com IA para times de vendas"}</span>
           </div>
-          <div style={{fontSize:13.5,color:"rgba(255,255,255,.4)",maxWidth:520,lineHeight:1.7,marginBottom:26}}>{"Pesquise qualquer empresa, gere inteligência de conta completa e cadências de prospecção em segundos. Chegue preparado, feche mais rápido."}</div>
+          <div style={{fontSize:13.5,color:"#94a3b8",maxWidth:520,lineHeight:1.7,marginBottom:26}}>{"Pesquise qualquer empresa, gere inteligência de conta completa e cadências de prospecção em segundos. Chegue preparado, feche mais rápido."}</div>
           <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
             {[
               {label:"Contas mapeadas", value:total, accent:"#818cf8"},
               {label:"Convertidas", value:converted, accent:"#34d399"},
               {label:"Taxa de conversão", value:taxa+"%", accent:"#c084fc"},
             ].map(function(m){return (
-              <div key={m.label} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:16,padding:"16px 22px",minWidth:128}}>
+              <div key={m.label} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:16,padding:"16px 22px",minWidth:128}}>
                 <div style={{fontSize:30,fontWeight:800,color:m.accent,lineHeight:1,letterSpacing:"-.5px"}}>{m.value}</div>
-                <div style={{fontSize:10.5,color:"rgba(255,255,255,.4)",fontWeight:500,marginTop:6,whiteSpace:"nowrap"}}>{m.label}</div>
+                <div style={{fontSize:10.5,color:"#cbd5e1",fontWeight:500,marginTop:6,whiteSpace:"nowrap"}}>{m.label}</div>
               </div>
             );})}
             <button onClick={function(){onNav("search");}} style={{marginLeft:"auto",alignSelf:"center",background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:14,padding:"14px 26px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 8px 28px rgba(99,102,241,.5)",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 12px 36px rgba(99,102,241,.6)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 8px 28px rgba(99,102,241,.5)";}}>
@@ -2030,7 +2030,7 @@ function HomeView(props) {
       </div>
 
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:10}}>
-        <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.85)"}}>{"Acesso rápido"}</div>
+        <div style={{fontSize:13,fontWeight:700,color:"#1e293b"}}>{"Acesso rápido"}</div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           {CARDS.map(function(c2){
             var isHidden = hidden[c2.id];
@@ -2046,17 +2046,17 @@ function HomeView(props) {
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:18}}>
         {visible.map(function(card){
           return (
-            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:18,padding:"24px",cursor:"pointer",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",overflow:"hidden",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}
-              onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.35)";e.currentTarget.style.background="rgba(99,102,241,.06)";e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(0,0,0,.35)";}}
-              onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.background="rgba(255,255,255,.04)";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
+            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:18,padding:"24px",cursor:"pointer",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",overflow:"hidden",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}
+              onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.35)";e.currentTarget.style.background="rgba(99,102,241,.06)";e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(15,23,42,.10)";}}
+              onMouseLeave={function(e){e.currentTarget.style.borderColor="#e6e9ef";e.currentTarget.style.background="#fff";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
               <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
                 <div style={{width:48,height:48,borderRadius:14,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 16px rgba(99,102,241,.4)",flexShrink:0}}>
                   <span style={{fontSize:22}}>{card.emoji}</span>
                 </div>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
               </div>
-              <div style={{fontSize:16,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:8,letterSpacing:"-.3px"}}>{card.label}</div>
-              <div style={{fontSize:12.5,color:"rgba(255,255,255,.5)",lineHeight:1.65,marginBottom:16,minHeight:48}}>{card.desc}</div>
+              <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:8,letterSpacing:"-.3px"}}>{card.label}</div>
+              <div style={{fontSize:12.5,color:"#64748b",lineHeight:1.65,marginBottom:16,minHeight:48}}>{card.desc}</div>
               <div style={{display:"flex",alignItems:"center",gap:7,paddingTop:14,borderTop:"1px solid rgba(255,255,255,.07)"}}>
                 <div style={{width:6,height:6,borderRadius:"50%",background:card.statColor,flexShrink:0}}/>
                 <span style={{fontSize:11,color:card.statColor,fontWeight:600}}>{card.stat}</span>
@@ -2069,8 +2069,8 @@ function HomeView(props) {
       {total === 0 && (
         <div style={{marginTop:28,background:"linear-gradient(135deg,rgba(99,102,241,.12),rgba(255,255,255,.02))",border:"1px solid rgba(99,102,241,.25)",borderRadius:18,padding:"32px",textAlign:"center"}}>
           <div style={{fontSize:40,marginBottom:12}}>{"🚀"}</div>
-          <div style={{fontSize:18,fontWeight:700,color:"rgba(255,255,255,.92)",marginBottom:8}}>{"Bem-vindo ao +pipe Beta"}</div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,.5)",marginBottom:20,lineHeight:1.7,maxWidth:400,margin:"0 auto 20px"}}>{"Comece mapeando sua primeira conta. Digite o nome de uma empresa na Busca e deixe a IA gerar o account mapping completo."}</div>
+          <div style={{fontSize:18,fontWeight:700,color:"#0f172a",marginBottom:8}}>{"Bem-vindo ao +pipe Beta"}</div>
+          <div style={{fontSize:13,color:"#64748b",marginBottom:20,lineHeight:1.7,maxWidth:400,margin:"0 auto 20px"}}>{"Comece mapeando sua primeira conta. Digite o nome de uma empresa na Busca e deixe a IA gerar o account mapping completo."}</div>
           <button onClick={function(){onNav("search");}} style={{background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:12,padding:"12px 28px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.45)"}}>
             {"Mapear primeira conta"}
           </button>
@@ -2362,13 +2362,13 @@ function SearchView(props) {
   return (
     <div>
       <div style={{marginBottom:32}}>
-        <div style={{fontSize:26,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:6,letterSpacing:"-0.5px"}}>
+        <div style={{fontSize:26,fontWeight:800,color:"#0f172a",marginBottom:6,letterSpacing:"-0.5px"}}>
           {"Account "}<span style={{color:"#a5b4fc"}}>{"Mapping"}</span>
         </div>
-        <div style={{fontSize:13,color:"rgba(255,255,255,.55)",marginBottom:20,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento de CX completo. O resultado é salvo automaticamente em Contas."}</div>
+        <div style={{fontSize:13,color:"#52617a",marginBottom:20,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento de CX completo. O resultado é salvo automaticamente em Contas."}</div>
 
         {usage && (
-          <div style={{background:"rgba(255,255,255,.04)",border:"1.5px solid "+(usage.remaining<=0?"#fecdd3":"#e8edf4"),borderRadius:16,padding:"16px 18px",marginBottom:20}}>
+          <div style={{background:"#ffffff",border:"1.5px solid "+(usage.remaining<=0?"#fecdd3":"#e8edf4"),borderRadius:16,padding:"16px 18px",marginBottom:20}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:10}}>
               <div style={{display:"flex",alignItems:"center",gap:8}}>
                 <div style={{position:"relative"}}>
@@ -2377,15 +2377,15 @@ function SearchView(props) {
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
                   {planMenu && (
-                    <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"rgba(16,16,30,.96)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:12,boxShadow:"0 12px 40px rgba(0,0,0,0.5)",zIndex:60,minWidth:200,overflow:"hidden"}}>
-                      <div style={{padding:"8px 12px",fontSize:9,fontWeight:700,color:"rgba(255,255,255,.4)",textTransform:"uppercase",letterSpacing:.6,borderBottom:"1px solid #f1f5f9"}}>{"Plano (demo)"}</div>
+                    <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"#ffffff",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:"1px solid #dde1e8",borderRadius:12,boxShadow:"0 12px 40px rgba(15,23,42,.3)",zIndex:60,minWidth:200,overflow:"hidden"}}>
+                      <div style={{padding:"8px 12px",fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.6,borderBottom:"1px solid #f1f5f9"}}>{"Plano (demo)"}</div>
                       {["free","starter","professional"].map(function(pid) {
                         var p = PLANS[pid]; var isCurrent = usage.plan===pid;
                         return (
-                          <div key={pid} onClick={function(){ if(props.onChangePlan)props.onChangePlan(pid); setPlanMenu(false); }} style={{padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,background:isCurrent?"#f0f3ff":"#fff"}} onMouseEnter={function(e){if(!isCurrent)e.currentTarget.style.background="rgba(255,255,255,.06)";}} onMouseLeave={function(e){if(!isCurrent)e.currentTarget.style.background="rgba(255,255,255,.04)";}}>
+                          <div key={pid} onClick={function(){ if(props.onChangePlan)props.onChangePlan(pid); setPlanMenu(false); }} style={{padding:"10px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,background:isCurrent?"#f0f3ff":"#fff"}} onMouseEnter={function(e){if(!isCurrent)e.currentTarget.style.background="#f1f3f6";}} onMouseLeave={function(e){if(!isCurrent)e.currentTarget.style.background="#fff";}}>
                             <span style={{width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0}}/>
-                            <span style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.92)",flex:1}}>{p.label}</span>
-                            <span style={{fontSize:10,color:"rgba(255,255,255,.55)"}}>{p.limit + "/mês"}</span>
+                            <span style={{fontSize:12,fontWeight:700,color:"#0f172a",flex:1}}>{p.label}</span>
+                            <span style={{fontSize:10,color:"#52617a"}}>{p.limit + "/mês"}</span>
                             {isCurrent && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
                           </div>
                         );
@@ -2393,34 +2393,34 @@ function SearchView(props) {
                     </div>
                   )}
                 </div>
-                <span style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
+                <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                 <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mês"}</span>
                 <input ref={csvRef} type="file" accept=".csv,text/csv" onChange={onCsvPick} style={{display:"none"}}/>
-                <button onClick={function(){csvRef.current&&csvRef.current.click();}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(99,102,241,.4)",color:"#a5b4fc",borderRadius:9,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
+                <button onClick={function(){csvRef.current&&csvRef.current.click();}} style={{background:"#ffffff",border:"1.5px solid rgba(99,102,241,.4)",color:"#4f46e5",borderRadius:9,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                   {"Importar CSV"}
                 </button>
                 <div style={{position:"relative",display:"flex"}}>
-                  <button onClick={function(){setCsvInfo(!csvInfo);}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}} title="Modelo do CSV" style={{background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,padding:0}}>{"i"}</button>
+                  <button onClick={function(){setCsvInfo(!csvInfo);}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}} title="Modelo do CSV" style={{background:"#fbfbfd",border:"1.5px solid #e6e9ef",color:"#52617a",borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,padding:0}}>{"i"}</button>
                   {csvInfo && (
-                    <div style={{position:"absolute",top:"calc(100% + 8px)",right:0,background:"#0f172a",color:"#fff",borderRadius:12,padding:"14px 16px",width:260,zIndex:70,boxShadow:"0 12px 40px rgba(0,0,0,0.48)",fontSize:11,lineHeight:1.6}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}}>
+                    <div style={{position:"absolute",top:"calc(100% + 8px)",right:0,background:"#0f172a",color:"#fff",borderRadius:12,padding:"14px 16px",width:260,zIndex:70,boxShadow:"0 12px 40px rgba(15,23,42,.3)",fontSize:11,lineHeight:1.6}} onMouseEnter={function(){setCsvInfo(true);}} onMouseLeave={function(){setCsvInfo(false);}}>
                       <div style={{fontWeight:700,marginBottom:8,fontSize:12}}>{"Modelo do arquivo CSV"}</div>
-                      <div style={{color:"rgba(255,255,255,.35)",marginBottom:10}}>{"Use as colunas abaixo (nome é obrigatório, as demais opcionais):"}</div>
+                      <div style={{color:"#94a3b8",marginBottom:10}}>{"Use as colunas abaixo (nome é obrigatório, as demais opcionais):"}</div>
                       <div style={{background:"rgba(255,255,255,.08)",borderRadius:8,padding:"10px 12px",fontFamily:"monospace",fontSize:10.5,color:"#e2e8f0",overflowX:"auto",whiteSpace:"nowrap"}}>
                         <div style={{fontWeight:700,color:"#7dd3fc"}}>{"nome,site,linkedin"}</div>
                         <div>{"Nubank,nubank.com.br,linkedin.com/company/nubank"}</div>
                         <div>{"Stone,stone.com.br,"}</div>
                         <div>{"TOTVS,totvs.com,"}</div>
                       </div>
-                      <div style={{color:"rgba(255,255,255,.4)",marginTop:10,fontSize:10}}>{"Aceita separador vírgula ou ponto-e-vírgula. A ordem das colunas não importa."}</div>
+                      <div style={{color:"#94a3b8",marginTop:10,fontSize:10}}>{"Aceita separador vírgula ou ponto-e-vírgula. A ordem das colunas não importa."}</div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            <div style={{height:8,background:"rgba(255,255,255,.05)",borderRadius:8,overflow:"hidden"}}>
+            <div style={{height:8,background:"#f6f7f9",borderRadius:8,overflow:"hidden"}}>
               <div style={{height:"100%",width:Math.min(100,Math.round((usage.used/usage.limit)*100))+"%",background:usage.remaining<=3?"linear-gradient(90deg,#ef4444,#f59e0b)":"linear-gradient(90deg,"+usage.planColor+",#4f46e5)",borderRadius:8,transition:"width .4s"}}/>
             </div>
             {usage.remaining<=0 && (
@@ -2437,44 +2437,44 @@ function SearchView(props) {
           </div>
         )}
         {csvPreview && (
-          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
-            <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(0,0,0,0.4)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
-              <div style={{fontSize:17,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:6}}>{"Importar contas"}</div>
+          <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
+            <div style={{background:"#ffffff",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid #dde1e8",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.12)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
+              <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:6}}>{"Importar contas"}</div>
               {csvPreview.error ? (
                 <div style={{fontSize:13,color:"#ef4444",background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",borderRadius:10,padding:"12px 14px",marginTop:8}}>{csvPreview.error}</div>
               ) : (
                 <div style={{display:"flex",flexDirection:"column",minHeight:0}}>
-                  <div style={{fontSize:12,color:"rgba(255,255,255,.55)",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas para Contas como nao mapeadas (sem consumir creditos)."}</div>
-                  <div style={{overflowY:"auto",border:"1px solid rgba(255,255,255,.06)",borderRadius:10,marginBottom:16}}>
+                  <div style={{fontSize:12,color:"#52617a",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas para Contas como nao mapeadas (sem consumir creditos)."}</div>
+                  <div style={{overflowY:"auto",border:"1px solid #eef0f4",borderRadius:10,marginBottom:16}}>
                     {csvPreview.rows.slice(0,50).map(function(r,i){
                       return (
                         <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderBottom:i<csvPreview.rows.length-1?"1px solid #f8fafc":"none"}}>
-                          <span style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,.92)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
-                          {r.site && <span style={{fontSize:10,color:"rgba(255,255,255,.4)",flexShrink:0}}>{r.site}</span>}
+                          <span style={{fontSize:12,fontWeight:600,color:"#0f172a",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
+                          {r.site && <span style={{fontSize:10,color:"#94a3b8",flexShrink:0}}>{r.site}</span>}
                         </div>
                       );
                     })}
-                    {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"rgba(255,255,255,.4)"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
+                    {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"#94a3b8"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
                   </div>
                 </div>
               )}
               <div style={{display:"flex",gap:8}}>
-                <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+                <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"#fbfbfd",border:"1px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
                 {!csvPreview.error && <button onClick={confirmImport} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{"Importar " + csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"")}</button>}
               </div>
             </div>
           </div>
         )}
         <div style={{display:"flex",gap:10}}>
-          <input value={inputVal} onChange={function(e){setInputVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleSearch();}} placeholder="Ex: Nubank, TOTVS, Stone..." style={{flex:1,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:12,padding:"14px 18px",fontSize:13.5,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",boxShadow:"0 1px 3px rgba(0,0,0,0.1)",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+          <input value={inputVal} onChange={function(e){setInputVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleSearch();}} placeholder="Ex: Nubank, TOTVS, Stone..." style={{flex:1,background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:12,padding:"14px 18px",fontSize:13.5,color:"#0f172a",fontFamily:"inherit",outline:"none",boxShadow:"0 1px 3px rgba(15,23,42,.06)",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
           <button onClick={handleSearch} disabled={loading||!inputVal.trim()} style={{background:loading||!inputVal.trim()?"#e2e8f0":"linear-gradient(135deg,#6366f1,#4f46e5)",color:loading||!inputVal.trim()?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 28px",fontSize:13,fontWeight:600,cursor:loading||!inputVal.trim()?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:loading||!inputVal.trim()?"none":"0 4px 14px rgba(99,102,241,.35)",transition:"all .2s",whiteSpace:"nowrap"}}>
             {loading?"Buscando na internet...":"Analisar"}
           </button>
         </div>
 
-        <div style={{marginTop:12,background:"rgba(255,255,255,.03)",border:"1.5px dashed rgba(255,255,255,.08)",borderRadius:12,padding:"13px 16px",cursor:"pointer",transition:"all .2s"}}
+        <div style={{marginTop:12,background:"#fbfbfd",border:"1.5px dashed #e6e9ef",borderRadius:12,padding:"13px 16px",cursor:"pointer",transition:"all .2s"}}
           onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.background="rgba(99,102,241,.12)";}}
-          onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.background="rgba(255,255,255,.06)";}}
+          onMouseLeave={function(e){e.currentTarget.style.borderColor="#e6e9ef";e.currentTarget.style.background="#f1f3f6";}}
           onClick={function(){document.getElementById("mpipe-attach").click();}}>
           <input id="mpipe-attach" type="file" accept=".pdf,.xlsx,.xls,.docx,.doc,.txt" style={{display:"none"}} onChange={function(e){
             var file=e.target.files&&e.target.files[0];
@@ -2490,10 +2490,10 @@ function SearchView(props) {
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:12,fontWeight:600,color:attachment?"#6366f1":"#475569",marginBottom:2}}>{attachment?"Arquivo anexado":"Deseja enriquecer a sua pesquisa?"}</div>
-              <div style={{fontSize:11,color:"rgba(255,255,255,.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment?attachName:"Anexe aqui o RI da empresa, relatorios, etc (pdf, xlsx, docx)"}</div>
+              <div style={{fontSize:11,color:"#94a3b8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment?attachName:"Anexe aqui o RI da empresa, relatorios, etc (pdf, xlsx, docx)"}</div>
             </div>
             {attachment&&(
-              <button onClick={function(e){e.stopPropagation();setAttachment(null);setAttachName("");}} style={{background:"none",border:"1px solid rgba(255,255,255,.08)",borderRadius:6,color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:11,padding:"3px 8px",fontFamily:"inherit",flexShrink:0}}>{"Remover"}</button>
+              <button onClick={function(e){e.stopPropagation();setAttachment(null);setAttachName("");}} style={{background:"none",border:"1px solid #e6e9ef",borderRadius:6,color:"#94a3b8",cursor:"pointer",fontSize:11,padding:"3px 8px",fontFamily:"inherit",flexShrink:0}}>{"Remover"}</button>
             )}
           </div>
         </div>
@@ -2517,7 +2517,7 @@ function SearchView(props) {
           </div>
         )}
         {done && (
-          <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10,background:"rgba(99,102,241,.1)",border:"1px solid rgba(52,211,153,.35)",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#818cf8",fontWeight:600}}>
+          <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10,background:"rgba(99,102,241,.1)",border:"1px solid rgba(52,211,153,.35)",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#4f46e5",fontWeight:600}}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             {done + " mapeado e salvo em Contas!"}
           </div>
@@ -2535,10 +2535,10 @@ function SearchView(props) {
             return (
               <div key={item.n}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                  <div style={{width:24,height:24,borderRadius:7,background:"rgba(99,102,241,.1)",border:"1px solid rgba(99,102,241,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#a5b4fc",flexShrink:0}}>{item.n}</div>
-                  <div style={{fontSize:12.5,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{item.title}</div>
+                  <div style={{width:24,height:24,borderRadius:7,background:"rgba(99,102,241,.1)",border:"1px solid rgba(99,102,241,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#4f46e5",flexShrink:0}}>{item.n}</div>
+                  <div style={{fontSize:12.5,fontWeight:700,color:"#0f172a"}}>{item.title}</div>
                 </div>
-                <div style={{fontSize:11,color:"rgba(255,255,255,.55)",lineHeight:1.55}}>{item.desc}</div>
+                <div style={{fontSize:11,color:"#52617a",lineHeight:1.55}}>{item.desc}</div>
               </div>
             );
           })}
@@ -2616,16 +2616,16 @@ function AccountsView(props) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>Contas</div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,.55)"}}>{accounts.length + " conta" + (accounts.length!==1?"s":"") + " na lista"}</div>
+          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Contas</div>
+          <div style={{fontSize:13,color:"#52617a"}}>{accounts.length + " conta" + (accounts.length!==1?"s":"") + " na lista"}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"8px 12px",fontSize:12,color:"rgba(255,255,255,.6)",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+          <select value={sortOrder} onChange={function(e){setSortOrder(e.target.value);}} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#475569",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
             <option value="date">Mais recente</option>
             <option value="az">A - Z</option>
             <option value="za">Z - A</option>
           </select>
-          <div style={{display:"flex",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,overflow:"hidden"}}>
+          <div style={{display:"flex",background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,overflow:"hidden"}}>
             <button onClick={function(){setViewMode("cards");}} title="Cards" style={{padding:"8px 12px",border:"none",background:viewMode==="cards"?"linear-gradient(135deg,#6366f1,#4f46e5)":"transparent",color:viewMode==="cards"?"#fff":"#94a3b8",cursor:"pointer",lineHeight:1,fontFamily:"inherit"}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -2642,52 +2642,52 @@ function AccountsView(props) {
         </div>
       </div>
       {usage && (
-        <div style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:16,padding:"14px 18px",marginBottom:18}}>
+        <div style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:16,padding:"14px 18px",marginBottom:18}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:8}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <span style={{fontSize:9,fontWeight:700,color:"#fff",background:usage.planColor,borderRadius:6,padding:"3px 8px",textTransform:"uppercase",letterSpacing:.5}}>{usage.planLabel}</span>
-              <span style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
+              <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{"Mapeamentos: " + usage.used + " / " + usage.limit}</span>
             </div>
             <span style={{fontSize:11,color:usage.remaining<=3?"#ef4444":"#64748b",fontWeight:usage.remaining<=3?700:500}}>{usage.remaining + " restante" + (usage.remaining!==1?"s":"") + " este mês"}</span>
           </div>
-          <div style={{height:8,background:"rgba(255,255,255,.05)",borderRadius:8,overflow:"hidden"}}>
+          <div style={{height:8,background:"#f6f7f9",borderRadius:8,overflow:"hidden"}}>
             <div style={{height:"100%",width:Math.min(100,Math.round((usage.used/usage.limit)*100))+"%",background:usage.remaining<=3?"linear-gradient(90deg,#ef4444,#f59e0b)":"linear-gradient(90deg,"+usage.planColor+",#4f46e5)",borderRadius:8,transition:"width .4s"}}/>
           </div>
         </div>
       )}
       {selectedCount>0 && (
         <div style={{background:"linear-gradient(135deg,rgba(99,102,241,.08),rgba(14,165,233,.05))",border:"1.5px solid rgba(99,102,241,.2)",borderRadius:14,padding:"12px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
-          <span style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.92)"}}>{selectedCount + " selecionada" + (selectedCount!==1?"s":"")}</span>
+          <span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{selectedCount + " selecionada" + (selectedCount!==1?"s":"")}</span>
           <div style={{display:"flex",gap:8}}>
-            <button onClick={function(){setSelected({});}} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Limpar"}</button>
+            <button onClick={function(){setSelected({});}} style={{background:"#ffffff",border:"1px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Limpar"}</button>
             <button onClick={mapSelected} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 12px rgba(99,102,241,.25)"}}>{"Mapear selecionadas"}</button>
           </div>
         </div>
       )}
       {csvPreview && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
-          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(0,0,0,0.4)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
-            <div style={{fontSize:17,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:6}}>{"Importar contas"}</div>
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}} onClick={function(e){if(e.target===e.currentTarget)setCsvPreview(null);}}>
+          <div style={{background:"#ffffff",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid #dde1e8",borderRadius:20,width:"100%",maxWidth:520,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.12)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:6}}>{"Importar contas"}</div>
             {csvPreview.error ? (
               <div style={{fontSize:13,color:"#ef4444",background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",borderRadius:10,padding:"12px 14px",marginTop:8}}>{csvPreview.error}</div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",minHeight:0}}>
-                <div style={{fontSize:12,color:"rgba(255,255,255,.55)",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas como nao mapeadas (sem consumir creditos)."}</div>
-                <div style={{overflowY:"auto",border:"1px solid rgba(255,255,255,.06)",borderRadius:10,marginBottom:16}}>
+                <div style={{fontSize:12,color:"#52617a",marginBottom:12}}>{csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"") + " encontrada" + (csvPreview.rows.length!==1?"s":"") + ". Serao importadas como nao mapeadas (sem consumir creditos)."}</div>
+                <div style={{overflowY:"auto",border:"1px solid #eef0f4",borderRadius:10,marginBottom:16}}>
                   {csvPreview.rows.slice(0,50).map(function(r,i){
                     return (
                       <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderBottom:i<csvPreview.rows.length-1?"1px solid #f8fafc":"none"}}>
-                        <span style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,.92)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
-                        {r.site && <span style={{fontSize:10,color:"rgba(255,255,255,.4)",flexShrink:0}}>{r.site}</span>}
+                        <span style={{fontSize:12,fontWeight:600,color:"#0f172a",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nome}</span>
+                        {r.site && <span style={{fontSize:10,color:"#94a3b8",flexShrink:0}}>{r.site}</span>}
                       </div>
                     );
                   })}
-                  {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"rgba(255,255,255,.4)"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
+                  {csvPreview.rows.length>50 && <div style={{padding:"8px 12px",fontSize:11,color:"#94a3b8"}}>{"+ " + (csvPreview.rows.length-50) + " outras..."}</div>}
                 </div>
               </div>
             )}
             <div style={{display:"flex",gap:8}}>
-              <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={function(){setCsvPreview(null);}} style={{flex:1,background:"#fbfbfd",border:"1px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
               {!csvPreview.error && <button onClick={confirmImport} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{"Importar " + csvPreview.rows.length + " conta" + (csvPreview.rows.length!==1?"s":"")}</button>}
             </div>
           </div>
@@ -2700,21 +2700,21 @@ function AccountsView(props) {
           var isActive = filter.status === s;
           return (
             <div key={s} onClick={function(){toggleStatus(s);}} style={{flexShrink:0,background:isActive?sc.bg:"#fff",border:"1.5px solid "+(isActive?sc.border:"#e8edf4"),borderRadius:14,padding:"12px 16px",cursor:"pointer",transition:"all .2s",textAlign:"center",minWidth:100}}>
-              <div style={{fontSize:20,fontWeight:800,color:isActive?sc.color:"rgba(255,255,255,.55)"}}>{cnt}</div>
-              <div style={{fontSize:9,fontWeight:600,color:isActive?sc.color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.8,marginTop:2}}>{sc.label}</div>
+              <div style={{fontSize:20,fontWeight:800,color:isActive?sc.color:"#52617a"}}>{cnt}</div>
+              <div style={{fontSize:9,fontWeight:600,color:isActive?sc.color:"#64748b",textTransform:"uppercase",letterSpacing:.8,marginTop:2}}>{sc.label}</div>
             </div>
           );
         })}
       </div>
       <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="Buscar por nome ou setor..." style={{flex:1,minWidth:200,background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 14px",fontSize:13,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
-        <select value={filter.fit} onChange={function(e){changeFit(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.fit?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+        <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="Buscar por nome ou setor..." style={{flex:1,minWidth:200,background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+        <select value={filter.fit} onChange={function(e){changeFit(e.target.value);}} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.fit?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
           <option value="">Fit</option>
           <option value="ALTO">Fit Alto</option>
           <option value="MEDIO">Fit Médio</option>
           <option value="BAIXO">Fit Baixo</option>
         </select>
-        <select value={filter.tier} onChange={function(e){changeTier(e.target.value);}} style={{background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.tier?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+        <select value={filter.tier} onChange={function(e){changeTier(e.target.value);}} style={{background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"9px 14px",fontSize:12,color:filter.tier?"#0f172a":"#94a3b8",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
           <option value="">Tier</option>
           <option value="Tier 1">Tier 1</option>
           <option value="Tier 2">Tier 2</option>
@@ -2727,10 +2727,10 @@ function AccountsView(props) {
         )}
       </div>
       {filtered.length===0 ? (
-        <div style={{textAlign:"center",padding:"64px 0",background:"rgba(255,255,255,.03)",borderRadius:20,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+        <div style={{textAlign:"center",padding:"64px 0",background:"#fbfbfd",borderRadius:20,border:"1.5px dashed #e6e9ef"}}>
           <div style={{fontSize:36,marginBottom:12}}>{"🔍"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.75)",marginBottom:6}}>{accounts.length===0?"Nenhuma conta ainda":"Nenhuma conta com esses filtros"}</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>{accounts.length===0?"Importe uma lista CSV ou va para Busca para analisar empresas":"Tente limpar os filtros"}</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>{accounts.length===0?"Nenhuma conta ainda":"Nenhuma conta com esses filtros"}</div>
+          <div style={{fontSize:12,color:"#64748b"}}>{accounts.length===0?"Importe uma lista CSV ou va para Busca para analisar empresas":"Tente limpar os filtros"}</div>
         </div>
       ) : viewMode==="cards" ? (
         <div className="card-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
@@ -2746,11 +2746,11 @@ function AccountsView(props) {
             if (!acc.mapped) {
               var isMapping = props.mappingId===acc.id;
               return (
-                <div key={acc.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid "+(selected[acc.id]?"#6366f1":"#e8edf4"),borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                <div key={acc.id} style={{background:"#ffffff",border:"1px solid "+(selected[acc.id]?"#6366f1":"#e8edf4"),borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
                   <input type="checkbox" checked={!!selected[acc.id]} onChange={function(){toggleSelect(acc.id);}} disabled={isMapping} style={{width:16,height:16,accentColor:"#6366f1",cursor:"pointer",flexShrink:0}}/>
                   <div style={{flex:1,minWidth:120}}>
-                    <div style={{fontSize:13.5,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginTop:2}}>{acc.site||"Importada da lista"}</div>
+                    <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                    <div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>{acc.site||"Importada da lista"}</div>
                   </div>
                   <span style={{fontSize:8,fontWeight:700,color:"#92400e",background:"rgba(251,191,36,.14)",border:"1px solid rgba(251,191,36,.3)",borderRadius:6,padding:"3px 8px",flexShrink:0,textTransform:"uppercase",letterSpacing:.5}}>{"Não mapeada"}</span>
                   <button onClick={function(){if(!isMapping)props.onMap(acc);}} disabled={isMapping} style={{background:isMapping?"#f1f5f9":"linear-gradient(135deg,#6366f1,#4f46e5)",color:isMapping?"#94a3b8":"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:11,fontWeight:700,cursor:isMapping?"default":"pointer",fontFamily:"inherit",flexShrink:0}}>{isMapping?"Mapeando...":"Mapear"}</button>
@@ -2759,15 +2759,15 @@ function AccountsView(props) {
               );
             }
             return (
-              <div key={acc.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,.08)";e.currentTarget.style.boxShadow="";}}>
+              <div key={acc.id} style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:14,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.boxShadow="0 2px 12px rgba(99,102,241,.08)";}} onMouseLeave={function(e){e.currentTarget.style.borderColor="#e6e9ef";e.currentTarget.style.boxShadow="";}}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13.5,fontWeight:700,color:"rgba(255,255,255,.92)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:2}}>{acc.setor}</div>
+                  <div style={{fontSize:13.5,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{acc.nome}</div>
+                  <div style={{fontSize:11,color:"#64748b",marginTop:2}}>{acc.setor}</div>
                 </div>
                 <span style={{background:fc.bg,border:"1px solid "+fc.border,color:fc.text,borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:700,flexShrink:0}}>{"FIT "+acc.fit}</span>
-                <span style={{background:"rgba(255,255,255,.03)",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:700,flexShrink:0}}>{acc.tier}</span>
+                <span style={{background:"#fbfbfd",border:"1px solid "+(TIER_COLOR[acc.tier]||"#e2e8f0"),color:TIER_COLOR[acc.tier]||"#94a3b8",borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:700,flexShrink:0}}>{acc.tier}</span>
                 <span style={{background:sc.bg,border:"1px solid "+sc.border,color:sc.color,borderRadius:7,padding:"3px 9px",fontSize:9,fontWeight:600,flexShrink:0,whiteSpace:"nowrap"}}>{sc.label}</span>
-                <span style={{fontSize:10,color:"rgba(255,255,255,.5)",flexShrink:0}}>{fmtDate(acc.savedAt)}</span>
+                <span style={{fontSize:10,color:"#64748b",flexShrink:0}}>{fmtDate(acc.savedAt)}</span>
                 <button onClick={function(){props.onOpen(acc);}} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Ver</button>
                 <button onClick={function(){props.onDelete(acc.id);}} style={{background:"none",border:"1px solid rgba(248,113,113,.25)",color:"#ef4444",borderRadius:8,padding:"5px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>x</button>
               </div>
@@ -2948,7 +2948,7 @@ function InsightsView(props) {
   ];
   // -- KPI cards
   var kpis = [
-    {label:"Total Mapeado",    value:total,     sub:"empresas",          color:"rgba(255,255,255,.92)", icon:"T"},
+    {label:"Total Mapeado",    value:total,     sub:"empresas",          color:"#0f172a", icon:"T"},
     {label:"Fit Alto",         value:byFit[0]&&byFit[0].count||0, sub:"prospects prime",  color:"#818cf8", icon:"A"},
     {label:"Em Andamento",     value:contacted, sub:"contatados ou mais", color:"#7c3aed", icon:"C"},
     {label:"Taxa de Ganho",    value:(total?Math.round(won/total*100):0)+"%", sub:"dos mapeados",color:"#a5b4fc", icon:"G"},
@@ -2956,12 +2956,12 @@ function InsightsView(props) {
   if (total === 0) {
     return (
       <div>
-        <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
-        <div style={{fontSize:13,color:"rgba(255,255,255,.55)",marginBottom:32}}>{"Dashboard de performance da sua prospecção."}</div>
-        <div style={{textAlign:"center",padding:"64px 0",background:"rgba(255,255,255,.03)",borderRadius:20,border:"1.5px dashed rgba(255,255,255,.08)"}}>
+        <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
+        <div style={{fontSize:13,color:"#52617a",marginBottom:32}}>{"Dashboard de performance da sua prospecção."}</div>
+        <div style={{textAlign:"center",padding:"64px 0",background:"#fbfbfd",borderRadius:20,border:"1.5px dashed #e6e9ef"}}>
           <div style={{fontSize:36,marginBottom:12}}>{"📊"}</div>
-          <div style={{fontSize:15,fontWeight:700,color:"rgba(255,255,255,.75)",marginBottom:6}}>Nenhum dado ainda</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Mapeie sua primeira empresa em Busca para começar a ver insights.</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#334155",marginBottom:6}}>Nenhum dado ainda</div>
+          <div style={{fontSize:12,color:"#64748b"}}>Mapeie sua primeira empresa em Busca para começar a ver insights.</div>
         </div>
       </div>
     );
@@ -2991,8 +2991,8 @@ function InsightsView(props) {
       {/* HEADER */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:24,flexWrap:"wrap",gap:12}}>
         <div>
-          <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,.55)",marginTop:2}}>{"Dashboard de performance da sua prospecção."}</div>
+          <div style={{fontSize:28,fontWeight:800,color:"#0f172a",letterSpacing:"-0.6px"}}>{"Relatórios"}</div>
+          <div style={{fontSize:13,color:"#52617a",marginTop:2}}>{"Dashboard de performance da sua prospecção."}</div>
         </div>
         <button onClick={function(){exportRelatoriosPDF(accounts,pdfFilters);}} style={{display:"flex",alignItems:"center",gap:7,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:11,padding:"10px 18px",fontSize:12.5,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.3)"}}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -3004,11 +3004,11 @@ function InsightsView(props) {
       <div className="kpi-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:18}}>
         {kpis.map(function(k, i) {
           return (
-            <div key={k.label} style={{background:"linear-gradient(145deg,#fff,#fbfcff)",border:"1px solid rgba(255,255,255,.08)",borderRadius:18,padding:"20px 22px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.08)+"s",position:"relative",overflow:"hidden"}}>
+            <div key={k.label} style={{background:"linear-gradient(145deg,#fff,#fbfcff)",border:"1px solid #e6e9ef",borderRadius:18,padding:"20px 22px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.08)+"s",position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",top:-20,right:-20,width:80,height:80,borderRadius:"50%",background:"radial-gradient(circle,"+k.color+"14,transparent 70%)"}}/>
-              <div style={{fontSize:11,color:"rgba(255,255,255,.4)",fontWeight:600,marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>{k.label}</div>
+              <div style={{fontSize:11,color:"#94a3b8",fontWeight:600,marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>{k.label}</div>
               <div style={{fontSize:34,fontWeight:900,color:k.color,lineHeight:1,letterSpacing:"-1px"}}>{k.value}</div>
-              <div style={{fontSize:11,color:"rgba(255,255,255,.55)",marginTop:6}}>{k.sub}</div>
+              <div style={{fontSize:11,color:"#52617a",marginTop:6}}>{k.sub}</div>
             </div>
           );
         })}
@@ -3016,18 +3016,18 @@ function InsightsView(props) {
 
       {/* ROW: Funnel + Conversion */}
       <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1.4fr 1fr",gap:16,marginBottom:16}}>
-        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .1s both"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Funil de Conversão"}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:18}}>{"Jornada do mapeamento ao ganho"}</div>
+        <div style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .1s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Funil de Conversão"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"Jornada do mapeamento ao ganho"}</div>
           {convSteps.map(function(step, i) {
             var grad = ["#6366f1","#5566f0","#6a6ef0","#8b6ee8","#a855f7"][i] || "#6366f1";
             return (
               <div key={step.label} style={{marginBottom:14}}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                  <span style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,.75)"}}>{step.label}</span>
-                  <span style={{fontSize:12,color:"rgba(255,255,255,.55)"}}>{step.count + " · " + step.pct + "%"}</span>
+                  <span style={{fontSize:12,fontWeight:600,color:"#334155"}}>{step.label}</span>
+                  <span style={{fontSize:12,color:"#52617a"}}>{step.count + " · " + step.pct + "%"}</span>
                 </div>
-                <div style={{height:26,background:"rgba(255,255,255,.05)",borderRadius:8,overflow:"hidden"}}>
+                <div style={{height:26,background:"#f6f7f9",borderRadius:8,overflow:"hidden"}}>
                   <div style={{height:"100%",width:Math.max(step.pct,3)+"%",background:"linear-gradient(90deg,"+grad+","+grad+"cc)",borderRadius:8,animation:"repFunnelGrow .8s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.12+0.2)+"s",display:"flex",alignItems:"center",paddingLeft:10}}>
                     <span style={{fontSize:10,fontWeight:700,color:"#fff"}}>{step.pct+"%"}</span>
                   </div>
@@ -3036,9 +3036,9 @@ function InsightsView(props) {
             );
           })}
         </div>
-        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .18s both",display:"flex",flexDirection:"column"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Distribuição por Fit"}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:10}}>{"Qualidade dos prospects"}</div>
+        <div style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .18s both",display:"flex",flexDirection:"column"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Distribuição por Fit"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:10}}>{"Qualidade dos prospects"}</div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
             <DonutChart segments={fitSeg} size={150} centerLabel={String(total)} centerSub="contas"/>
           </div>
@@ -3046,8 +3046,8 @@ function InsightsView(props) {
             {fitSeg.map(function(s){return (
               <div key={s.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:11.5}}>
                 <span style={{width:10,height:10,borderRadius:3,background:s.color,flexShrink:0}}/>
-                <span style={{color:"rgba(255,255,255,.6)",fontWeight:600,flex:1}}>{"Fit "+s.label}</span>
-                <span style={{color:"rgba(255,255,255,.4)"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
+                <span style={{color:"#475569",fontWeight:600,flex:1}}>{"Fit "+s.label}</span>
+                <span style={{color:"#94a3b8"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
               </div>
             );})}
           </div>
@@ -3056,9 +3056,9 @@ function InsightsView(props) {
 
       {/* ROW: Velocity line + Tier donut */}
       <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1.4fr 1fr",gap:16,marginBottom:16}}>
-        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .24s both"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Velocidade de Mapeamento"}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:16}}>{"Contas mapeadas nas últimas 8 semanas"}</div>
+        <div style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .24s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Velocidade de Mapeamento"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:16}}>{"Contas mapeadas nas últimas 8 semanas"}</div>
           <svg width="100%" viewBox={"0 0 "+lineW+" "+lineH} style={{display:"block"}}>
             <defs>
               <linearGradient id="repArea" x1="0" y1="0" x2="0" y2="1">
@@ -3078,9 +3078,9 @@ function InsightsView(props) {
             );})}
           </svg>
         </div>
-        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .3s both",display:"flex",flexDirection:"column"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Distribuição por Tier"}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:10}}>{"Prioridade estratégica"}</div>
+        <div style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .3s both",display:"flex",flexDirection:"column"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Distribuição por Tier"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:10}}>{"Prioridade estratégica"}</div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
             <DonutChart segments={tierSeg} size={150} centerLabel={String(byTier.length)} centerSub="tiers"/>
           </div>
@@ -3088,8 +3088,8 @@ function InsightsView(props) {
             {tierSeg.map(function(s){return (
               <div key={s.label} style={{display:"flex",alignItems:"center",gap:8,fontSize:11.5}}>
                 <span style={{width:10,height:10,borderRadius:3,background:s.color,flexShrink:0}}/>
-                <span style={{color:"rgba(255,255,255,.6)",fontWeight:600,flex:1}}>{s.label}</span>
-                <span style={{color:"rgba(255,255,255,.4)"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
+                <span style={{color:"#475569",fontWeight:600,flex:1}}>{s.label}</span>
+                <span style={{color:"#94a3b8"}}>{s.value+" ("+(total?Math.round(s.value/total*100):0)+"%)"}</span>
               </div>
             );})}
           </div>
@@ -3098,33 +3098,33 @@ function InsightsView(props) {
 
       {/* ROW: Sector bar chart + Status pipeline */}
       <div className="chart-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .36s both"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Top Setores"}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:18}}>{"Concentração da carteira"}</div>
+        <div style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .36s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Top Setores"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"Concentração da carteira"}</div>
           <div style={{display:"flex",alignItems:"flex-end",gap:10,height:160,paddingTop:10}}>
             {bySetor.slice(0,6).map(function(s,i){
               var h = Math.max((s.count/maxSetor)*130, 8);
               var grad = ["#6366f1","#5566f0","#6a6ef0","#8b6ee8","#a855f7","#c084fc"][i]||"#6366f1";
               return (
                 <div key={s.setor} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-                  <span style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.75)"}}>{s.count}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:"#334155"}}>{s.count}</span>
                   <div style={{width:"100%",maxWidth:40,height:h,background:"linear-gradient(180deg,"+grad+","+grad+"99)",borderRadius:"7px 7px 0 0",transformOrigin:"bottom",animation:"repBarGrow .7s cubic-bezier(.22,1,.36,1) both",animationDelay:(i*0.1+0.3)+"s"}}/>
-                  <span style={{fontSize:9,color:"rgba(255,255,255,.4)",textAlign:"center",lineHeight:1.2,maxWidth:54,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",width:"100%"}} title={s.setor}>{s.setor}</span>
+                  <span style={{fontSize:9,color:"#94a3b8",textAlign:"center",lineHeight:1.2,maxWidth:54,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",width:"100%"}} title={s.setor}>{s.setor}</span>
                 </div>
               );
             })}
           </div>
         </div>
-        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",animation:"repFadeUp .5s ease .42s both"}}>
-          <div style={{fontSize:14,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4}}>{"Pipeline por Status"}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.4)",marginBottom:18}}>{"Distribuição atual das contas"}</div>
+        <div style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:20,padding:"22px 24px",boxShadow:"0 2px 12px rgba(15,23,42,.05)",animation:"repFadeUp .5s ease .42s both"}}>
+          <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:4}}>{"Pipeline por Status"}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:18}}>{"Distribuição atual das contas"}</div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {funnel.map(function(f,i){
               var pct = total?Math.round(f.count/total*100):0;
               return (
                 <div key={f.status} style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,.6)",width:90,flexShrink:0}}>{f.label}</span>
-                  <div style={{flex:1,height:18,background:"rgba(255,255,255,.05)",borderRadius:6,overflow:"hidden"}}>
+                  <span style={{fontSize:11,fontWeight:600,color:"#475569",width:90,flexShrink:0}}>{f.label}</span>
+                  <div style={{flex:1,height:18,background:"#f6f7f9",borderRadius:6,overflow:"hidden"}}>
                     <div style={{height:"100%",width:Math.max(pct,2)+"%",background:f.color,borderRadius:6,animation:"repFunnelGrow .7s ease both",animationDelay:(i*0.08+0.4)+"s"}}/>
                   </div>
                   <span style={{fontSize:11,fontWeight:700,color:f.color,width:32,textAlign:"right",flexShrink:0}}>{f.count}</span>
@@ -3171,12 +3171,12 @@ function BetaBanner() {
     });
   }
   function update(field, val) { setForm(function(f){ var n=Object.assign({},f); if(field==="nome")n.nome=val; else if(field==="assunto")n.assunto=val; else n.mensagem=val; return n; }); }
-  var inputStyle = {width:"100%",background:"rgba(255,255,255,.04)",border:"1.5px solid rgba(255,255,255,.08)",borderRadius:8,padding:"9px 12px",fontSize:12,color:"rgba(255,255,255,.92)",fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
+  var inputStyle = {width:"100%",background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:8,padding:"9px 12px",fontSize:12,color:"#0f172a",fontFamily:"inherit",outline:"none",boxSizing:"border-box"};
   return (
     <div style={{position:"relative",zIndex:200}}>
       <div style={{background:"linear-gradient(90deg,#0a0a14 0%,#0d0d1a 100%)",borderBottom:"1px solid rgba(99,102,241,.25)",padding:"0 20px",height:40,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <span style={{background:"rgba(99,102,241,.15)",border:"1px solid rgba(99,102,241,.3)",color:"#a5b4fc",borderRadius:6,padding:"2px 9px",fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>{"Beta"}</span>
+          <span style={{background:"rgba(99,102,241,.15)",border:"1px solid rgba(99,102,241,.3)",color:"#4f46e5",borderRadius:6,padding:"2px 9px",fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>{"Beta"}</span>
           <span style={{fontSize:12,color:"#ffffff",opacity:.8}}>{"Esta é uma versão Beta , deixe sua sugestão ou comentário no botão ao lado"}</span>
         </div>
         <button onClick={function(){setOpen(true);setSent(false);setErr("");}} style={{background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:8,padding:"6px 16px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(99,102,241,.35)",letterSpacing:.3}}>
@@ -3184,36 +3184,36 @@ function BetaBanner() {
         </button>
       </div>
       {open && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(2px)"}} onClick={function(){setOpen(false);}}>
-          <div style={{background:"rgba(16,16,30,.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,padding:"28px 32px",width:"100%",maxWidth:440,boxShadow:"0 32px 80px rgba(0,0,0,0.4)"}} onClick={function(e){e.stopPropagation();}}>
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(2px)"}} onClick={function(){setOpen(false);}}>
+          <div style={{background:"#ffffff",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid #dde1e8",borderRadius:20,padding:"28px 32px",width:"100%",maxWidth:440,boxShadow:"0 32px 80px rgba(15,23,42,.12)"}} onClick={function(e){e.stopPropagation();}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
               <div>
-                <div style={{fontSize:17,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:2}}>{"Feedback , Mais Pipe Beta"}</div>
-                <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{"Sua mensagem será enviada para a equipe Mais Pipe"}</div>
+                <div style={{fontSize:17,fontWeight:800,color:"#0f172a",marginBottom:2}}>{"Feedback , Mais Pipe Beta"}</div>
+                <div style={{fontSize:11,color:"#64748b"}}>{"Sua mensagem será enviada para a equipe Mais Pipe"}</div>
               </div>
-              <button onClick={function(){setOpen(false);}} style={{background:"rgba(255,255,255,.05)",border:"none",borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:14,color:"rgba(255,255,255,.55)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>{"x"}</button>
+              <button onClick={function(){setOpen(false);}} style={{background:"#f6f7f9",border:"none",borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:14,color:"#52617a",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>{"x"}</button>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
               <div>
-                <label style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,.55)",display:"block",marginBottom:5}}>{"Nome"}</label>
-                <input value={form.nome} onChange={function(e){update("nome",e.target.value);}} placeholder="Seu nome" style={inputStyle} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+                <label style={{fontSize:11,fontWeight:600,color:"#52617a",display:"block",marginBottom:5}}>{"Nome"}</label>
+                <input value={form.nome} onChange={function(e){update("nome",e.target.value);}} placeholder="Seu nome" style={inputStyle} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
               </div>
               <div>
-                <label style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,.55)",display:"block",marginBottom:5}}>{"Assunto"}</label>
-                <input value={form.assunto} onChange={function(e){update("assunto",e.target.value);}} placeholder="Ex: Sugestão de funcionalidade, Bug encontrado..." style={inputStyle} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+                <label style={{fontSize:11,fontWeight:600,color:"#52617a",display:"block",marginBottom:5}}>{"Assunto"}</label>
+                <input value={form.assunto} onChange={function(e){update("assunto",e.target.value);}} placeholder="Ex: Sugestão de funcionalidade, Bug encontrado..." style={inputStyle} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
               </div>
               <div>
-                <label style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,.55)",display:"block",marginBottom:5}}>{"Mensagem"}</label>
-                <textarea value={form.mensagem} onChange={function(e){update("mensagem",e.target.value);}} placeholder="Descreva sua sugestão, problema ou comentário em detalhes..." rows={4} style={Object.assign({},inputStyle,{resize:"vertical",lineHeight:1.6})} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,.08)";}}/>
+                <label style={{fontSize:11,fontWeight:600,color:"#52617a",display:"block",marginBottom:5}}>{"Mensagem"}</label>
+                <textarea value={form.mensagem} onChange={function(e){update("mensagem",e.target.value);}} placeholder="Descreva sua sugestão, problema ou comentário em detalhes..." rows={4} style={Object.assign({},inputStyle,{resize:"vertical",lineHeight:1.6})} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
               </div>
               {err && <div style={{fontSize:11,color:"#ef4444",background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",borderRadius:8,padding:"7px 12px"}}>{err}</div>}
               <div style={{display:"flex",gap:8,marginTop:4}}>
                 <button onClick={handleSend} disabled={sending} style={{flex:1,background:sending?"#94a3b8":"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"11px 0",fontSize:12,fontWeight:700,cursor:sending?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:sending?"none":"0 4px 12px rgba(99,102,241,.3)",transition:"all .2s"}}>
                   {sending?"Enviando...":"Enviar Feedback"}
                 </button>
-                <button onClick={function(){setOpen(false);}} style={{background:"rgba(255,255,255,.03)",border:"1.5px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.55)",borderRadius:10,padding:"11px 20px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+                <button onClick={function(){setOpen(false);}} style={{background:"#fbfbfd",border:"1.5px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"11px 20px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
               </div>
-              <div style={{fontSize:10,color:"rgba(255,255,255,.35)",textAlign:"center"}}>{"Sua mensagem sera enviada diretamente para a equipe + Pipe."}</div>
+              <div style={{fontSize:10,color:"#94a3b8",textAlign:"center"}}>{"Sua mensagem sera enviada diretamente para a equipe + Pipe."}</div>
             </div>
           </div>
         </div>
@@ -3397,15 +3397,15 @@ export default function App() {
   }
   var css = [
     "*{box-sizing:border-box;margin:0;padding:0}",
-    ":root{--mp-bg:#070712;--mp-bg-2:#0c0c1a;--mp-surface:rgba(255,255,255,.04);--mp-surface-2:rgba(255,255,255,.06);--mp-border:rgba(255,255,255,.08);--mp-border-2:rgba(255,255,255,.14);--mp-text:rgba(255,255,255,.92);--mp-text-2:rgba(255,255,255,.55);--mp-text-3:rgba(255,255,255,.35);--mp-indigo:#6366f1;--mp-violet:#8b5cf6;--mp-grad:linear-gradient(135deg,#6366f1 0%,#7c3aed 100%);--mp-grad-soft:linear-gradient(135deg,rgba(99,102,241,.22),rgba(139,92,246,.15))}",
-    "body{font-family:Inter,system-ui,Verdana,sans-serif;background:#070712;min-height:100vh;color:var(--mp-text)}",
+    ":root{--mp-bg:#eef1f6;--mp-bg-2:#f6f7f9;--mp-surface:#ffffff;--mp-surface-2:#f6f7f9;--mp-border:#e6e9ef;--mp-border-2:#d6dbe3;--mp-text:#0f172a;--mp-text-2:#52617a;--mp-text-3:#94a3b8;--mp-indigo:#6366f1;--mp-violet:#8b5cf6;--mp-grad:linear-gradient(135deg,#6366f1 0%,#7c3aed 100%);--mp-grad-soft:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.08))}",
+    "body{font-family:Inter,system-ui,Verdana,sans-serif;background:#eef1f6;min-height:100vh;color:var(--mp-text)}",
     "@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}",
     "@keyframes toastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}",
     "@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}",
-    "::-webkit-scrollbar{width:5px;height:5px}",
+    "::-webkit-scrollbar{width:8px;height:8px}",
     "::-webkit-scrollbar-track{background:transparent}",
-    "::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}",
-    "::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.22)}",
+    "::-webkit-scrollbar-thumb{background:#cbd2dc;border-radius:4px}",
+    "::-webkit-scrollbar-thumb:hover{background:#aab4c2}",
     "@media(max-width:768px){html,body{overflow-x:hidden!important;max-width:100vw!important}.main-content{padding:16px 12px!important;width:100%!important;box-sizing:border-box!important;min-width:0!important}.g2{grid-template-columns:1fr!important}.modal-grid{grid-template-columns:1fr!important}.kpi-grid{grid-template-columns:1fr 1fr!important}.chart-grid{grid-template-columns:1fr!important}.card-grid{grid-template-columns:1fr!important}.modal-box{max-width:calc(100vw - 16px)!important;border-radius:16px!important;width:100%!important}.modal-tabs{overflow-x:auto!important}.modal-tabs button{font-size:10px!important;padding:8px 10px!important}.status-chips{overflow-x:auto!important}}",
     "@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}",
     "@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}50%{box-shadow:0 0 0 6px rgba(99,102,241,.12)}}",
@@ -3417,18 +3417,18 @@ export default function App() {
     ".toggle-btn{transition:all .25s cubic-bezier(.22,1,.36,1)}",
     ".toggle-btn:hover{background:rgba(99,102,241,.14) !important}",
     ".card-hover{transition:all .25s cubic-bezier(.22,1,.36,1)}",
-    ".card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.4)}",
-    ".glass{background:var(--mp-surface);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}",
+    ".card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(15,23,42,.12)}",
+    ".glass{background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}",
     ".mp-ambient{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}",
-    ".mp-orb{position:absolute;border-radius:50%;filter:blur(48px)}",
-    ".mp-orb1{width:480px;height:480px;background:radial-gradient(circle,rgba(99,102,241,.22),transparent 70%);top:-140px;right:-90px}",
-    ".mp-orb2{width:360px;height:360px;background:radial-gradient(circle,rgba(139,92,246,.15),transparent 70%);bottom:-80px;left:8%}",
-    ".mp-orb3{width:260px;height:260px;background:radial-gradient(circle,rgba(34,211,238,.10),transparent 70%);top:30%;right:18%}",
-    ".mp-gridlines{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:32px 32px}",
-    ".gradient-border{position:relative;background:var(--mp-surface);border-radius:18px}",
-    ".gradient-border::before{content:'';position:absolute;inset:-1.5px;border-radius:19px;background:linear-gradient(135deg,#6366f1,#8b5cf6,#22d3ee);z-index:-1;opacity:.5}",
+    ".mp-orb{position:absolute;border-radius:50%;filter:blur(60px)}",
+    ".mp-orb1{width:480px;height:480px;background:radial-gradient(circle,rgba(99,102,241,.08),transparent 70%);top:-140px;right:-90px}",
+    ".mp-orb2{width:360px;height:360px;background:radial-gradient(circle,rgba(139,92,246,.06),transparent 70%);bottom:-80px;left:8%}",
+    ".mp-orb3{width:260px;height:260px;background:radial-gradient(circle,rgba(34,211,238,.05),transparent 70%);top:30%;right:18%}",
+    ".mp-gridlines{position:absolute;inset:0;background-image:linear-gradient(rgba(15,23,42,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.018) 1px,transparent 1px);background-size:32px 32px}",
+    ".gradient-border{position:relative;background:#fff;border-radius:18px}",
+    ".gradient-border::before{content:'';position:absolute;inset:-1.5px;border-radius:19px;background:linear-gradient(135deg,#6366f1,#8b5cf6,#22d3ee);z-index:-1;opacity:.4}",
     ".badge-glow{animation:glow 2.5s ease-in-out infinite}",
-    "input::placeholder,textarea::placeholder{color:rgba(255,255,255,.28)}",
+    "input::placeholder,textarea::placeholder{color:#9aa5b4}",
   ].join("");
   var NAV = [
     {id:"home",         emoji:"🏠", label:"Home"},
@@ -3442,11 +3442,11 @@ export default function App() {
     {id:"integracoes",  emoji:"🔌", label:"Integrações"},
   ];
   return (
-    <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#070712",overflowX:"clip",maxWidth:"100vw"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#eef1f6",overflowX:"clip",maxWidth:"100vw"}}>
       <BetaBanner/>
     <div style={{display:"flex",flex:1,overflowX:"clip",minWidth:0,width:"100%"}}>
       <style>{css}</style>
-      <div className="sidebar" style={{width:sidebarExpanded?224:64,background:"rgba(255,255,255,.03)",borderRight:"1px solid rgba(255,255,255,.07)",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(0,0,0,.4)",position:"relative",overflow:"hidden",transition:"width .35s cubic-bezier(.4,0,.2,1)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",zIndex:2}}>
+      <div className="sidebar" style={{width:sidebarExpanded?224:64,background:"linear-gradient(180deg,#15192b 0%,#10131f 100%)",borderRight:"1px solid #1f2438",display:"flex",flexDirection:"column",flexShrink:0,boxShadow:"4px 0 24px rgba(15,23,42,.18)",position:"relative",overflow:"hidden",transition:"width .35s cubic-bezier(.4,0,.2,1)",zIndex:2}}>
         <div style={{height:3,background:"linear-gradient(90deg,#6366f1,#7c3aed,#a78bfa)",flexShrink:0}}/>
         {sidebarExpanded ? (
           <div style={{padding:"14px 14px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
@@ -3454,17 +3454,17 @@ export default function App() {
                             <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACYAKEDASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAAAAEHBggCBAUD/8QAQxAAAQIEAgYECwUGBwAAAAAAAAECAwQFEQYhBxIxQWGRE1FxsiY1UlNkc4GTlLPRFBUiVXQWIzM2YsElMkJjg4Tw/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAQFAgYHAQP/xAAzEQACAQICBQkJAQEAAAAAAAAAAQIDBAURBhIhcdETMTM0QVKRobEVFiI1UVNhcsEUgf/aAAwDAQACEQMRAD8A0yAAAAAAAAAAAABKJdcj2aXhWv1KAkeSpc1FhrsejLNXsVbX9h9qNvVrvVpRcn+FmYynGCzk8jxQd+rUepUqJ0dQkpiWcuzpGKiL2LsX2HQMKlOdKTjNZP8AJ6pKSzQABgegAAAAAAAAAE3AAIAAAAAAAAABKbQDPtEOGYFWn41SnoSRJaUsjYbku18Rc0vwRM7b7oXQz8KIm5Cv9B+WHZ1fS0+W0sC9zsmi9rSo4dCUVtltf52s1nEJynWefYdOtU+Uq0jEkZ+EkWBESyou1q9adSp1mueIKdEpNZmqfEW7oEVzL9aJsX2pZTZZ6ZGv+k7+d6n61O40p9OLan/np1svizy/5k+BKwmb13HsyMaBKEHMy8AAAAAAAAAAAAAJIAAAAAAABJCAAuTQgvg/Op6Uny2lhohXmg9P8AnV9KTuNLERTtmjvyylufqzVr3p5HF+w1/0nfzvU/XJ3GmwD8kNftJy3xxU/XJ3WlNpx1GH7L0ZKwrpXu/qMaABywvwAAAAAAAAAAAAAAAATqr2e09yBAJ1V4cxqrw5jJggltr5ko3PO3MK1b5KnMZMFy6EEvhyd/Vp8tpn7MtpgOg1fB6ezS32tPltLAVM8jtejvy2lu/rNWvenkcYmZr/AKTUtjep+uTuNL/dkUDpOS+OKna38VN/9DSm036jD9l6MlYV0r3f1GMA5aq8OZGqvDmctyZfggnVXhzGqvDmMmCASqKm1CDwAkgAAAAAAltrpfYAZ3owwZCrrolQqSPSRhO1EY1bLFdvS+5E327OstiFQKLAhJCg0mRYxNiJAav9jytFPR/sHTuj23io/r1tdbmULkp2XR/C7a3soSUU3JJt79prF5cTnVkm9iZ0EpFLalvuuS+Hb9CUo1JXbS5L4dv0O+uYvYvOQpd1eBF15fU85aRS2rlS5L4dv0OTaRSnJnTJK/qG/Q7yhMhyFLurwGvL6nwlpSXlWqyWl4UFqrdUhsRqKvXkfdFJVSLH0UVBZRRjmSqXQ6cWm06LFdFjU+UiRHZuc+C1VXtVUO4ihczyUIzXxLMJtHnOpFLVfFcj8O36D7mpabKXJfDt+h6KC6XMFQpd1eBlryPPSjUq+dLkfcN+hzSk0lE8VSPw7fod29jjrZh29LurwDlJ9pi2KME0WsS0RIcpBkptU/dx4LEbnu1kTJUKKqUnHkJ6NJzLFZGgvVj2ruVDaBbauZQ+lxYC45n+htsho+3laiX/ALGiaZ4bQhRjcwilLPJ5duxvx2FthdxNydN7VkYeADnJdgAAAAAGa6NcaLhyM+TnWvi0+M7Wcjc3QnbNZE38U4XQtiWxdhmYgtjNrki1HbokTUcnai5oa5HNIsREsj3InabNhmlN1Y0uRyUormz7PPmIFxh9OtLW5mbHuxRhq3j6m/EIcFxThz89p3v0Nc+li+cdzJSNE847mWfvxc/bXnxI6wmHeZsYzFGG99epqf8AOgdijDd8q9Tffoa6dM9P9buZxWLE8t3MLTm5+2vPiPZMO8zZqnVGRqMJ0WQm4E0xrtVzoL9ZEXqO3uMA0HLfDs85y3X7Uma+raZ9tN9wu7ld2sK8lk3xKivTVKo4LsCnnzGIKFKTL5abrEhAisWzmRIyNc1eKHoZWKB0nOezG9U1XOT98mxf6GkHSHFqmGUI1aaTzeW3c+B9rO2VxNxby2F0vxPhpNlfpq/9hDimKMN/n1O9+hrn00Ty3cx0sTzjuZqHvxc/bXnxLH2TDvM2MXFGG/z6m+/QJifDaJ4+pvv0NculiecdzJSLE8t3Me/Nz9tefEeyYd5l3Yo0i0WnysSHTorahNqlmJDv0bV61dv7EKUnpmPOTcWZmYixI0Vyve5dqqp8nOVy3VVVTia/i+N3OKSXK7EuZLmJ1taQt18POwT2kApiSTlxBAAAAAAJQgAAAAE2yIABc2hBfB2d/Vp8tpYLSvdB/iCd/VJ8tpYNrKds0d+W0tz9Wate9PIPyQ1+0mOVcbVS/nk7rTYB65FAaT1RccVO3nU7jSm046jD9l6MlYV0r3cDGQAcsL8AAAAAAAAAAAAAAAAAAAAAAAAufQcng7Or6Wny2lgXK+0Hu8HZ1PS0+W0sFM0O2aO/LaW5+rNWvenkcX2sa/6Tktjepp/up3GmwERFtka/aTFVcbVO/nU7rSm046jD9l6Ml4V0r3cDGwAcsL4AAAAAAAlCAAAAAAAAAAAAAASm0gAGcaK8UQKHUIsnPPVknNat3rshvTY5eCpkvsLwgq2LBZGhOSIx6Xa5i3RU4Khqwm253pKsVSSh9FJ1GclmeTBjuYnJFsbfgmlU8Po8hVjrRXN9UVl3h/LS14vJmw+I63T6BIPnKhFRiIn4ISf54jtzWp/6xrrWp+LU6rMz8b+JHiOiKm5LrsTs2ew+c3NzE3FWLMx4seIqWV8R6uVfap8CFjukFTFXGOWrBdn5+rPtZ2at03nm2CATwNdJpAAAAAAAAAJy4ggAAAAAAAAAAAAAAAAAAAAbgAAAAAAAAAACb8AAAf/Z" alt="+pipe" style={{width:36,height:36,borderRadius:10,objectFit:"contain",flexShrink:0}}/>
               <div style={{minWidth:0,overflow:"hidden"}}>
                 <div style={{fontSize:14,fontWeight:800,letterSpacing:"-0.3px",lineHeight:1.2,whiteSpace:"nowrap"}}><span style={{color:"#818cf8"}}>+</span><span style={{color:"#ffffff"}}> pipe</span></div>
-                <div style={{fontSize:7.5,color:"rgba(255,255,255,.35)",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
+                <div style={{fontSize:7.5,color:"#7c869b",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
               </div>
             </div>
-            <button onClick={function(){setSidebarExpanded(false);}} title="Recolher menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,.5)",flexShrink:0,padding:0,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}>
+            <button onClick={function(){setSidebarExpanded(false);}} title="Recolher menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#8b93a7",flexShrink:0,padding:0,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
           </div>
         ) : (
           <div style={{padding:"14px 0 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
                       <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACYAKEDASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAAAAEHBggCBAUD/8QAQxAAAQIEAgYECwUGBwAAAAAAAAECAwQFEQYhBxIxQWGRE1FxsiY1UlNkc4GTlLPRFBUiVXQWIzM2YsElMkJjg4Tw/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAQFAgYHAQP/xAAzEQACAQICBQkJAQEAAAAAAAAAAQIDBAURBhIhcdETMTM0QVKRobEVFiI1UVNhcsEUgf/aAAwDAQACEQMRAD8A0yAAAAAAAAAAAABKJdcj2aXhWv1KAkeSpc1FhrsejLNXsVbX9h9qNvVrvVpRcn+FmYynGCzk8jxQd+rUepUqJ0dQkpiWcuzpGKiL2LsX2HQMKlOdKTjNZP8AJ6pKSzQABgegAAAAAAAAAE3AAIAAAAAAAAABKbQDPtEOGYFWn41SnoSRJaUsjYbku18Rc0vwRM7b7oXQz8KIm5Cv9B+WHZ1fS0+W0sC9zsmi9rSo4dCUVtltf52s1nEJynWefYdOtU+Uq0jEkZ+EkWBESyou1q9adSp1mueIKdEpNZmqfEW7oEVzL9aJsX2pZTZZ6ZGv+k7+d6n61O40p9OLan/np1svizy/5k+BKwmb13HsyMaBKEHMy8AAAAAAAAAAAAAJIAAAAAAABJCAAuTQgvg/Op6Uny2lhohXmg9P8AnV9KTuNLERTtmjvyylufqzVr3p5HF+w1/0nfzvU/XJ3GmwD8kNftJy3xxU/XJ3WlNpx1GH7L0ZKwrpXu/qMaABywvwAAAAAAAAAAAAAAAATqr2e09yBAJ1V4cxqrw5jJggltr5ko3PO3MK1b5KnMZMFy6EEvhyd/Vp8tpn7MtpgOg1fB6ezS32tPltLAVM8jtejvy2lu/rNWvenkcYmZr/AKTUtjep+uTuNL/dkUDpOS+OKna38VN/9DSm036jD9l6MlYV0r3f1GMA5aq8OZGqvDmctyZfggnVXhzGqvDmMmCASqKm1CDwAkgAAAAAAltrpfYAZ3owwZCrrolQqSPSRhO1EY1bLFdvS+5E327OstiFQKLAhJCg0mRYxNiJAav9jytFPR/sHTuj23io/r1tdbmULkp2XR/C7a3soSUU3JJt79prF5cTnVkm9iZ0EpFLalvuuS+Hb9CUo1JXbS5L4dv0O+uYvYvOQpd1eBF15fU85aRS2rlS5L4dv0OTaRSnJnTJK/qG/Q7yhMhyFLurwGvL6nwlpSXlWqyWl4UFqrdUhsRqKvXkfdFJVSLH0UVBZRRjmSqXQ6cWm06LFdFjU+UiRHZuc+C1VXtVUO4ihczyUIzXxLMJtHnOpFLVfFcj8O36D7mpabKXJfDt+h6KC6XMFQpd1eBlryPPSjUq+dLkfcN+hzSk0lE8VSPw7fod29jjrZh29LurwDlJ9pi2KME0WsS0RIcpBkptU/dx4LEbnu1kTJUKKqUnHkJ6NJzLFZGgvVj2ruVDaBbauZQ+lxYC45n+htsho+3laiX/ALGiaZ4bQhRjcwilLPJ5duxvx2FthdxNydN7VkYeADnJdgAAAAAGa6NcaLhyM+TnWvi0+M7Wcjc3QnbNZE38U4XQtiWxdhmYgtjNrki1HbokTUcnai5oa5HNIsREsj3InabNhmlN1Y0uRyUormz7PPmIFxh9OtLW5mbHuxRhq3j6m/EIcFxThz89p3v0Nc+li+cdzJSNE847mWfvxc/bXnxI6wmHeZsYzFGG99epqf8AOgdijDd8q9Tffoa6dM9P9buZxWLE8t3MLTm5+2vPiPZMO8zZqnVGRqMJ0WQm4E0xrtVzoL9ZEXqO3uMA0HLfDs85y3X7Uma+raZ9tN9wu7ld2sK8lk3xKivTVKo4LsCnnzGIKFKTL5abrEhAisWzmRIyNc1eKHoZWKB0nOezG9U1XOT98mxf6GkHSHFqmGUI1aaTzeW3c+B9rO2VxNxby2F0vxPhpNlfpq/9hDimKMN/n1O9+hrn00Ty3cx0sTzjuZqHvxc/bXnxLH2TDvM2MXFGG/z6m+/QJifDaJ4+pvv0NculiecdzJSLE8t3Me/Nz9tefEeyYd5l3Yo0i0WnysSHTorahNqlmJDv0bV61dv7EKUnpmPOTcWZmYixI0Vyve5dqqp8nOVy3VVVTia/i+N3OKSXK7EuZLmJ1taQt18POwT2kApiSTlxBAAAAAAJQgAAAAE2yIABc2hBfB2d/Vp8tpYLSvdB/iCd/VJ8tpYNrKds0d+W0tz9Wate9PIPyQ1+0mOVcbVS/nk7rTYB65FAaT1RccVO3nU7jSm046jD9l6MlYV0r3cDGQAcsL8AAAAAAAAAAAAAAAAAAAAAAAAufQcng7Or6Wny2lgXK+0Hu8HZ1PS0+W0sFM0O2aO/LaW5+rNWvenkcX2sa/6Tktjepp/up3GmwERFtka/aTFVcbVO/nU7rSm046jD9l6Ml4V0r3cDGwAcsL4AAAAAAAlCAAAAAAAAAAAAAASm0gAGcaK8UQKHUIsnPPVknNat3rshvTY5eCpkvsLwgq2LBZGhOSIx6Xa5i3RU4Khqwm253pKsVSSh9FJ1GclmeTBjuYnJFsbfgmlU8Po8hVjrRXN9UVl3h/LS14vJmw+I63T6BIPnKhFRiIn4ISf54jtzWp/6xrrWp+LU6rMz8b+JHiOiKm5LrsTs2ew+c3NzE3FWLMx4seIqWV8R6uVfap8CFjukFTFXGOWrBdn5+rPtZ2at03nm2CATwNdJpAAAAAAAAAJy4ggAAAAAAAAAAAAAAAAAAAAbgAAAAAAAAAACb8AAAf/Z" alt="+pipe" style={{width:40,height:40,borderRadius:12,objectFit:"contain"}}/>
-            <button onClick={function(){setSidebarExpanded(true);}} title="Expandir menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,.5)",padding:0}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}>
+            <button onClick={function(){setSidebarExpanded(true);}} title="Expandir menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#8b93a7",padding:0}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
@@ -3490,15 +3490,15 @@ export default function App() {
               <div style={{background:"rgba(99,102,241,.1)",border:"1px solid rgba(99,102,241,.2)",borderRadius:11,padding:"11px 13px"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:7}}>
                   <span style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#818cf8"}}>{"Plano "+(usage.planLabel||"")}</span>
-                  <span style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,.5)"}}>{usage.used+"/"+usage.limit}</span>
+                  <span style={{fontSize:9,fontWeight:700,color:"#8b93a7"}}>{usage.used+"/"+usage.limit}</span>
                 </div>
                 <div style={{background:"rgba(255,255,255,.08)",borderRadius:4,height:5,overflow:"hidden"}}>
                   <div style={{background:"linear-gradient(90deg,#6366f1,#8b5cf6)",borderRadius:4,height:5,width:Math.min(100,Math.round((usage.used/(usage.limit||1))*100))+"%",transition:"width .4s ease"}}/>
                 </div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,.4)",marginTop:6}}>{usage.remaining+" mapeamento"+(usage.remaining!==1?"s":"")+" restante"+(usage.remaining!==1?"s":"")}</div>
+                <div style={{fontSize:10,color:"#8b93a7",marginTop:6}}>{usage.remaining+" mapeamento"+(usage.remaining!==1?"s":"")+" restante"+(usage.remaining!==1?"s":"")}</div>
               </div>
             ) : (
-              <div style={{fontSize:10,color:"rgba(255,255,255,.4)",lineHeight:1.6}}>
+              <div style={{fontSize:10,color:"#94a3b8",lineHeight:1.6}}>
                 {accounts.length+" conta"+(accounts.length!==1?"s":"")+" salva"+(accounts.length!==1?"s":"")}
               </div>
             )}
@@ -3511,7 +3511,7 @@ export default function App() {
           {loading ? (
             <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",gap:12}}>
               <div style={{width:8,height:8,borderRadius:"50%",background:"#818cf8",animation:"pulseDot 1s infinite"}}/>
-              <span style={{color:"rgba(255,255,255,.5)",fontSize:13}}>Carregando...</span>
+              <span style={{color:"#64748b",fontSize:13}}>Carregando...</span>
             </div>
           ) : (
             <div key={nav} style={{animation:"fadeUp .4s cubic-bezier(.4,0,.2,1) both"}}>
@@ -3525,8 +3525,8 @@ export default function App() {
               {nav==="integracoes" && <IntegrationsView/>}
               {nav==="pipeline"  && (
                 <div>
-                  <div style={{fontSize:28,fontWeight:800,color:"rgba(255,255,255,.92)",marginBottom:4,letterSpacing:"-0.6px"}}>Pipeline</div>
-                  <div style={{fontSize:13,color:"rgba(255,255,255,.55)",marginBottom:24}}>{"Arraste os cards entre colunas para avançar ou recuar o estágio da prospecção."}</div>
+                  <div style={{fontSize:28,fontWeight:800,color:"#0f172a",marginBottom:4,letterSpacing:"-0.6px"}}>Pipeline</div>
+                  <div style={{fontSize:13,color:"#52617a",marginBottom:24}}>{"Arraste os cards entre colunas para avançar ou recuar o estágio da prospecção."}</div>
                   <PipelineView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus}/>
                 </div>
               )}
@@ -3537,7 +3537,7 @@ export default function App() {
       {openAcc && <AccountModal acc={openAcc} onClose={function(){setOpenAcc(null);}} onStatusChange={updateStatus}/>}
       {openSeq && <SequenceModal seq={openSeq} onClose={function(){setOpenSeq(null);}}/>}
       {toast && (
-        <div style={{position:"fixed",bottom:28,right:28,background:toast.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(0,0,0,0.32),0 0 0 1px rgba(255,255,255,.15)",animation:"toastIn .35s cubic-bezier(.22,1,.36,1)",zIndex:300,maxWidth:340,display:"flex",alignItems:"center",gap:10}}>
+        <div style={{position:"fixed",bottom:28,right:28,background:toast.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(15,23,42,.10),0 0 0 1px rgba(255,255,255,.15)",animation:"toastIn .35s cubic-bezier(.22,1,.36,1)",zIndex:300,maxWidth:340,display:"flex",alignItems:"center",gap:10}}>
           {toast.msg}
         </div>
       )}
