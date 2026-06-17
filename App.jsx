@@ -291,6 +291,7 @@ function CopyBtn(props) {
 function SequenceView(props) {
   var accounts = props.accounts;
   var _st_selAcc = useState(null); var selAcc = _st_selAcc[0]; var setSelAcc = _st_selAcc[1];
+  var _st_accSort = useState("az"); var accSort = _st_accSort[0]; var setAccSort = _st_accSort[1];
   var lastSeqReqTs = useRef(0);
   var _st_selProfile = useState(null); var selProfile = _st_selProfile[0]; var setSelProfile = _st_selProfile[1];
   var _st_customProfile = useState(null); var customProfile = _st_customProfile[0]; var setCustomProfile = _st_customProfile[1];
@@ -545,14 +546,22 @@ function SequenceView(props) {
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:24}}>
         <div>
-          <div style={{fontSize:10,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>{"1. Selecione a conta"}</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:8}}>
+            <div style={{fontSize:10,fontWeight:700,color:"#6366f1",letterSpacing:2,textTransform:"uppercase"}}>{"1. Selecione a conta"}</div>
+            {accounts.length > 1 && (
+              <div style={{display:"flex",background:"#f1f3f6",border:"1px solid #e6e9ef",borderRadius:8,overflow:"hidden",flexShrink:0}}>
+                <button onClick={function(){setAccSort("az");}} title="Ordenar A → Z" style={{padding:"4px 9px",border:"none",background:accSort==="az"?"linear-gradient(135deg,#6366f1,#4f46e5)":"transparent",color:accSort==="az"?"#fff":"#64748b",cursor:"pointer",fontSize:10,fontWeight:700,fontFamily:"inherit",lineHeight:1}}>{"A→Z"}</button>
+                <button onClick={function(){setAccSort("za");}} title="Ordenar Z → A" style={{padding:"4px 9px",border:"none",background:accSort==="za"?"linear-gradient(135deg,#6366f1,#4f46e5)":"transparent",color:accSort==="za"?"#fff":"#64748b",cursor:"pointer",fontSize:10,fontWeight:700,fontFamily:"inherit",lineHeight:1}}>{"Z→A"}</button>
+              </div>
+            )}
+          </div>
           {accounts.length === 0 ? (
             <div style={{background:"#fbfbfd",border:"1.5px dashed #e6e9ef",borderRadius:12,padding:"20px",textAlign:"center"}}>
               <div style={{fontSize:12,color:"#64748b"}}>Nenhuma conta mapeada. Va para Busca.</div>
             </div>
           ) : (
             <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
-              {accounts.map(function(acc) {
+              {accounts.slice().sort(function(a,b){ var r=(a.nome||"").localeCompare(b.nome||"","pt",{sensitivity:"base"}); return accSort==="za"?-r:r; }).map(function(acc) {
                 var fc = FIT_CONFIG[acc.fit]||FIT_CONFIG.ALTO;
                 var active = selAcc && selAcc.id===acc.id;
                 return (
@@ -1436,7 +1445,7 @@ function downloadSeqPDF(seq) {
 function BibliotecaView(props) {
   var _st_seqs = useState([]); var seqs = _st_seqs[0]; var setSeqs = _st_seqs[1];
   var _st_loading = useState(true); var loading = _st_loading[0]; var setLoading = _st_loading[1];
-  var _st_viewMode = useState("cards"); var viewMode = _st_viewMode[0]; var setViewMode = _st_viewMode[1];
+  var _st_viewMode = useState("list"); var viewMode = _st_viewMode[0]; var setViewMode = _st_viewMode[1];
   var _st_sortOrder = useState("date"); var sortOrder = _st_sortOrder[0]; var setSortOrder = _st_sortOrder[1];
   useEffect(function() {
     storageList("seq:").then(function(keys) {
@@ -1637,9 +1646,7 @@ function ContactsView(props) {
       Promise.all(keys.map(storageGet)).then(function(items) {
         var valid = items.filter(Boolean);
         setContacts(valid);
-        var exp = {};
-        valid.forEach(function(c){ exp[c.empresa || "Sem empresa"] = true; });
-        setExpandedGroups(exp);
+        setExpandedGroups({});
         setLoadingC(false);
       });
     }).catch(function(){ setLoadingC(false); });
@@ -1821,6 +1828,7 @@ function IntegrationsView() {
     {id:"salesforce", name:"Salesforce", logo:"☁️", desc:"Sincronize contas, contatos e oportunidades com o Salesforce CRM.", color:"#00A1E0", connected:false},
     {id:"hubspot",    name:"HubSpot",    logo:"🟠", desc:"Exporte leads e sequencias diretamente para o HubSpot CRM.",      color:"#FF7A59", connected:false},
     {id:"pipedrive",  name:"Pipedrive",  logo:"🎯", desc:"Crie deals automaticamente no Pipedrive ao salvar uma conta.",    color:"#272D35", connected:false},
+    {id:"pipefy",     name:"Pipefy",     logo:"🟦", desc:"Dispare cards e automatize pipes no Pipefy a cada conta mapeada.", color:"#3B5BFE", connected:false},
   ];
   var _st_states = useState(function(){
     var saved = {};
@@ -2553,7 +2561,7 @@ function AccountsView(props) {
   var usage = props.usage;
   var _st_filter = useState({fit:"",tier:"",status:""}); var filter = _st_filter[0]; var setFilter = _st_filter[1];
   var _st_search = useState(""); var search = _st_search[0]; var setSearch = _st_search[1];
-  var _st_viewMode = useState("cards"); var viewMode = _st_viewMode[0]; var setViewMode = _st_viewMode[1];
+  var _st_viewMode = useState("list"); var viewMode = _st_viewMode[0]; var setViewMode = _st_viewMode[1];
   var _st_sortOrder = useState("date"); var sortOrder = _st_sortOrder[0]; var setSortOrder = _st_sortOrder[1];
   var _st_csvPreview = useState(null); var csvPreview = _st_csvPreview[0]; var setCsvPreview = _st_csvPreview[1];
   var _st_selected = useState({}); var selected = _st_selected[0]; var setSelected = _st_selected[1];
@@ -3474,7 +3482,7 @@ export default function App() {
           {NAV.map(function(item) {
             var active = nav===item.id;
             return (
-              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarExpanded?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarExpanded?"10px 12px":"8px 0",justifyContent:sidebarExpanded?"flex-start":"center",borderRadius:11,border:"1px solid "+(active?"rgba(99,102,241,.3)":"transparent"),background:active?"linear-gradient(135deg,rgba(99,102,241,.22),rgba(139,92,246,.15))":"transparent",color:active?"#c7d2fe":"rgba(255,255,255,.5)",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?600:500,marginBottom:3,transition:"all .25s cubic-bezier(.4,0,.2,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(99,102,241,.25)":"none",position:"relative",willChange:"background,color"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="rgba(255,255,255,.05)";e.currentTarget.style.color="rgba(255,255,255,.85)";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}}>
+              <button key={item.id} onClick={function(){setNav(item.id);}} title={sidebarExpanded?"":item.label} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:sidebarExpanded?"10px 12px":"8px 0",justifyContent:sidebarExpanded?"flex-start":"center",borderRadius:11,border:"1px solid "+(active?"rgba(99,102,241,.3)":"transparent"),background:active?"linear-gradient(135deg,rgba(99,102,241,.22),rgba(139,92,246,.15))":"transparent",color:active?"#ffffff":"rgba(255,255,255,.92)",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:active?700:600,marginBottom:3,transition:"all .25s cubic-bezier(.4,0,.2,1)",textAlign:"left",boxShadow:active?"0 4px 14px rgba(99,102,241,.25)":"none",position:"relative",willChange:"background,color"}} onMouseEnter={function(e){if(!active){e.currentTarget.style.background="rgba(255,255,255,.05)";e.currentTarget.style.color="rgba(255,255,255,.85)";}}} onMouseLeave={function(e){if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.92)";}}}>
                 {active && <span style={{position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",width:3,height:18,background:"linear-gradient(180deg,#6366f1,#8b5cf6)",borderRadius:"0 3px 3px 0"}}/>}
                 <span style={{fontSize:sidebarExpanded?16:20,flexShrink:0,transition:"font-size .2s ease"}}>{item.emoji}</span>
                 <span className={"sidebar-label " + (sidebarExpanded?"visible":"hidden")} style={{flex:1}}>
