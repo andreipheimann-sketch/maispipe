@@ -189,62 +189,16 @@ var TOUCH_TYPES = {
   follow:   { label:"Follow-up",    icon:"F", color:"#7c3aed", bg:"#f5f3ff" },
   breakup:  { label:"Breakup",      icon:"B", color:"#52617a", bg:"#f8fafc" },
 };
-var STAKEHOLDER_PROFILES = [
-  { id:"headcx", label:"Head de CX / Diretor de Atendimento", angle:"CSAT, SLA e escala do time",    pain:"volume crescendo mais rápido que headcount, CSAT caindo" },
-  { id:"ceo",    label:"CEO / Diretor Geral",                  angle:"retencao e crescimento",        pain:"churn por atendimento ruim travando expansao da base" },
-  { id:"ops",    label:"VP / Diretor de Operações",            angle:"custo por ticket e eficiencia", pain:"budget de CX estourado sem visibilidade de ROI" },
-  { id:"cs",     label:"Head de Customer Success",             angle:"health score e retencao",       pain:"sem visibilidade de clientes em risco antes de churnarem" },
-  { id:"ti",     label:"Gerente de TI / CTO",                  angle:"integração e migracao",         pain:"sistema atual sem API robusta, customizacoes caras" },
-  { id:"cfo",    label:"CFO / Diretor Financeiro",             angle:"ROI e reducao de custo",        pain:"custo por ticket alto sem benchmark claro do mercado" },
-];
-var SEQUENCE_TEMPLATES = {
-  headcx: [
-    { day:1,  type:"linkedin", subject:"Atendimento omnichannel na {empresa}", body:"Ola, tudo bem?\n\nVi que {empresa} atua em {setor} e tem uma operacao de atendimento ativo.\n\nComo Head de CX, imagino que voce equilibra diariamente a pressao por SLA com a necessidade de escalar o time sem explodir o custo.\n\nEmpresas similares no {setor} conseguiram aumentar CSAT em 25% e reduzir 40% do custo por ticket ao unificar todos os canais na Zendesk Suite com IA nativa.\n\nFaz sentido um papo de 20 minutos para eu entender como esta o processo de atendimento de voces hoje?\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:3,  type:"email",    subject:"[{empresa}] Quanto custa um ticket sem resposta?", body:"Ola,\n\nUma pergunta direta: qual o impacto no churn quando um cliente fica mais de 24h sem resposta na {empresa}?\n\nNa media do setor de {setor}, cada 1% de queda no CSAT representa aumento de 2 a 3% no churn. Com a Zendesk Suite, empresas similares:\n\n, Reduziram TMA em 35% com macros e IA de sugestao de resposta\n, Aumentaram first contact resolution de 52% para 78%\n, Deflexionaram 28% dos tickets via self-service inteligente\n\nConsigo te mostrar em 20 minutos com dados do seu setor.\n\nTem disponibilidade essa semana?\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:6,  type:"call",     subject:"Cold call , Head de CX {empresa}", body:"Bom dia [Nome], aqui e o BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nPerfeito. Ligo porque {empresa} tem o perfil exato onde a Zendesk gera mais impacto em {setor}: time de atendimento ativo com pressao crescente de CSAT e custo.\n\nEmpresas similares aumentaram CSAT em 25% e reduziram 40% do custo por ticket nos primeiros 90 dias. Faz sentido eu te mostrar como funcionou? Quando voce tem 20 minutos?" },
-    { day:10, type:"email",    subject:"[{empresa}] Case: CSAT de 68% para 89% em 90 dias", body:"Ola,\n\nRecentemente ajudamos uma empresa de {setor} com perfil muito similar ao da {empresa} a:\n\n, Unificar e-mail, chat, WhatsApp e voz em uma unica plataforma em 30 dias\n, Aumentar CSAT de 68% para 89% nos primeiros 90 dias\n, Reduzir TMA em 35% com macros inteligentes e IA de sugestao\n, Deflexionar 28% dos tickets via self-service , sem agente\n\nO time de CX nao parou as operacoes , a implementacao foi conduzida pelo nosso CS.\n\nFaz sentido eu te contar como funcionou? 20 minutos essa semana.\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:15, type:"linkedin", subject:"Atualizacao rapida , {empresa}", body:"Ola,\n\nMandei um email sobre atendimento omnichannel na {empresa}, mas imagino que a caixa esta cheia.\n\nUma pergunta direta: voces tem visibilidade em tempo real do CSAT e SLA em todos os canais hoje?\n\nSe nao, vale muito uma conversa , posso mostrar um benchmark do {setor} que costuma mudar a perspectiva.\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:21, type:"breakup",  subject:"Ultima mensagem , {empresa}", body:"Ola,\n\nVou respeitar o seu tempo , essa e minha ultima mensagem sobre o tema.\n\nSe CX e self-service nao sao prioridade agora na {empresa}, faz todo sentido. Mas se em algum momento a conversa sobre CSAT, custo por ticket ou escala do time de atendimento ganhar urgencia, pode me chamar.\n\nGuardo a {empresa} no radar.\n\nAbraço,\nBDR/SDR | Zendesk" },
-  ],
-  ceo: [
-    { day:1,  type:"linkedin", subject:"Retencao de clientes na {empresa}", body:"Ola, tudo bem?\n\nVi que {empresa} esta crescendo em {setor} , parabens pelo trabalho.\n\nUma realidade comum em empresas que crescem rapido: a base de clientes cresce mais rapido que a capacidade de atendimento, e o CSAT começa a cair , gerando churn justamente quando mais precisam reter.\n\nEmpresas similares no {setor} resolveram esse problema com Zendesk Suite: escalaram o atendimento com IA e self-service sem aumentar headcount.\n\nVale um papo de 15 minutos?" },
-    { day:3,  type:"email",    subject:"[{empresa}] Atendimento como vantagem competitiva", body:"Ola,\n\nPara uma empresa de {setor} em crescimento como a {empresa}, atendimento ao cliente pode ser o maior diferencial competitivo , ou o maior risco de churn.\n\nO que empresas líderes do setor estao fazendo:\n, Self-service com IA que resolve 30% dos tickets sem agente\n, Omnichannel unificado: o cliente nao precisa repetir o problema\n, CSAT em tempo real para antecipar clientes em risco de churn\n\nConsigo te mostrar em 20 minutos como isso se aplicaria a {empresa}.\n\nTem disponibilidade?\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:7,  type:"whatsapp", subject:"WhatsApp , CEO {empresa}", body:"Oi [Nome], BDR da Zendesk. Direto ao ponto: empresa de {setor} com perfil similar ao da {empresa} reduziu churn em 15% ao melhorar CSAT com nossa plataforma. Vale 15 minutos para eu mostrar como?" },
-    { day:12, type:"email",    subject:"[{empresa}] O custo do atendimento ruim", body:"Ola,\n\nUm numero que costuma surpreender CEOs de empresas de {setor}: adquirir um novo cliente custa de 5 a 7x mais do que reter um cliente existente.\n\nE o principal motivo de churn evitavel? Atendimento lento ou fragmentado.\n\nCom a Zendesk Suite, a {empresa} poderia:\n, Responder mais rapido com IA e automacao\n, Dar ao cliente a opcao de resolver sozinho (self-service)\n, Ter visibilidade em tempo real do CSAT e NPS\n\nVale 20 minutos para ver o potencial?\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:17, type:"call",     subject:"Cold call , CEO {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Vou ser rapido.\n\nLigo porque {empresa} esta crescendo em {setor} e esse e exatamente o momento em que CX pode ser vantagem competitiva ou gargalo de crescimento.\n\nUma pergunta: qual o CSAT atual de voces e qual o impacto no churn quando um cliente nao e bem atendido?" },
-    { day:22, type:"breakup",  subject:"Encerrando contato , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se em algum momento o tema de CX, retencao de clientes ou escala do atendimento ganhar urgencia na {empresa}, pode me chamar.\n\nAbraço e sucesso!\nBDR/SDR | Zendesk" },
-  ],
-  ops: [
-    { day:1,  type:"email",    subject:"[{empresa}] Custo por ticket no {setor}", body:"Ola,\n\nUma pergunta direta para um Diretor de Operacoes: qual o custo por ticket do time de atendimento da {empresa} hoje?\n\nNa media do setor de {setor}, o custo por ticket varia de R$15 a R$45. Com deflexao via self-service e IA da Zendesk, empresas similares reduziram esse custo em 40% em 90 dias.\n\nConsigo te mostrar o calculo aplicado ao perfil da {empresa} em 20 minutos.\n\nTem disponibilidade?\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:4,  type:"linkedin", subject:"Eficiencia operacional no atendimento , {empresa}", body:"Ola,\n\nComo Diretor de Operacoes, imagino que voce olha constantemente para a relacao entre headcount do time de CX e volume de tickets.\n\nO desafio mais comum em {setor}: o volume cresce 20% ao ano mas o budget nao acompanha , e a saida e ou contratar mais agentes ou encontrar eficiencia com tecnologia.\n\nA Zendesk Suite resolve isso com automacao, IA e self-service. Vale um papo?" },
-    { day:8,  type:"call",     subject:"Cold call , Ops {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nPerfeito. Ligo porque {empresa} apareceu no nosso radar em {setor}. Uma pergunta objetiva: qual o custo mensal do time de atendimento de voces , e voces tem visibilidade do custo por ticket hoje?\n\n[ouvir]\n\nEntendi. E quando o volume de tickets sobe, o que acontece com o SLA e com o headcount?" },
-    { day:13, type:"email",    subject:"[{empresa}] ROI de CX: calculo rapido", body:"Ola,\n\nUm calculo que costuma mudar a perspectiva de Diretores de Operacoes:\n\nSe {empresa} tem 50 agentes com custo medio de R$4.000/mes = R$200k/mes\nDeflexionando 30% dos tickets com self-service = 15 agentes equivalentes economizados\nImpacto potencial: R$60k/mes = R$720k/ano\n\nIsso sem contar a melhora de CSAT e reducao de churn.\n\nConsigo te montar um business case especifico para {empresa} em 20 minutos de conversa.\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:19, type:"follow",   subject:"[{empresa}] Ultima tentativa , pilot gratuito", body:"Ola,\n\nUltima mensagem , prometo.\n\nEm vez de mais uma conversa, proponho algo diferente: um pilot de 30 dias da Zendesk Suite com dados reais da {empresa}. Sem compromisso.\n\nVoces veem o resultado na pratica , reducao de TMA, deflexao de tickets, CSAT em tempo real. Se nao fizer sentido, sem custo e sem pressao.\n\nVale arriscar 30 dias?" },
-    { day:25, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nNao quero continuar incomodando. Encerro o contato por aqui.\n\nSe em algum momento a conversa sobre custo de atendimento ou eficiencia operacional de CX ganhar espaco, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
-  ],
-  cs: [
-    { day:1,  type:"linkedin", subject:"Customer Success e retencao na {empresa}", body:"Ola,\n\nVi que {empresa} esta investindo em Customer Success em {setor} , otima estrategia.\n\nUma pergunta: voces conseguem identificar proativamente quais clientes estao em risco de churn antes de eles cancelarem?\n\nCom a Zendesk Suite, equipes de CS de empresas similares passaram a cruzar dados de CSAT, historico de tickets e engajamento para gerar health score automatico , e reduziram churn evitavel em 20%.\n\nVale um papo?" },
-    { day:4,  type:"email",    subject:"[{empresa}] Self-service reduz churn , dados do {setor}", body:"Ola,\n\nUm insight relevante para quem cuida de Customer Success em {setor}:\n\nClientes que resolvem problemas via self-service tem taxa de churn 30% menor do que clientes que precisam abrir ticket para resolver o mesmo problema.\n\nMotivo: self-service gera sensacao de autonomia e competencia. Ticket aberto gera sensacao de dependencia e frustracao.\n\nA {empresa} tem um Help Center estruturado hoje? Se nao, consigo mostrar como montar um em 30 dias com a base de conhecimento da Zendesk.\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:9,  type:"whatsapp", subject:"WhatsApp , CS {empresa}", body:"Oi [Nome], BDR da Zendesk. {empresa} tem algum processo de health score para identificar clientes em risco antes de churnar? Tenho um case relevante do {setor}. Posso te mandar?" },
-    { day:15, type:"email",    subject:"[{empresa}] Integracao Zendesk + CRM de CS", body:"Ola,\n\nUm dos maiores problemas de times de CS em {setor}: os dados de atendimento ficam no helpdesk e os dados de conta ficam no CRM , e os dois nao conversam.\n\nA Zendesk Suite integra nativamente com Salesforce, HubSpot e principais CRMs, trazendo historico completo de tickets para dentro do contexto de conta.\n\nIsso significa que o CSM ve, em tempo real, se o cliente abriu ticket critico, qual foi a resolucao e como o CSAT esta evoluindo.\n\nVale 20 minutos para ver isso na pratica?\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:20, type:"follow",   subject:"[{empresa}] Uma ultima pergunta", body:"Ola,\n\nAntes de encerrar o contato: a {empresa} tem alguma meta de reducao de churn ou aumento de NPS para os proximos 6 meses?\n\nSe sim, vale muito uma conversa agora , antes da pressao chegar.\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:26, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se o tema de retencao, health score ou integracao de CX com CS ganhar relevancia, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
-  ],
-  ti: [
-    { day:1,  type:"email",    subject:"[{empresa}] API e integracao Zendesk no {setor}", body:"Ola,\n\nChego ate voce porque {empresa} provavelmente tem um ecossistema de sistemas , ERP, CRM, e-commerce , que precisam conversar com a plataforma de atendimento.\n\nA Zendesk Suite tem API REST completa, marketplace com mais de 1.500 integracoes nativas e webhooks flexiveis. Empresas de {setor} integraram com SAP, TOTVS, Salesforce e plataformas de e-commerce em media em 4 semanas.\n\nPosso te mostrar como funciona a arquitetura de integracao?\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:4,  type:"linkedin", subject:"Migracao de helpdesk , {empresa}", body:"Ola,\n\nVi que {empresa} usa [ferramenta atual] para atendimento. Uma pergunta tecnica: qual a maior dor de integracao que voces enfrentam hoje com o sistema atual?\n\nPergunto porque a migracao para Zendesk e conduzida pelo nosso time de CS com script de migracao de dados , historico de tickets, base de conhecimento e configuracoes.\n\nMuitas empresas de {setor} reduziram o trabalho de TI na migracao em mais de 60%. Vale um papo tecnico?" },
-    { day:9,  type:"call",     subject:"Cold call , TI {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\n[PAUSA]\n\nLigo porque {empresa} pode estar avaliando ou ja usar uma ferramenta de atendimento que exige muito trabalho de TI para manter. Uma pergunta: quanto tempo por mes o time de TI de voces gasta mantendo customizacoes e integracoes do sistema de atendimento atual?" },
-    { day:14, type:"email",    subject:"[{empresa}] SLA de implementacao Zendesk", body:"Ola,\n\nPara quem cuida de TI, o maior medo de trocar de plataforma e o tempo e risco de implementacao.\n\nO que o nosso time de CS garante na implementacao da Zendesk Suite:\n, Go-live em 30 dias para Mid Market\n, Migracao de dados com script automatizado\n, Integracoes com ERP e CRM em 4 semanas em media\n, Treinamento do time de atendimento incluido\n, Suporte dedicado nos primeiros 90 dias\n\nVale 20 minutos para ver o plano de implementacao para {empresa}?\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:20, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nEncerro o contato por aqui. Se o tema de migracao de plataforma de atendimento ou integracao com sistemas internos ganhar prioridade, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
-  ],
-  cfo: [
-    { day:1,  type:"email",    subject:"[{empresa}] ROI de CX , calcular antes de decidir", body:"Ola,\n\nUma pergunta direta para um CFO de empresa de {setor}: qual e o custo mensal do time de atendimento da {empresa}, incluindo salarios, ferramentas e overhead?\n\nNa media do mercado Mid Market brasileiro, esse custo varia de R$150k a R$600k/mes dependendo do tamanho do time.\n\nCom deflexao via self-service e IA da Zendesk, empresas similares reduziram esse custo em 30 a 40% em 6 meses. O payback costuma ser em menos de 4 meses.\n\nConsigo te mostrar o business case especifico para {empresa} em 20 minutos.\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:5,  type:"linkedin", subject:"Custo de atendimento vs retencao , {empresa}", body:"Ola,\n\nTrabalho com CFOs de empresas de {setor} em um item que normalmente nao esta no radar do budget de tecnologia: a plataforma de atendimento ao cliente.\n\nO argumento que tem funcionado: o custo de perder 1% da base de clientes por atendimento ruim e muito maior do que o investimento em CX estruturado. Com a Zendesk, o payback e em menos de 4 meses.\n\nVale 20 minutos para te mostrar o business case?" },
-    { day:10, type:"email",    subject:"[{empresa}] Business case: CX como centro de lucro", body:"Ola,\n\nUm numero que costuma mudar a perspectiva de CFOs em {setor}:\n\nCusto de adquirir um novo cliente: 5 a 7x maior do que reter um existente\nImpacto de 1% de reducao no churn: R$X de ARR preservado (depende da base)\nDeflexao de 30% dos tickets: reducao de 10 a 15 agentes equivalentes\n\nIsso significa que investir em CX nao e custo , e reducao de custo de aquisicao e aumento de LTV.\n\nPosso montar o business case especifico para {empresa} em 20 minutos de conversa.\n\nAbraço,\nBDR/SDR | Zendesk" },
-    { day:16, type:"call",     subject:"Cold call , CFO {empresa}", body:"Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos?\n\nLigo porque tenho um business case especifico para CFOs de empresas de {setor} , sobre reducao de custo operacional de atendimento e ROI de CX.\n\nO numero que costuma surpreender: deflexionar 30% dos tickets com self-service representa economia de 10 a 15 agentes equivalentes. Faz sentido eu te mostrar o calculo aplicado a {empresa}?" },
-    { day:22, type:"breakup",  subject:"Encerrando , {empresa}", body:"Ola,\n\nUltima mensagem. Entendo que o timing pode nao ser o ideal.\n\nSe o tema de custo operacional de atendimento ou ROI de CX ganhar relevancia na agenda da {empresa}, pode me chamar.\n\nAbraço,\nBDR/SDR | Zendesk" },
-  ],
-};
+// ── CLIENT CONFIG IMPORT ────────────────────────────────────────────────────
+// O cliente ativo e controlado pela variavel de ambiente VITE_CLIENT no Vercel.
+// Nao edite esta linha. Para adicionar um novo cliente, edite clientLoader.js.
+import { CLIENT_CONFIG } from "./src/config/clientLoader.js";
+
+// ── CONFIG BRIDGE ───────────────────────────────────────────────────────────
+// Mapeia CLIENT_CONFIG para as variaveis globais que o App.jsx usa internamente.
+// Voce nao precisa tocar nada abaixo — so edite o arquivo de config do cliente.
+var STAKEHOLDER_PROFILES = CLIENT_CONFIG.stakeholderProfiles;
+var SEQUENCE_TEMPLATES   = CLIENT_CONFIG.sequenceTemplates;
 function safeArr(v) { return Array.isArray(v) ? v : []; }
 function fmtDate(ts) {
   if (!ts) return "";
@@ -319,29 +273,7 @@ function SequenceView(props) {
     var setor = (acc.data && acc.data.empresa && acc.data.empresa.setor) || acc.setor || "tecnologia";
     var pain = profile.pain || "dores do negócio";
 
-    var variants = {
-      email: [
-        {subject:"["+nome+"] Uma pergunta direta para o "+cargo, body:"Ola,\n\nUma pergunta que raramente fazem para um "+cargo+":\n\nQuanto custa para "+nome+" cada cliente que vai embora sem conseguir atendimento?\n\nPergunto porque empresas de "+setor+" com perfil similar reduziram esse custo em 40% nos primeiros 90 dias com Zendesk.\n\nSe voce gerencia "+angulo+", vale 20 minutos para ver os numeros?\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {subject:"["+nome+"] O que "+cargo+" mais reclama sobre CX", body:"Ola,\n\nEm conversas com "+cargo+"s de "+setor+", o que mais ouço e:\n\n\"Meu time apaga incendio o dia todo mas nao tem visibilidade do que realmente importa.\"\n\nIsso ressoa com voce na "+nome+"?\n\nSe sim, tenho 3 formas que empresas similares resolveram isso. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {subject:"["+nome+"] Benchmark de CX para "+cargo+"s de "+setor, body:"Ola,\n\nMontei um benchmark especifico para "+cargo+"s de "+setor+" com o perfil da "+nome+":\n\nMedia de CSAT do setor: 72%\nMediana de custo por ticket: R$ 28\nDeflexao via self-service: 18%\n\nCom Zendesk Suite, a media dessas empresas foi para CSAT 87%, R$17 por ticket e 31% de deflexao.\n\nQuer ver como "+nome+" se compara? 20 minutos.\n\nAbraco,\nBDR/SDR | Zendesk"},
-      ],
-      linkedin: [
-        {subject:"Uma pergunta sobre "+angulo+" na "+nome, body:"Ola,\n\nVi que voce cuida de "+angulo+" na "+nome+".\n\nQuando o volume de tickets sobe 30% em um mes, o que acontece com a sua operacao?\n\nPergunto porque a resposta me diz muito sobre o momento ideal para a Zendesk entrar em cena.\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {subject:nome+" + Zendesk , pergunta rapida", body:"Ola!\n\nUm insight sobre "+setor+": empresas que perdem CSAT nao percebem ate o churn aparecer no relatorio trimestral.\n\nVoce tem visibilidade disso em tempo real hoje na "+nome+"?\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {subject:"Vi algo sobre a "+nome+" que vale compartilhar", body:"Ola,\n\nPesquisando empresas de "+setor+" vi a "+nome+" crescendo , parabens.\n\nEmpresa que cresce rapido tem um momento critico onde o atendimento ou vira vantagem competitiva ou vira gargalo.\n\nJa vi dos dois lados. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
-      ],
-      call: [
-        {subject:"Script Cold Call "+cargo+" "+nome, body:"Bom dia [Nome], BDR da Zendesk. 30 segundos?\n\n[PAUSA] Otimo.\n\nLigo porque "+nome+" apareceu no nosso radar e imagino que como "+cargo+" voce lida com "+pain+" no dia a dia.\n\nUma pergunta: quando um cliente manda mensagem pelo WhatsApp e depois liga, seu time consegue ver o historico completo ou precisa pedir para ele repetir tudo?\n\n[ouvir]\n\nE exatamente esse problema que resolvemos. Vale 20 minutos essa semana?"},
-        {subject:"Script Cold Call 2 "+cargo+" "+nome, body:"[Nome], bom dia! BDR Zendesk. Rapido.\n\nTrabalhamos com "+cargo+"s de "+setor+" que tem uma dor especifica: o time cresce mas o CSAT nao melhora.\n\nIsso acontece na "+nome+"?\n\n[ouvir]\n\nPerfeito. Tenho um case de empresa identica que reverteu isso em 90 dias. Vale 20 minutos?"},
-      ],
-      whatsapp: [
-        {subject:"WhatsApp "+cargo+" "+nome, body:"Oi [Nome], BDR da Zendesk. Voce cuida de "+angulo+" na "+nome+"? Tenho um dado de "+setor+" que acho que vai te surpreender. Posso mandar?"},
-        {subject:"WhatsApp 2 "+cargo+" "+nome, body:"Oi [Nome]! Vi que "+nome+" esta crescendo em "+setor+" , parabens. Empresas nessa fase tem um timing critico com CX. Posso te contar em 2 minutos?"},
-      ],
-      breakup: [
-        {subject:"Encerrando , "+nome, body:"Ola,\n\nNao quero continuar incomodando.\n\nSe em algum momento "+angulo+" virar prioridade na "+nome+" , e normalmente e depois que o CSAT cai , pode me chamar.\n\nGuardo a "+nome+" no radar.\n\nAbraco,\nBDR/SDR | Zendesk"},
-      ],
-    };
+    var variants = CLIENT_CONFIG.oneTouchVariants;
 
     var pool = variants[touch.type] || variants.email;
     var variant = pool[Math.floor(Math.random() * pool.length)];
@@ -1102,7 +1034,7 @@ function exportAccountPDF(acc, d) {
     html += "</div>";
     if (prazo) html += "<p style='margin-top:12px;font-size:11px'><strong>Prazo:</strong> "+prazo+"</p>";
   }
-  html += "<div class='footer'>Account Mapper Mais Pipe Beta - Zendesk Suite CX - "+new Date().toLocaleDateString("pt-BR")+"</div>";
+  html += "<div class='footer'>Account Mapper Mais Pipe Beta - "+CLIENT_CONFIG.empresa.nome+" - "+new Date().toLocaleDateString("pt-BR")+"</div>";
   html += "</body></html>";
   var w = window.open("","_blank");
   if (!w) return;
@@ -1112,6 +1044,7 @@ function exportAccountPDF(acc, d) {
 }
 function AccountModal(props) {
   var acc = props.acc;
+  var onNav = props.onNav;
   var d = acc.data || {};
   var fit = (d.fit && d.fit.score) || acc.fit;
   var fc = FIT_CONFIG[fit] || FIT_CONFIG.ALTO;
@@ -1201,15 +1134,15 @@ function AccountModal(props) {
   var bdr=safeArr(sd("proximos_passos.bdr"));
   var prazo=sd("proximos_passos.prazo")||"";
   var useCases=safeArr(sd("fit.use_cases"));
-  var solucoes=safeArr(sd("fit.solucoes_zendesk"));
+  var solucoes=safeArr(sd("fit."+CLIENT_CONFIG.empresa.solucoesKey));
   var fitJust=sd("fit.justificativa")||"";
   var concorrentes=safeArr(sd("mercado.competidores_provedor"));
   var CHANNELS=[{key:"emails",label:"E-mail",color:"#0ea5e9",bg:"rgba(14,165,233,.08)",isObj:true},{key:"inmails",label:"InMail",color:"#0a66c2",bg:"rgba(10,102,194,.08)",isObj:true},{key:"whatsapps",label:"WhatsApp",color:"#16a34a",bg:"rgba(22,163,74,.08)",isObj:false},{key:"cold_calls",label:"Cold Call",color:"#92400e",bg:"#fef3c7",isObj:false}];
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"20px 16px",overflowY:"auto",backdropFilter:"blur(10px)"}}>
       <div className="modal-box" style={{background:"rgba(255,255,255,.99)",borderRadius:24,width:"100%",maxWidth:820,boxShadow:"0 32px 100px rgba(15,23,42,.3)"}}>
-        <div style={{padding:"22px 28px 0",borderBottom:"1px solid #f1f5f9"}}>
-          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,marginBottom:16}}>
+        <div style={{padding:"22px 28px 0",borderBottom:"1px solid #f1f5f9",position:"relative"}}>
+          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,marginBottom:16,paddingRight:32}}>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
                 <div style={{fontSize:21,fontWeight:800,color:"#0f172a",lineHeight:1.2}}>{acc.nome}</div>
@@ -1232,8 +1165,8 @@ function AccountModal(props) {
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                   {"PDF"}
                 </button>
-                <button onClick={props.onClose} style={{background:"#fbfbfd",border:"1px solid #e6e9ef",borderRadius:10,padding:"7px 14px",cursor:"pointer",color:"#52617a",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>{"Fechar"}</button>
               </div>
+              <button onClick={props.onClose} title="Fechar" style={{position:"absolute",top:16,right:20,background:"none",border:"none",cursor:"pointer",color:"#94a3b8",padding:4,lineHeight:1,fontSize:20,fontWeight:300,fontFamily:"inherit"}} onMouseEnter={function(e){e.currentTarget.style.color="#0f172a";}} onMouseLeave={function(e){e.currentTarget.style.color="#94a3b8";}}>{"✕"}</button>
             </div>
           </div>
           <div className="modal-tabs" style={{display:"flex",gap:0,overflowX:"auto"}}>
@@ -1244,7 +1177,7 @@ function AccountModal(props) {
           {activeTab==="overview"&&(
             <div>
               {empresa.resumo&&<Sec title={empresa.resumoAI?"Resumo da Empresa · IA":"Resumo da Empresa"}><p style={{fontSize:13,lineHeight:1.8,color:"#334155",margin:"0 0 14px"}}>{empresa.resumo}</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>{[["Setor",empresa.setor],["Porte",empresa.tamanho],["Faturamento",empresa.faturamento],["Clientes",empresa.clientes],["Estágio",empresa.estagio],["Bolsa",empresa.bolsa]].filter(function(x){return x[1];}).map(function(item){return <div key={item[0]} style={{background:"rgba(99,102,241,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:10,padding:"10px 12px"}}><div style={{fontSize:8,color:"#818cf8",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:3}}>{item[0]}</div><div style={{fontSize:12,color:"#0f172a",fontWeight:600}}>{item[1]}</div></div>;})}</div></Sec>}
-              {fitJust&&<Sec title="Fit Zendesk"><p style={{fontSize:13,lineHeight:1.7,color:"#334155",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.25)",color:"#4f46e5",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
+              {fitJust&&<Sec title={"Fit "+CLIENT_CONFIG.empresa.nome}><p style={{fontSize:13,lineHeight:1.7,color:"#334155",marginBottom:10}}>{fitJust}</p>{solucoes.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{solucoes.map(function(s,i){return <span key={i} style={{background:"rgba(99,102,241,.08)",border:"1px solid rgba(99,102,241,.25)",color:"#4f46e5",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{s}</span>;})}</div>}</Sec>}
               {useCases.length>0&&<Sec title="Use Cases Prioritários">{useCases.map(function(u,i){return <R key={i} icon=">" color="#6366f1">{u}</R>;})}</Sec>}
               {dores.length>0&&<Sec title="Possiveis dores para mapear">{dores.map(function(d2,i){return <R key={i} icon="!" color="#ef4444">{d2}</R>;})} {exposicao.length>0&&<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>{exposicao.map(function(r,i){return <span key={i} style={{background:"rgba(251,191,36,.14)",border:"1px solid rgba(245,158,11,.4)",color:"#92400e",borderRadius:8,padding:"3px 10px",fontSize:10,fontWeight:600}}>{r}</span>;})}</div>}</Sec>}
               {triggers.length>0&&<Sec title="Gatilhos Comerciais">{triggers.map(function(t,i){return <R key={i} icon="T" color="#7c3aed">{t}</R>;})}</Sec>}
@@ -1255,6 +1188,12 @@ function AccountModal(props) {
           )}
           {activeTab==="stakeholders"&&(
             <div>
+              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
+                <button onClick={function(){if(onNav){props.onClose();onNav("contacts");}}} style={{display:"flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 12px rgba(99,102,241,.25)"}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                  {"Ver contatos mapeados"}
+                </button>
+              </div>
               {enrichedContacts.length>0&&(
                 <div style={{marginBottom:20}}>
                   <div style={{fontSize:9,fontWeight:700,letterSpacing:1.5,color:"#a5b4fc",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
@@ -1436,7 +1375,7 @@ function downloadSeqPDF(seq) {
     if (t.subject) html += "<div class='day'>Assunto: "+t.subject+"</div>";
     html += "<div class='msg'>"+t.body+"</div>";
   });
-  html += "<div class='footer'>Mais Pipe Beta , Zendesk , BDR/SDR Zendesk</div></body></html>";
+  html += "<div class='footer'>"+CLIENT_CONFIG.empresa.rodape+"</div></body></html>";
   var w = window.open("","_blank");
   w.document.write(html);
   w.document.close();
@@ -1573,11 +1512,7 @@ function R(props) {
 // -- SEARCH VIEW ---------------------------------------------------------------
 function LoadingStatus() {
   var steps = [
-    {text:"Consultando fontes públicas com IA...", icon:"🔍"},
-    {text:"Mapeando stakeholders e estrutura da empresa...", icon:"🧭"},
-    {text:"Gerando fit score e dores de CX...", icon:"⚡"},
-    {text:"Criando mensagens personalizadas por canal...", icon:"✉"},
-    {text:"Montando plano de prospecção...", icon:"🎯"},
+    ...(CLIENT_CONFIG.ui.loadingSteps),
   ];
   var _st_step = useState(0); var step = _st_step[0]; var setStep = _st_step[1];
   useEffect(function() {
@@ -1617,25 +1552,47 @@ function ContactsView(props) {
   var _st_addModal = useState(false); var addModal = _st_addModal[0]; var setAddModal = _st_addModal[1];
   var _st_newNome = useState(""); var newNome = _st_newNome[0]; var setNewNome = _st_newNome[1];
   var _st_newCargo = useState(""); var newCargo = _st_newCargo[0]; var setNewCargo = _st_newCargo[1];
-  var _st_newEmpresa = useState(""); var newEmpresa = _st_newEmpresa[0]; var setNewEmpresa = _st_newEmpresa[1];
   var _st_newEmail = useState(""); var newEmail = _st_newEmail[0]; var setNewEmail = _st_newEmail[1];
   var _st_newLinkedin = useState(""); var newLinkedin = _st_newLinkedin[0]; var setNewLinkedin = _st_newLinkedin[1];
   var _st_newDomain = useState(""); var newDomain = _st_newDomain[0]; var setNewDomain = _st_newDomain[1];
   var _st_saving = useState(false); var saving = _st_saving[0]; var setSaving = _st_saving[1];
+  // Account picker state
+  var _st_accMode = useState("existing"); var accMode = _st_accMode[0]; var setAccMode = _st_accMode[1];
+  var _st_selAccId = useState(""); var selAccId = _st_selAccId[0]; var setSelAccId = _st_selAccId[1];
+  var _st_newAccNome = useState(""); var newAccNome = _st_newAccNome[0]; var setNewAccNome = _st_newAccNome[1];
+  var _st_accSearch = useState(""); var accSearch = _st_accSearch[0]; var setAccSearch = _st_accSearch[1];
+
+  var accounts = props.accounts || [];
+
+  function resetModal() {
+    setNewNome(""); setNewCargo(""); setNewEmail(""); setNewLinkedin(""); setNewDomain("");
+    setAccMode("existing"); setSelAccId(""); setNewAccNome(""); setAccSearch("");
+    setAddModal(false);
+  }
 
   function toggleGroup(empresa) {
     setExpandedGroups(function(prev) { var n=Object.assign({},prev); n[empresa]=!prev[empresa]; return n; });
   }
 
   function addContactManual() {
-    if (!newNome && !newCargo) return;
+    var empresaNome = "";
+    if (accMode === "existing" && selAccId) {
+      var found = accounts.find(function(a){ return a.id === selAccId; });
+      empresaNome = found ? found.nome : "";
+    } else if (accMode === "new" && newAccNome.trim()) {
+      empresaNome = newAccNome.trim();
+      if (props.onCreateAccount) props.onCreateAccount(empresaNome);
+    }
     setSaving(true);
     var cid = "contact:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
-    var c = { id:cid, nome:newNome||(newCargo||""), cargo:newCargo||"", empresa:newEmpresa||"", email:newEmail||"", emailValidated:false, linkedin:newLinkedin||"", domain:newDomain||"", savedAt:Date.now() };
+    var c = {
+      id:cid, nome:newNome||(newCargo||"Contato"), cargo:newCargo||"",
+      empresa:empresaNome, email:newEmail||"", emailValidated:false,
+      linkedin:newLinkedin||"", domain:newDomain||"", savedAt:Date.now(), manual:true
+    };
     storageSet(cid, c).then(function() {
       setContacts(function(prev){ return [c].concat(prev); });
-      setAddModal(false);
-      setNewNome(""); setNewCargo(""); setNewEmpresa(""); setNewEmail(""); setNewLinkedin(""); setNewDomain("");
+      resetModal();
       showToastC("Contato adicionado!", "#10b981");
     }).finally(function(){ setSaving(false); });
   }
@@ -1665,29 +1622,113 @@ function ContactsView(props) {
     });
   }
 
+  // enrichProgress[contactId] = { hunter:"pending"|"found"|"miss"|"err", apollo:"...", snov:"..." }
+  var _st_enrichProgress = useState({}); var enrichProgress = _st_enrichProgress[0]; var setEnrichProgress = _st_enrichProgress[1];
+
+  function setSourceStatus(contactId, source, status) {
+    setEnrichProgress(function(prev){
+      var n = Object.assign({}, prev);
+      n[contactId] = Object.assign({}, n[contactId]||{}, {[source]: status});
+      return n;
+    });
+  }
+
   function enrichEmail(contact) {
-    setEnriching(function(e){ var n=Object.assign({},e); n[contact.id]=true; return n; });
-    fetch("/api/hunter", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({first_name:(contact.nome||"").split(" ")[0], last_name:(contact.nome||"").split(" ").slice(1).join(" "), organization_name:contact.empresa, domain:contact.domain||""})
-    }).then(function(r){ return r.json().then(function(d){ return {status:r.status, data:d}; }); }).then(function(res) {
-      var data = res.data || {};
-      if (data.error) { showToastC(data.error, "#f59e0b"); return; }
-      var email = (data.person && data.person.email) || "";
-      if (!email) { showToastC(data.message || ("Nenhum e-mail encontrado para este contato (HTTP " + res.status + ")."), "#f59e0b"); }
-      else {
-        var conf = (data.person && data.person.email_confidence) || 0;
-        var updated = Object.assign({}, contact, {email:email, emailValidated:true, emailConfidence:conf, domain:(data.person&&data.person.domain)||contact.domain||""});
-        storageSet(contact.id, updated).then(function() {
-          setContacts(function(prev){ return prev.map(function(c){ return c.id===contact.id ? updated : c; }); });
-          showToastC("E-mail encontrado (" + conf + "% confianca): " + email, "#10b981");
+    var cid   = contact.id;
+    var first = (contact.nome||"").split(" ")[0];
+    var last  = (contact.nome||"").split(" ").slice(1).join(" ");
+    var org   = contact.empresa || "";
+    var dom   = contact.domain  || "";
+
+    // Mark overall loading + all sources pending
+    setEnriching(function(e){ var n=Object.assign({},e); n[cid]=true; return n; });
+    setEnrichProgress(function(prev){
+      var n=Object.assign({},prev);
+      n[cid]={hunter:"pending", apollo:"pending", snov:"pending"};
+      return n;
+    });
+
+    // ── HUNTER ──────────────────────────────────────────────────────────────
+    var pHunter = fetch("/api/hunter", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({first_name:first, last_name:last, organization_name:org, domain:dom})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      var email = (d.person && d.person.email) || null;
+      var conf  = (d.person && d.person.email_confidence) || 0;
+      setSourceStatus(cid, "hunter", email ? "found" : "miss");
+      return email ? {email:email, confidence:conf, source:"Hunter.io"} : null;
+    }).catch(function(){ setSourceStatus(cid, "hunter", "err"); return null; });
+
+    // ── APOLLO ───────────────────────────────────────────────────────────────
+    var pApollo = fetch("/api/contacts", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({first_name:first, last_name:last, organization_name:org, domain:dom})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      var email = (d.person && d.person.email) || (d.email) || null;
+      var conf  = (d.person && d.person.email_confidence) || (d.confidence) || 0;
+      setSourceStatus(cid, "apollo", email ? "found" : "miss");
+      return email ? {email:email, confidence:conf, source:"Apollo.io"} : null;
+    }).catch(function(){ setSourceStatus(cid, "apollo", "err"); return null; });
+
+    // ── SNOV.IO ───────────────────────────────────────────────────────────────
+    var pSnov = dom
+      ? fetch("/api/snov", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({first_name:first, last_name:last, domain:dom})
+        }).then(function(r){ return r.json(); }).then(function(d){
+          var email = d.email || null;
+          var conf  = d.confidence || 0;
+          setSourceStatus(cid, "snov", email ? "found" : "miss");
+          return email ? {email:email, confidence:conf, source:"Snov.io"} : null;
+        }).catch(function(){ setSourceStatus(cid, "snov", "err"); return null; })
+      : Promise.resolve(null).then(function(){ setSourceStatus(cid,"snov","miss"); return null; });
+
+    // ── CONSOLIDATE ──────────────────────────────────────────────────────────
+    Promise.all([pHunter, pApollo, pSnov]).then(function(results) {
+      var found = results.filter(Boolean);
+      // Majority vote: pick email confirmed by 2+ sources, else highest confidence
+      var emailCounts = {};
+      found.forEach(function(r){ emailCounts[r.email] = (emailCounts[r.email]||0)+1; });
+      var majority = null;
+      Object.keys(emailCounts).forEach(function(e){ if(emailCounts[e]>=2) majority=e; });
+
+      var best = null;
+      if (majority) {
+        // Use the result from the majority email with highest confidence
+        best = found.filter(function(r){ return r.email===majority; })
+                    .reduce(function(a,b){ return (a.confidence||0)>=(b.confidence||0)?a:b; });
+        best = Object.assign({}, best, {confirmed: emailCounts[majority]});
+      } else if (found.length > 0) {
+        // Only 1 source found — use it, flag as unconfirmed
+        best = found.reduce(function(a,b){ return (a.confidence||0)>=(b.confidence||0)?a:b; });
+        best = Object.assign({}, best, {confirmed: 1});
+      }
+
+      if (!best) {
+        showToastC("Nenhum e-mail encontrado nas 3 fontes para este contato.", "#f59e0b");
+      } else {
+        var sources = found.map(function(r){return r.source;}).join(", ");
+        var confirmLabel = best.confirmed >= 2
+          ? ("✓ Confirmado em "+best.confirmed+"/3 fontes")
+          : ("1/3 fonte — não confirmado");
+        var updated = Object.assign({}, contact, {
+          email:           best.email,
+          emailValidated:  best.confirmed >= 2,
+          emailConfidence: best.confidence || 0,
+          emailSources:    sources,
+          emailConfirmed:  best.confirmed,
+          domain:          dom || contact.domain || ""
+        });
+        storageSet(cid, updated).then(function() {
+          setContacts(function(prev){ return prev.map(function(c){ return c.id===cid?updated:c; }); });
+          showToastC(confirmLabel + " · " + best.email, best.confirmed>=2?"#10b981":"#f59e0b");
         });
       }
-    }).catch(function() {
-      showToastC("Erro ao consultar Hunter. Verifique a chave HUNTER_API_KEY no servidor.", "#ef4444");
     }).finally(function() {
-      setEnriching(function(e){ var n=Object.assign({},e); delete n[contact.id]; return n; });
+      setTimeout(function(){
+        setEnriching(function(e){ var n=Object.assign({},e); delete n[cid]; return n; });
+        setEnrichProgress(function(p){ var n=Object.assign({},p); delete n[cid]; return n; });
+      }, 1800); // keep status visible briefly after completion
     });
   }
 
@@ -1714,14 +1755,57 @@ function ContactsView(props) {
         </div>
       </div>
       {addModal && (
-        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}} onClick={function(e){if(e.target===e.currentTarget)setAddModal(false);}}>
-          <div style={{background:"#ffffff",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",border:"1px solid #dde1e8",borderRadius:20,width:"100%",maxWidth:440,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.12)"}} onClick={function(e){e.stopPropagation();}}>
-            <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:16}}>{"Adicionar Contato"}</div>
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.32)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}} onClick={function(e){if(e.target===e.currentTarget)resetModal();}}>
+          <div style={{background:"#ffffff",border:"1px solid #dde1e8",borderRadius:20,width:"100%",maxWidth:460,padding:"24px",boxShadow:"0 24px 80px rgba(15,23,42,.12)",maxHeight:"90vh",overflowY:"auto"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+              <div style={{fontSize:16,fontWeight:800,color:"#0f172a"}}>{"Novo Contato"}</div>
+              <button onClick={resetModal} style={{background:"none",border:"none",cursor:"pointer",color:"#94a3b8",fontSize:20,fontWeight:300,lineHeight:1,padding:4}} onMouseEnter={function(e){e.currentTarget.style.color="#0f172a";}} onMouseLeave={function(e){e.currentTarget.style.color="#94a3b8";}}>{"✕"}</button>
+            </div>
+
+            {/* Account picker */}
+            <div style={{marginBottom:16,background:"#f8fafc",borderRadius:12,padding:"14px 16px",border:"1px solid #e8edf4"}}>
+              <div style={{fontSize:10,fontWeight:700,color:"#52617a",marginBottom:10,textTransform:"uppercase",letterSpacing:.5}}>{"Empresa / Conta"}</div>
+              <div style={{display:"flex",gap:6,marginBottom:12}}>
+                <button onClick={function(){setAccMode("existing");setNewAccNome("");}} style={{flex:1,padding:"7px 0",borderRadius:8,border:"1.5px solid "+(accMode==="existing"?"#6366f1":"#e2e8f0"),background:accMode==="existing"?"rgba(99,102,241,.08)":"#fff",color:accMode==="existing"?"#4f46e5":"#64748b",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{"Conta existente"}</button>
+                <button onClick={function(){setAccMode("new");setSelAccId("");setAccSearch("");}} style={{flex:1,padding:"7px 0",borderRadius:8,border:"1.5px solid "+(accMode==="new"?"#6366f1":"#e2e8f0"),background:accMode==="new"?"rgba(99,102,241,.08)":"#fff",color:accMode==="new"?"#4f46e5":"#64748b",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{"Criar conta nova"}</button>
+                <button onClick={function(){setAccMode("none");setSelAccId("");setNewAccNome("");setAccSearch("");}} style={{flex:1,padding:"7px 0",borderRadius:8,border:"1.5px solid "+(accMode==="none"?"#6366f1":"#e2e8f0"),background:accMode==="none"?"rgba(99,102,241,.08)":"#fff",color:accMode==="none"?"#4f46e5":"#64748b",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{"Sem empresa"}</button>
+              </div>
+              {accMode==="existing" && (
+                <div>
+                  <input value={accSearch} onChange={function(e){setAccSearch(e.target.value);}} placeholder={"Buscar conta..."} style={{width:"100%",boxSizing:"border-box",background:"#fff",border:"1.5px solid #e6e9ef",borderRadius:8,padding:"8px 12px",fontSize:12,color:"#0f172a",fontFamily:"inherit",outline:"none",marginBottom:6}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+                  <div style={{maxHeight:140,overflowY:"auto",border:"1px solid #e8edf4",borderRadius:8,background:"#fff"}}>
+                    {(accSearch ? accounts.filter(function(a){return (a.nome||"").toLowerCase().includes(accSearch.toLowerCase());}) : accounts).map(function(a){
+                      var isSel = selAccId === a.id;
+                      return (
+                        <div key={a.id} onClick={function(){setSelAccId(a.id);}} style={{padding:"8px 12px",cursor:"pointer",background:isSel?"rgba(99,102,241,.08)":"transparent",borderBottom:"1px solid #f1f5f9",display:"flex",alignItems:"center",gap:8}} onMouseEnter={function(e){if(!isSel)e.currentTarget.style.background="#f8fafc";}} onMouseLeave={function(e){if(!isSel)e.currentTarget.style.background="transparent";}}>
+                          {isSel && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                          <span style={{fontSize:12,fontWeight:isSel?700:500,color:isSel?"#4f46e5":"#0f172a",flex:1}}>{a.nome}</span>
+                          {a.manualOnly && <span style={{fontSize:8,color:"#94a3b8",background:"#f1f5f9",borderRadius:4,padding:"1px 5px"}}>{"manual"}</span>}
+                          {a.mapped && <span style={{fontSize:8,color:"#4f46e5",background:"rgba(99,102,241,.08)",borderRadius:4,padding:"1px 5px"}}>{"mapeada"}</span>}
+                        </div>
+                      );
+                    })}
+                    {accounts.length === 0 && <div style={{padding:"12px",fontSize:11,color:"#94a3b8",textAlign:"center"}}>{"Nenhuma conta ainda. Use 'Criar conta nova'."}</div>}
+                  </div>
+                </div>
+              )}
+              {accMode==="new" && (
+                <div>
+                  <input value={newAccNome} onChange={function(e){setNewAccNome(e.target.value);}} placeholder={"Nome da empresa..."} style={{width:"100%",boxSizing:"border-box",background:"#fff",border:"1.5px solid #e6e9ef",borderRadius:8,padding:"8px 12px",fontSize:12,color:"#0f172a",fontFamily:"inherit",outline:"none"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+                  <div style={{fontSize:10,color:"#94a3b8",marginTop:6,lineHeight:1.5}}>{"A conta será criada como manual. Ao fazer um Account Mapping futuro com esse nome, as informações serão somadas."}</div>
+                </div>
+              )}
+              {accMode==="none" && (
+                <div style={{fontSize:11,color:"#94a3b8"}}>{"Contato salvo sem vínculo com conta."}</div>
+              )}
+            </div>
+
+            {/* Contact fields — all optional */}
+            <div style={{fontSize:10,fontWeight:700,color:"#52617a",marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>{"Dados do contato"}<span style={{color:"#94a3b8",fontWeight:400,marginLeft:6,textTransform:"none",letterSpacing:0}}>{"(todos opcionais)"}</span></div>
             {[
               {label:"Nome completo", val:newNome, set:setNewNome, ph:"Ex: Ana Lima"},
-              {label:"Cargo", val:newCargo, set:setNewCargo, ph:"Ex: VP de Operacoes"},
-              {label:"Empresa", val:newEmpresa, set:setNewEmpresa, ph:"Ex: Nubank"},
-              {label:"Dominio (melhora busca de e-mail)", val:newDomain, set:setNewDomain, ph:"Ex: nubank.com.br"},
+              {label:"Cargo", val:newCargo, set:setNewCargo, ph:"Ex: VP de Operações"},
+              {label:"Domínio (melhora busca de e-mail)", val:newDomain, set:setNewDomain, ph:"Ex: nubank.com.br"},
               {label:"E-mail", val:newEmail, set:setNewEmail, ph:"Ex: ana@nubank.com"},
               {label:"LinkedIn URL", val:newLinkedin, set:setNewLinkedin, ph:"Ex: linkedin.com/in/analima"},
             ].map(function(f) {
@@ -1732,9 +1816,9 @@ function ContactsView(props) {
                 </div>
               );
             })}
-            <div style={{display:"flex",gap:8,marginTop:16}}>
-              <button onClick={function(){setAddModal(false);}} style={{flex:1,background:"#fbfbfd",border:"1px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
-              <button onClick={addContactManual} disabled={saving||(!newNome&&!newCargo)} style={{flex:2,background:(saving||(!newNome&&!newCargo))?"#e2e8f0":"linear-gradient(135deg,#6366f1,#4f46e5)",color:(saving||(!newNome&&!newCargo))?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:(saving||(!newNome&&!newCargo))?"default":"pointer",fontFamily:"inherit"}}>
+            <div style={{display:"flex",gap:8,marginTop:18}}>
+              <button onClick={resetModal} style={{flex:1,background:"#fbfbfd",border:"1px solid #e6e9ef",color:"#52617a",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Cancelar"}</button>
+              <button onClick={addContactManual} disabled={saving} style={{flex:2,background:saving?"#e2e8f0":"linear-gradient(135deg,#6366f1,#4f46e5)",color:saving?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:saving?"default":"pointer",fontFamily:"inherit",transition:"all .2s"}}>
                 {saving ? "Salvando..." : "Salvar contato"}
               </button>
             </div>
@@ -1784,15 +1868,45 @@ function ContactsView(props) {
                             {c.nome && c.cargo && c.nome!==c.cargo && <div style={{fontSize:11,color:"#64748b",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.cargo}</div>}
                           </div>
                           {c.email ? (
-                            <div style={{display:"flex",alignItems:"center",gap:6,background:"#fbfbfd",border:"1px solid #eef0f4",borderRadius:8,padding:"5px 8px",maxWidth:260,minWidth:0}}>
+                            <div style={{display:"flex",alignItems:"center",gap:6,background:"#fbfbfd",border:"1px solid #eef0f4",borderRadius:8,padding:"5px 8px",maxWidth:280,minWidth:0}}>
                               <span style={{fontSize:11,color:c.emailValidated?"#0f766e":"#64748b",fontWeight:c.emailValidated?600:400,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{c.email}</span>
-                              {c.emailValidated && <span title={"Confianca "+(c.emailConfidence||"")+"%"} style={{fontSize:8,fontWeight:700,color:"#047857",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:5,padding:"1px 5px",flexShrink:0}}>{c.emailConfidence?c.emailConfidence+"%":"OK"}</span>}
+                              {c.emailConfirmed >= 2
+                                ? <span title={"Confirmado em "+c.emailConfirmed+"/3 fontes · "+(c.emailSources||"")} style={{fontSize:8,fontWeight:700,color:"#047857",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:5,padding:"1px 6px",flexShrink:0,whiteSpace:"nowrap"}}>{c.emailConfirmed+"/3 ✓"}</span>
+                                : c.emailConfirmed === 1
+                                  ? <span title={"1/3 fontes · "+(c.emailSources||"")} style={{fontSize:8,fontWeight:700,color:"#92400e",background:"rgba(245,158,11,.1)",border:"1px solid rgba(245,158,11,.3)",borderRadius:5,padding:"1px 6px",flexShrink:0,whiteSpace:"nowrap"}}>{"1/3"}</span>
+                                  : c.emailConfidence
+                                    ? <span style={{fontSize:8,fontWeight:700,color:"#047857",background:"rgba(52,211,153,.12)",border:"1px solid rgba(52,211,153,.3)",borderRadius:5,padding:"1px 5px",flexShrink:0}}>{c.emailConfidence+"%"}</span>
+                                    : null
+                              }
                               <CopyBtn text={c.email}/>
                             </div>
                           ) : (
-                            <button onClick={function(){enrichEmail(c);}} disabled={enriching[c.id]} style={{background:enriching[c.id]?"#f1f5f9":"#eff6ff",color:enriching[c.id]?"#94a3b8":"#4f46e5",border:"1px solid "+(enriching[c.id]?"#e2e8f0":"#c7d0fa"),borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:enriching[c.id]?"default":"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>
-                              {enriching[c.id] ? "Buscando..." : "Buscar e-mail"}
-                            </button>
+                            enriching[c.id] ? (
+                              <div style={{display:"flex",flexDirection:"column",gap:4,minWidth:190}}>
+                                <div style={{fontSize:10,fontWeight:700,color:"#4f46e5",marginBottom:1}}>{"Buscando em 3 fontes..."}</div>
+                                {[
+                                  {key:"hunter", label:"Hunter.io"},
+                                  {key:"apollo",  label:"Apollo.io"},
+                                  {key:"snov",    label:"Snov.io"},
+                                ].map(function(src){
+                                  var st = (enrichProgress[c.id]||{})[src.key] || "pending";
+                                  var color = st==="found"?"#10b981":st==="miss"?"#94a3b8":st==="err"?"#ef4444":"#a5b4fc";
+                                  var icon  = st==="found"?"✓":st==="miss"?"–":st==="err"?"✕":"·";
+                                  var bg    = st==="found"?"rgba(52,211,153,.1)":st==="miss"?"#f8fafc":st==="err"?"rgba(239,68,68,.08)":"rgba(99,102,241,.06)";
+                                  return (
+                                    <div key={src.key} style={{display:"flex",alignItems:"center",gap:6,background:bg,borderRadius:6,padding:"3px 8px",transition:"all .3s"}}>
+                                      <span style={{fontSize:10,fontWeight:700,color:color,width:10,textAlign:"center"}}>{st==="pending"?"⋯":icon}</span>
+                                      <span style={{fontSize:10,color:"#334155",flex:1}}>{src.label}</span>
+                                      <span style={{fontSize:9,color:color,fontWeight:600}}>{st==="pending"?"aguardando":st==="found"?"encontrado":st==="miss"?"não encontrado":"erro"}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <button onClick={function(){enrichEmail(c);}} style={{background:"#eff6ff",color:"#4f46e5",border:"1px solid #c7d0fa",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>
+                                {"Buscar e-mail"}
+                              </button>
+                            )
                           )}
                           <button onClick={function(){ if(canSeq && props.onGenerateSequence) props.onGenerateSequence(c); }} disabled={!canSeq} title={canSeq?"Gerar cadência de 6 toques para este contato":"Informe nome ou cargo para gerar"} style={{display:"flex",alignItems:"center",gap:5,background:"linear-gradient(135deg,#7c3aed,#6366f1)",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:canSeq?"pointer":"not-allowed",opacity:canSeq?1:.5,fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0,boxShadow:"0 2px 8px rgba(124,58,167,.25)"}}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
@@ -1965,7 +2079,41 @@ function IntegrationsView() {
 function HomeView(props) {
   var accounts = props.accounts || [];
   var onNav = props.onNav;
-  var _st_hidden = useState({}); var hidden = _st_hidden[0]; var setHidden = _st_hidden[1];
+  var _st_hidden   = useState({}); var hidden = _st_hidden[0]; var setHidden = _st_hidden[1];
+  var _st_icpModal = useState(false); var icpModal = _st_icpModal[0]; var setIcpModal = _st_icpModal[1];
+  var _st_prodModal= useState(false); var prodModal = _st_prodModal[0]; var setProdModal = _st_prodModal[1];
+
+  // ── ICP state (persisted in localStorage) ────────────────────────────────
+  var icpDefaults = CLIENT_CONFIG.icpDefault || {};
+  var _st_icp = useState(function(){
+    try { var s=localStorage.getItem("pipe_icp"); return s?JSON.parse(s):icpDefaults; } catch(e){ return icpDefaults; }
+  }); var icp = _st_icp[0]; var setIcp = _st_icp[1];
+  var icpSaved = !!(icp && (icp.segmento||icp.porte||icp.faturamento));
+
+  function saveIcp(val) {
+    setIcp(val);
+    try { localStorage.setItem("pipe_icp", JSON.stringify(val)); } catch(e){}
+  }
+
+  // ── Product state (persisted in localStorage) ─────────────────────────────
+  var _st_prods = useState(function(){
+    try { var s=localStorage.getItem("pipe_produtos"); return s?JSON.parse(s):[]; } catch(e){ return []; }
+  }); var produtos = _st_prods[0]; var setProdutos = _st_prods[1];
+  var _st_newProd = useState({nome:"",descricao:"",beneficios:"",publico:"",preco:""});
+  var newProd = _st_newProd[0]; var setNewProd = _st_newProd[1];
+
+  function saveProduto() {
+    if (!newProd.nome.trim()) return;
+    var updated = produtos.concat([Object.assign({id:Date.now()},newProd)]);
+    setProdutos(updated);
+    try { localStorage.setItem("pipe_produtos",JSON.stringify(updated)); } catch(e){}
+    setNewProd({nome:"",descricao:"",beneficios:"",publico:"",preco:""});
+  }
+  function deleteProduto(id) {
+    var updated = produtos.filter(function(p){return p.id!==id;});
+    setProdutos(updated);
+    try { localStorage.setItem("pipe_produtos",JSON.stringify(updated)); } catch(e){}
+  }
 
   function toggleCard(id) {
     setHidden(function(h){ var n=Object.assign({},h); n[id]=!n[id]; return n; });
@@ -1973,44 +2121,48 @@ function HomeView(props) {
 
   var byStatus = {};
   STATUS_ORDER.forEach(function(s){ byStatus[s]=accounts.filter(function(a){return a.status===s;}).length; });
-  var total = accounts.length;
+  var total     = accounts.length;
   var converted = byStatus.won||0;
-  var taxa = total>0?Math.round(converted/total*100):0;
+  var taxa      = total>0?Math.round(converted/total*100):0;
 
   var CARDS = [
-    {id:"busca",    label:"Busca com IA",       emoji:"🔍", nav:"search",
-     desc:"Analise qualquer empresa Mid Market e gere account mapping completo com fit, dores, stakeholders e mensagens personalizadas.",
+    {id:"busca",  label:"Busca com IA",    emoji:"🔍", nav:"search",
+     desc:CLIENT_CONFIG.ui.cardBusca,
      stat:total+" conta"+(total!==1?"s":"")+" mapeada"+(total!==1?"s":""), statColor:"#6366f1"},
-    {id:"contas",   label:"Contas",              emoji:"📁", nav:"accounts",
-     desc:"Todas as empresas mapeadas organizadas por fit, tier e estágio. Visualize em cards ou lista com filtros avançados.",
+    {id:"contas", label:"Contas",           emoji:"📁", nav:"accounts",
+     desc:"Todas as empresas mapeadas organizadas por fit, tier e estágio.",
      stat:total+" no total", statColor:"#0369a1"},
-    {id:"seqs",     label:"Sequências",          emoji:"📬", nav:"sequences",
-     desc:"Gere cadências de 6 toques personalizadas por stakeholder com e-mail, InMail, WhatsApp e cold call.",
-     stat:"6 perfis de stakeholder", statColor:"#7c3aed"},
-    {id:"biblio",   label:"Biblioteca",          emoji:"📚", nav:"biblioteca",
+    {id:"seqs",   label:"Sequências",       emoji:"📬", nav:"sequences",
+     desc:CLIENT_CONFIG.ui.cardSeqs,
+     stat:CLIENT_CONFIG.ui.statSeqs, statColor:"#7c3aed"},
+    {id:"biblio", label:"Biblioteca",       emoji:"📚", nav:"biblioteca",
      desc:"Todas as sequências salvas organizadas. Exporte qualquer cadência em PDF com um clique.",
      stat:"Sequências salvas", statColor:"#059669"},
-    {id:"pipe",     label:"Pipeline Kanban",     emoji:"📊", nav:"pipeline",
-     desc:"Visualize todas as contas por estágio da prospecção. Arraste os cards entre colunas para atualizar o status.",
+    {id:"pipe",   label:"Pipeline Kanban",  emoji:"📊", nav:"pipeline",
+     desc:"Visualize todas as contas por estágio. Arraste os cards entre colunas para atualizar o status.",
      stat:converted+" convertida"+(converted!==1?"s":""), statColor:"#065f46"},
-    {id:"relat",    label:"Relatórios",          emoji:"📈", nav:"relatorios",
-     desc:"Dashboard com funil de conversão, distribuição por fit e tier, gráficos donut e semicírculo e export em PDF.",
+    {id:"relat",  label:"Relatórios",       emoji:"📈", nav:"relatorios",
+     desc:"Dashboard com funil de conversão, distribuição por fit e tier, gráficos e export em PDF.",
      stat:taxa+"% taxa de conversão", statColor:"#92400e"},
   ];
 
   var visible = CARDS.filter(function(c2){ return !hidden[c2.id]; });
   var now = new Date();
-  var hr = now.getHours();
+  var hr  = now.getHours();
   var greet = hr<12?"Bom dia":hr<18?"Boa tarde":"Boa noite";
+
+  // ── Fit criteria from clientLoader ────────────────────────────────────────
+  var fitCriteria = CLIENT_CONFIG.fitCriteria || [];
 
   return (
     <div>
+      {/* ── Hero ── */}
       <div style={{position:"relative",borderRadius:24,overflow:"hidden",marginBottom:28,background:"linear-gradient(135deg,#0a0a14 0%,#171430 45%,#1e1b4b 100%)",border:"1px solid #e6e9ef",padding:"40px 40px 36px"}}>
         <div style={{position:"absolute",top:-80,right:-60,width:320,height:320,borderRadius:"50%",background:"radial-gradient(circle,rgba(99,102,241,.4),transparent 70%)",filter:"blur(20px)"}}/>
         <div style={{position:"absolute",bottom:-100,left:-40,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,.3),transparent 70%)",filter:"blur(20px)"}}/>
         <div style={{position:"relative",zIndex:2}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:18}}>
-            <span style={{fontSize:10,fontWeight:700,color:"#4f46e5",background:"rgba(99,102,241,.15)",border:"1px solid rgba(129,140,248,.3)",borderRadius:20,padding:"4px 12px",letterSpacing:.5}}>{"BETA"}</span>
+            <span style={{fontSize:10,fontWeight:700,color:"#4f46e5",background:"rgba(99,102,241,.15)",border:"1px solid rgba(129,140,248,.3)",borderRadius:20,padding:"4px 12px",letterSpacing:.5}}>{"PROSPECTING TOOL"}</span>
             <span style={{fontSize:12,color:"#94a3b8"}}>{greet + ", vamos gerar pipeline"}</span>
           </div>
           <div style={{fontSize:38,fontWeight:900,letterSpacing:"-1.2px",lineHeight:1.05,color:"#fff",marginBottom:10}}>
@@ -2020,16 +2172,17 @@ function HomeView(props) {
           <div style={{fontSize:13.5,color:"#94a3b8",maxWidth:520,lineHeight:1.7,marginBottom:26}}>{"Pesquise qualquer empresa, gere inteligência de conta completa e cadências de prospecção em segundos. Chegue preparado, feche mais rápido."}</div>
           <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
             {[
-              {label:"Contas mapeadas", value:total, accent:"#818cf8"},
-              {label:"Convertidas", value:converted, accent:"#34d399"},
-              {label:"Taxa de conversão", value:taxa+"%", accent:"#c084fc"},
-            ].map(function(m){return (
+              {label:"Contas mapeadas",   value:total,      accent:"#818cf8"},
+              {label:"Convertidas",       value:converted,  accent:"#34d399"},
+              {label:"Taxa de conversão", value:taxa+"%",   accent:"#c084fc"},
+            ].map(function(m){ return (
               <div key={m.label} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:16,padding:"16px 22px",minWidth:128}}>
                 <div style={{fontSize:30,fontWeight:800,color:m.accent,lineHeight:1,letterSpacing:"-.5px"}}>{m.value}</div>
                 <div style={{fontSize:10.5,color:"#cbd5e1",fontWeight:500,marginTop:6,whiteSpace:"nowrap"}}>{m.label}</div>
               </div>
-            );})}
-            <button onClick={function(){onNav("search");}} style={{marginLeft:"auto",alignSelf:"center",background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:14,padding:"14px 26px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 8px 28px rgba(99,102,241,.5)",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 12px 36px rgba(99,102,241,.6)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 8px 28px rgba(99,102,241,.5)";}}>
+            ); })}
+            <button onClick={function(){onNav("search");}} style={{marginLeft:"auto",alignSelf:"center",background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:14,padding:"14px 26px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 8px 28px rgba(99,102,241,.5)",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}} onMouseEnter={function(e){e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={function(e){e.currentTarget.style.transform="";}}
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
               {"Nova busca"}
             </button>
@@ -2037,6 +2190,69 @@ function HomeView(props) {
         </div>
       </div>
 
+      {/* ── Configuração: ICP + Produto ─────────────────────────────────────── */}
+      <div style={{marginBottom:28}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#1e293b"}}>{"Configuração"}</div>
+          <span style={{fontSize:10,color:"#94a3b8",background:"#f1f5f9",borderRadius:6,padding:"2px 8px",fontWeight:500}}>{"opcional"}</span>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+
+          {/* ICP Card */}
+          <div onClick={function(){setIcpModal(true);}} style={{background:icpSaved?"linear-gradient(135deg,rgba(99,102,241,.06),rgba(139,92,246,.04))":"#fff",border:"1.5px solid "+(icpSaved?"rgba(99,102,241,.35)":"#e6e9ef"),borderRadius:16,padding:"20px",cursor:"pointer",transition:"all .2s",position:"relative"}}
+            onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.5)";e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(99,102,241,.1)";}}
+            onMouseLeave={function(e){e.currentTarget.style.borderColor=icpSaved?"rgba(99,102,241,.35)":"#e6e9ef";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
+            <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:12}}>
+              <div style={{width:40,height:40,borderRadius:12,background:icpSaved?"linear-gradient(135deg,#6366f1,#8b5cf6)":"linear-gradient(135deg,#e2e8f0,#f1f5f9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={icpSaved?"#fff":"#94a3b8"} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:3}}>{icpSaved?"ICP Configurado":"Cadastre seu ICP"}</div>
+                <div style={{fontSize:11.5,color:"#64748b",lineHeight:1.5}}>{icpSaved?("Segmento: "+(icp.segmento||"—")):"Defina segmento, porte, faturamento e cargos-alvo para enriquecer o fit score."}</div>
+              </div>
+              {icpSaved && <span style={{fontSize:9,fontWeight:700,color:"#4f46e5",background:"rgba(99,102,241,.1)",border:"1px solid rgba(99,102,241,.2)",borderRadius:6,padding:"2px 7px",flexShrink:0}}>{"✓ ativo"}</span>}
+            </div>
+            {icpSaved && fitCriteria.length>0 && (
+              <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                {fitCriteria.map(function(c){ return (
+                  <span key={c.id} style={{fontSize:9,color:"#6366f1",background:"rgba(99,102,241,.08)",borderRadius:5,padding:"2px 7px",fontWeight:600}}>{c.label}</span>
+                ); })}
+              </div>
+            )}
+            {!icpSaved && (
+              <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8}}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                <span style={{fontSize:11,color:"#6366f1",fontWeight:600}}>{"Configurar ICP"}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Produto Card */}
+          <div onClick={function(){setProdModal(true);}} style={{background:produtos.length>0?"linear-gradient(135deg,rgba(5,150,105,.04),rgba(16,185,129,.02))":"#fff",border:"1.5px solid "+(produtos.length>0?"rgba(5,150,105,.3)":"#e6e9ef"),borderRadius:16,padding:"20px",cursor:"pointer",transition:"all .2s",position:"relative"}}
+            onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(5,150,105,.5)";e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(5,150,105,.08)";}}
+            onMouseLeave={function(e){e.currentTarget.style.borderColor=produtos.length>0?"rgba(5,150,105,.3)":"#e6e9ef";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
+            <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:12}}>
+              <div style={{width:40,height:40,borderRadius:12,background:produtos.length>0?"linear-gradient(135deg,#059669,#10b981)":"linear-gradient(135deg,#e2e8f0,#f1f5f9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={produtos.length>0?"#fff":"#94a3b8"} strokeWidth="2" strokeLinecap="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:800,color:"#0f172a",marginBottom:3}}>{produtos.length>0?(produtos.length+" produto"+(produtos.length!==1?"s":"")+" cadastrado"+(produtos.length!==1?"s":"")):"Cadastre seu Produto"}</div>
+                <div style={{fontSize:11.5,color:"#64748b",lineHeight:1.5}}>{produtos.length>0?(produtos.map(function(p){return p.nome;}).join(", ")):"Adicione seus produtos/serviços para enriquecer o mapeamento de conta com IA."}</div>
+              </div>
+              {produtos.length>0 && <span style={{fontSize:9,fontWeight:700,color:"#059669",background:"rgba(5,150,105,.1)",border:"1px solid rgba(5,150,105,.2)",borderRadius:6,padding:"2px 7px",flexShrink:0}}>{"✓ ativo"}</span>}
+            </div>
+            {!produtos.length && (
+              <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8}}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                <span style={{fontSize:11,color:"#059669",fontWeight:600}}>{"Adicionar produto"}</span>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── Acesso rápido ─────────────────────────────────────────────────── */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:10}}>
         <div style={{fontSize:13,fontWeight:700,color:"#1e293b"}}>{"Acesso rápido"}</div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
@@ -2050,22 +2266,21 @@ function HomeView(props) {
           })}
         </div>
       </div>
-
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:18}}>
         {visible.map(function(card){
           return (
-            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:18,padding:"24px",cursor:"pointer",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",overflow:"hidden",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}
+            <div key={card.id} onClick={function(){onNav(card.nav);}} style={{background:"#ffffff",border:"1px solid #e6e9ef",borderRadius:18,padding:"24px",cursor:"pointer",transition:"all .25s cubic-bezier(.22,1,.36,1)",position:"relative",overflow:"hidden"}}
               onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(99,102,241,.35)";e.currentTarget.style.background="rgba(99,102,241,.06)";e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 16px 48px rgba(15,23,42,.10)";}}
               onMouseLeave={function(e){e.currentTarget.style.borderColor="#e6e9ef";e.currentTarget.style.background="#fff";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
               <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
                 <div style={{width:48,height:48,borderRadius:14,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 16px rgba(99,102,241,.4)",flexShrink:0}}>
                   <span style={{fontSize:22}}>{card.emoji}</span>
                 </div>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
               </div>
               <div style={{fontSize:16,fontWeight:800,color:"#0f172a",marginBottom:8,letterSpacing:"-.3px"}}>{card.label}</div>
               <div style={{fontSize:12.5,color:"#64748b",lineHeight:1.65,marginBottom:16,minHeight:48}}>{card.desc}</div>
-              <div style={{display:"flex",alignItems:"center",gap:7,paddingTop:14,borderTop:"1px solid rgba(255,255,255,.07)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:7,paddingTop:14,borderTop:"1px solid rgba(0,0,0,.05)"}}>
                 <div style={{width:6,height:6,borderRadius:"50%",background:card.statColor,flexShrink:0}}/>
                 <span style={{fontSize:11,color:card.statColor,fontWeight:600}}>{card.stat}</span>
               </div>
@@ -2077,11 +2292,124 @@ function HomeView(props) {
       {total === 0 && (
         <div style={{marginTop:28,background:"linear-gradient(135deg,rgba(99,102,241,.12),rgba(255,255,255,.02))",border:"1px solid rgba(99,102,241,.25)",borderRadius:18,padding:"32px",textAlign:"center"}}>
           <div style={{fontSize:40,marginBottom:12}}>{"🚀"}</div>
-          <div style={{fontSize:18,fontWeight:700,color:"#0f172a",marginBottom:8}}>{"Bem-vindo ao +pipe Beta"}</div>
-          <div style={{fontSize:13,color:"#64748b",marginBottom:20,lineHeight:1.7,maxWidth:400,margin:"0 auto 20px"}}>{"Comece mapeando sua primeira conta. Digite o nome de uma empresa na Busca e deixe a IA gerar o account mapping completo."}</div>
+          <div style={{fontSize:18,fontWeight:700,color:"#0f172a",marginBottom:8}}>{"Bem-vindo ao +pipe"}</div>
+          <div style={{fontSize:13,color:"#64748b",marginBottom:20,lineHeight:1.7,maxWidth:400,margin:"0 auto 20px"}}>{"Comece mapeando sua primeira conta. Digite o nome de uma empresa ou cole o site dela na Busca."}</div>
           <button onClick={function(){onNav("search");}} style={{background:"linear-gradient(135deg,#6366f1,#7c3aed)",color:"#fff",border:"none",borderRadius:12,padding:"12px 28px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.45)"}}>
             {"Mapear primeira conta"}
           </button>
+        </div>
+      )}
+
+      {/* ══ MODAL ICP ══════════════════════════════════════════════════════ */}
+      {icpModal && (
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.4)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={function(e){if(e.target===e.currentTarget)setIcpModal(false);}}>
+          <div style={{background:"#fff",borderRadius:22,width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 32px 80px rgba(15,23,42,.18)"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{padding:"24px 28px 0",position:"sticky",top:0,background:"#fff",zIndex:2,borderBottom:"1px solid #f1f5f9",paddingBottom:16}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div>
+                  <div style={{fontSize:18,fontWeight:800,color:"#0f172a",letterSpacing:"-.3px"}}>{"Configurar ICP"}</div>
+                  <div style={{fontSize:12,color:"#64748b",marginTop:2}}>{"Ideal Customer Profile — enriquece o fit score de todas as contas mapeadas"}</div>
+                </div>
+                <button onClick={function(){setIcpModal(false);}} style={{background:"none",border:"none",cursor:"pointer",color:"#94a3b8",fontSize:20,lineHeight:1,padding:4}} onMouseEnter={function(e){e.currentTarget.style.color="#0f172a";}} onMouseLeave={function(e){e.currentTarget.style.color="#94a3b8";}}>{"✕"}</button>
+              </div>
+            </div>
+            <div style={{padding:"20px 28px 28px"}}>
+              {/* ICP fields */}
+              {[
+                {key:"segmento",    label:"Segmento / Vertical-alvo",         ph:"Ex: Tecnologia, Fintech, Saúde, Indústria"},
+                {key:"porte",       label:"Porte (colaboradores ou receita)",  ph:"Ex: 50–1000 colaboradores / R$ 10M–R$ 500M"},
+                {key:"faturamento", label:"Faturamento estimado",              ph:"Ex: R$ 20M – R$ 1B/ano"},
+                {key:"regiao",      label:"Região / Mercado",                  ph:"Ex: Brasil, LATAM, Sul e Sudeste"},
+                {key:"cargos",      label:"Cargos decisores",                  ph:"Ex: CTO, CEO, CISO, CFO, DPO"},
+              ].map(function(f){ return (
+                <div key={f.key} style={{marginBottom:14}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#52617a",marginBottom:5,textTransform:"uppercase",letterSpacing:.5}}>{f.label}</div>
+                  <input value={icp[f.key]||""} onChange={function(e){ var v=e.target.value; saveIcp(Object.assign({},icp,{[f.key]:v})); }} placeholder={f.ph} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+                </div>
+              ); })}
+              <div style={{marginBottom:20}}>
+                <div style={{fontSize:10,fontWeight:700,color:"#52617a",marginBottom:5,textTransform:"uppercase",letterSpacing:.5}}>{"Observações / Contexto adicional"}</div>
+                <textarea value={icp.observacoes||""} onChange={function(e){ saveIcp(Object.assign({},icp,{observacoes:e.target.value})); }} placeholder={"Ex: Empresas sem CISO dedicado, em crescimento ou expansão para mercados regulados."} rows={3} style={{width:"100%",boxSizing:"border-box",background:"#f8fafc",border:"1.5px solid #e6e9ef",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#0f172a",fontFamily:"inherit",outline:"none",resize:"vertical"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+              </div>
+
+              {/* 5 critérios de fit */}
+              {fitCriteria.length>0 && (
+                <div style={{background:"rgba(99,102,241,.04)",border:"1px solid rgba(99,102,241,.15)",borderRadius:14,padding:"16px"}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"#4f46e5",marginBottom:12,textTransform:"uppercase",letterSpacing:.5}}>{"5 critérios de fit — aplicados ao scoring de conta"}</div>
+                  {fitCriteria.map(function(c,i){ return (
+                    <div key={c.id} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:i<fitCriteria.length-1?10:0}}>
+                      <div style={{width:22,height:22,borderRadius:7,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                        <span style={{fontSize:10,color:"#fff",fontWeight:800}}>{i+1}</span>
+                      </div>
+                      <div>
+                        <div style={{fontSize:12,fontWeight:700,color:"#0f172a"}}>{c.label}</div>
+                        <div style={{fontSize:11,color:"#64748b",lineHeight:1.5}}>{c.desc}</div>
+                      </div>
+                    </div>
+                  ); })}
+                </div>
+              )}
+
+              <div style={{display:"flex",gap:10,marginTop:20}}>
+                <button onClick={function(){ saveIcp(icpDefaults); }} style={{flex:1,background:"#f8fafc",border:"1px solid #e6e9ef",color:"#64748b",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{"Restaurar padrão"}</button>
+                <button onClick={function(){setIcpModal(false);}} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.3)"}}>{"Salvar e fechar"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ MODAL PRODUTO ══════════════════════════════════════════════════ */}
+      {prodModal && (
+        <div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.4)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={function(e){if(e.target===e.currentTarget)setProdModal(false);}}>
+          <div style={{background:"#fff",borderRadius:22,width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 32px 80px rgba(15,23,42,.18)"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{padding:"24px 28px 16px",position:"sticky",top:0,background:"#fff",zIndex:2,borderBottom:"1px solid #f1f5f9"}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div>
+                  <div style={{fontSize:18,fontWeight:800,color:"#0f172a",letterSpacing:"-.3px"}}>{"Produtos / Serviços"}</div>
+                  <div style={{fontSize:12,color:"#64748b",marginTop:2}}>{"Cadastre o que você vende para enriquecer o mapeamento de conta com IA"}</div>
+                </div>
+                <button onClick={function(){setProdModal(false);}} style={{background:"none",border:"none",cursor:"pointer",color:"#94a3b8",fontSize:20,lineHeight:1,padding:4}} onMouseEnter={function(e){e.currentTarget.style.color="#0f172a";}} onMouseLeave={function(e){e.currentTarget.style.color="#94a3b8";}}>{"✕"}</button>
+              </div>
+            </div>
+            <div style={{padding:"20px 28px 28px"}}>
+              {/* Existing products */}
+              {produtos.length>0 && (
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#52617a",marginBottom:10,textTransform:"uppercase",letterSpacing:.5}}>{"Cadastrados"}</div>
+                  {produtos.map(function(p){ return (
+                    <div key={p.id} style={{background:"#f8fafc",border:"1px solid #e6e9ef",borderRadius:12,padding:"12px 14px",marginBottom:8,display:"flex",alignItems:"flex-start",gap:10}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{p.nome}</div>
+                        {p.descricao && <div style={{fontSize:11,color:"#64748b",marginTop:2,lineHeight:1.5}}>{p.descricao}</div>}
+                        {p.publico   && <div style={{fontSize:10,color:"#6366f1",marginTop:4}}>{"Público: "+p.publico}</div>}
+                      </div>
+                      <button onClick={function(){deleteProduto(p.id);}} style={{background:"none",border:"none",cursor:"pointer",color:"#ef4444",fontSize:14,padding:"2px 4px",flexShrink:0}}>{"×"}</button>
+                    </div>
+                  ); })}
+                </div>
+              )}
+              {/* Add new product */}
+              <div style={{background:"rgba(5,150,105,.03)",border:"1px solid rgba(5,150,105,.15)",borderRadius:14,padding:"16px"}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#059669",marginBottom:12,textTransform:"uppercase",letterSpacing:.5}}>{"Adicionar produto / serviço"}</div>
+                {[
+                  {key:"nome",       label:"Nome do produto *",         ph:"Ex: EC Governance / CISO as a Service"},
+                  {key:"descricao",  label:"Descrição curta",           ph:"Ex: Entrega CISO dedicado, SGSI e KPIs de segurança como serviço"},
+                  {key:"beneficios", label:"Benefícios principais",     ph:"Ex: Sem headcount, resultado em 90 dias, pass em auditorias enterprise"},
+                  {key:"publico",    label:"Público-alvo",              ph:"Ex: CEO e CTO de empresas de SaaS e Fintech sem CISO interno"},
+                  {key:"preco",      label:"Faixa de preço / modelo",   ph:"Ex: A partir de R$ 8k/mês · as-a-service"},
+                ].map(function(f){ return (
+                  <div key={f.key} style={{marginBottom:10}}>
+                    <div style={{fontSize:10,fontWeight:700,color:"#52617a",marginBottom:4,textTransform:"uppercase",letterSpacing:.5}}>{f.label}</div>
+                    <input value={newProd[f.key]||""} onChange={function(e){ var v=e.target.value; setNewProd(function(p){ return Object.assign({},p,{[f.key]:v}); }); }} placeholder={f.ph} style={{width:"100%",boxSizing:"border-box",background:"#fff",border:"1.5px solid #e6e9ef",borderRadius:9,padding:"9px 12px",fontSize:12,color:"#0f172a",fontFamily:"inherit",outline:"none"}} onFocus={function(e){e.target.style.borderColor="rgba(5,150,105,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+                  </div>
+                ); })}
+                <button onClick={saveProduto} disabled={!newProd.nome.trim()} style={{width:"100%",marginTop:8,background:!newProd.nome.trim()?"#e2e8f0":"linear-gradient(135deg,#059669,#10b981)",color:!newProd.nome.trim()?"#94a3b8":"#fff",border:"none",borderRadius:10,padding:"10px 0",fontSize:12,fontWeight:700,cursor:!newProd.nome.trim()?"default":"pointer",fontFamily:"inherit"}}>{"+ Adicionar produto"}</button>
+              </div>
+
+              <button onClick={function(){setProdModal(false);}} style={{width:"100%",marginTop:14,background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(99,102,241,.3)"}}>{"Concluído"}</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -2113,13 +2441,8 @@ function buildData(company, searchResults) {
   var faturamento = extractVal([/R$[\s]*[\d,\.]+[\s]*(bilh[oo]es?|milh[oo]es?)/i]);
   var funcionarios = extractVal([/[\d\.]+[\s]*mil[\s]*funcion[aa]rios?/i, /[\d\.]+([\s])*(funcion[aa]rios?|colaboradores?)/i]);
   var clientes = extractVal([/[\d,\.]+[\s]*(milh[oo]es?|mil)[\s]*(de[\s]*)?(clientes?|usuarios?)/i]);
-  var isEcomm   = /magalu|americanas|shopee|mercado livre|amazon|via varejo|renner|centauro|dafiti/.test(lower);
-  var isFintech = /nubank|c6|inter|stone|pagseguro|pagbank|picpay|cielo|btg|xp|itau|bradesco|banco/.test(lower);
-  var isSaaS    = /totvs|linx|vtex|rdstation|senior|sankhya|contaazul|omie|piperun|agendor/.test(lower);
-  var isHealth  = /hapvida|amil|unimed|dasa|fleury|einstein|afya|hospital|clinica/.test(lower);
-  var isTelecom = /\bvivo\b|claro|\btim\b|algar|embratel/.test(lower);
-  var setor = isEcomm?"E-commerce / Varejo Digital":isFintech?"Fintech / Servicos Financeiros":isSaaS?"Software / SaaS B2B":isHealth?"Saude / Healthtech":isTelecom?"Telecomunicacoes":"Tecnologia / Mid Market";
-  var tier  = (isEcomm||isFintech||isSaaS||isTelecom) ? "Tier 1" : "Tier 2";
+  var _setor = CLIENT_CONFIG.empresa.nome; var setor = CLIENT_CONFIG.setorConfig.fallbackLabel; var tier = CLIENT_CONFIG.setorConfig.fallbackTier1 ? "Tier 1" : "Tier 2";
+  CLIENT_CONFIG.setorConfig.regexes.forEach(function(r){ if(r.pattern.test(lower)){ setor=r.label; tier=r.tier1?"Tier 1":"Tier 2"; } });
   function buildResumo() {
     if (!tavilyAnswers.length) return company+" e uma empresa de "+setor+" com operação ativa no Brasil.";
     // Filter to best PT-BR content
@@ -2160,76 +2483,25 @@ function buildData(company, searchResults) {
       var snippet = (s.content || s.resumo || "").replace(/https?:\/\/\S+/g,"").replace(/\s+/g," ").trim().slice(0,180);
       return {titulo:title, resumo:snippet, url:s.url, relevancia:"Fonte de contexto"};
     });
-  var noticias = noticiasSources.length ? noticiasSources : [{titulo:"Buscar noticias recentes de "+company, resumo:"Clique para pesquisar noticias sobre a empresa.", url:"https://google.com/search?q="+encodeURIComponent(company)+" atendimento CX 2024", relevancia:"Pesquisa sugerida"}];
+  var noticias = noticiasSources.length ? noticiasSources : [{titulo:"Buscar noticias recentes de "+company, resumo:"Clique para pesquisar noticias sobre a empresa.", url:"https://google.com/search?q="+encodeURIComponent(company)+" seguranca privacidade LGPD 2025", relevancia:"Pesquisa sugerida"}];
   return {
     empresa:{nome:company,setor:setor,resumo:resumo,rawContext:allText.slice(0,4000),tamanho:funcionarios||(tier==="Tier 1"?"500-1000 funcionarios":"200-500 funcionarios"),faturamento:faturamento||"Nao disponível",clientes:clientes||""},
-    fit:{score:"ALTO",justificativa:company+" atua em "+setor+", vertical de alto potencial para Zendesk Suite. Times de atendimento Mid Market com pressao de CSAT e custo por ticket sao nosso ICP principal.",solucoes_zendesk:["Zendesk Support (ticketing omnichannel)","Zendesk Messaging (chat e WhatsApp)","Help Center com IA generativa","Zendesk Explore (analytics e CSAT)","Workforce Management","QA e automacao de qualidade","Zendesk Sell (CRM de vendas)"]},
-    mercado:{competidores_provedor:["Freshdesk","Salesforce Service Cloud","HubSpot Service Hub","ServiceNow CSM","Intercom","LivePerson","TOTVS CRM","sistema interno legado"],concorrentes_mercado:[]},
-    dores:{principais:["Atendimento fragmentado , cliente repete o problema em cada canal","SLA estourado por falta de automacao e triagem inteligente","CSAT baixo gerando churn evitavel","Self-service inexistente ou desatualizado","Analytics limitado , sem visibilidade de CSAT por canal e agente","Custo por ticket alto , headcount crescendo mais rápido que o volume","Time de CX sem ferramentas de QA , qualidade inconsistente"]},
-    triggers:["Crescimento acelerado do time de atendimento (vagas abertas de agente/CX)","Alto volume de reclamacoes no Reclame Aqui ou redes sociais","Abertura ou expansao de canal digital (WhatsApp, chat, e-commerce)","Contratacao recente de Head de CX, VP de Ops ou Diretor de Atendimento","Insatisfacao com Freshdesk ou sistema legado","Lancamento de novo produto , aumento de demanda de suporte"],
-    stakeholders:[
-      {cargo:"Head de CX / Diretor de Atendimento",angulo:"Decisor principal. Sente pressao de CSAT, SLA e custo. Quer escalar sem contratar mais agentes.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
-      {cargo:"CEO / Diretor Geral",angulo:"Decisor economico. Ve CX como alavanca de retencao. Quer ROI claro e reducao de churn.",prioridade:"PRIMARIO",urgencia:"Alta",email:"",linkedin:"",phone:""},
-      {cargo:"VP / Diretor de Operações",angulo:"Co-decisor. Olha custo por ticket e eficiencia. Quer reducao de custo e SLA previsivel.",prioridade:"PRIMARIO",urgencia:"Média"},
-      {cargo:"Head de Customer Success",angulo:"Aliado. Quer integração com CRM e visibilidade de clientes em risco de churn.",prioridade:"SECUNDARIO",urgencia:"Média"},
-      {cargo:"Gerente de TI / CTO",angulo:"Avalia viabilidade técnica. Precisa de API robusta e suporte no processo de migracao.",prioridade:"SECUNDARIO",urgencia:"Média"},
-      {cargo:"CFO / Diretor Financeiro",angulo:"Aprova budget. Quer ROI mensuravel e comparativo de custo por ticket antes x depois.",prioridade:"TERCIARIO",urgencia:"Baixa"}
-    ],
+    fit:{score:"ALTO",justificativa:CLIENT_CONFIG.buildData.fitJustificativa(company,setor),solucoes_mgt:CLIENT_CONFIG.buildData.solucoes},
+    mercado:{competidores_provedor:CLIENT_CONFIG.buildData.competidores,concorrentes_mercado:[]},
+    dores:{principais:CLIENT_CONFIG.buildData.dores},
+    triggers:CLIENT_CONFIG.buildData.triggers,
+    stakeholders:CLIENT_CONFIG.buildData.stakeholdersDefault(company),
     noticias: noticias,
     estrategia:{
       tier:tier,
-      emails:[
-        {assunto:company+" + Zendesk , atendimento que escala",corpo:"Ola,\n\nChego ate voce porque "+company+" tem o perfil exato onde a Zendesk gera mais impacto em "+setor+". Empresas similares reduziram TMA em 35% e deflexionaram 28% dos tickets via self-service.\n\nTem disponibilidade para 20 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {assunto:company+": quanto custa um ticket sem resposta?",corpo:"Ola,\n\nCada 1% de queda no CSAT representa 2 a 3% de aumento no churn. Com Zendesk Suite, empresas de "+setor+" reduziram TMA em 35% e deflexionaram 28% dos tickets via self-service.\n\nPosso te mostrar em 20 minutos.\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {assunto:"Case: CSAT 68% para 89% em 90 dias , "+setor,corpo:"Ola,\n\nAjudamos recentemente uma empresa de "+setor+" a unificar todos os canais em 30 dias, aumentar CSAT de 68% para 89% e reduzir TMA em 35%.\n\nFaz sentido eu te contar como? 20 minutos essa semana.\n\nAbraco,\nBDR/SDR | Zendesk"}
-      ],
-      inmails:[
-        {assunto:company+" + Zendesk , vale 20 minutos?",corpo:"Ola!\n\nEmpresas de "+setor+" com o perfil da "+company+" aumentaram CSAT em 25% e reduziram 40% do custo por ticket com Zendesk Suite. Vale um papo?\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {assunto:"Pergunta sobre atendimento na "+company,corpo:"Voces tem visibilidade em tempo real do CSAT e SLA em todos os canais hoje? Se nao, tenho um benchmark do "+setor+" relevante.\n\nAbraco,\nBDR/SDR | Zendesk"},
-        {assunto:company+" esta crescendo , parabens!",corpo:"Vi o crescimento da "+company+" em "+setor+". Esse e o momento em que CX pode ser vantagem ou gargalo. Vale 15 minutos?\n\nAbraco,\nBDR/SDR | Zendesk"}
-      ],
-      whatsapps:[
-        "Oi [Nome], BDR da Zendesk. Vi que "+company+" tem operacao de atendimento em "+setor+". Empresas similares aumentaram CSAT em 25% e reduziram 40% do custo por ticket. Vale 15 minutos?",
-        "Oi [Nome]! BDR da Zendesk. Empresa de "+setor+" com perfil da "+company+" aumentou CSAT de 68% para 89% em 90 dias. Tenho um case. Posso te mandar?",
-        "Oi [Nome], BDR da Zendesk. Voce cuida de CX na "+company+"? Tenho algo sobre CSAT e custo por ticket. 15 minutos essa semana?"
-      ],
-      cold_calls:[
-        "Bom dia [Nome], BDR da Zendesk. Tenho 30 segundos? [PAUSA] Ligo porque "+company+" tem o perfil exato onde geramos impacto em "+setor+". Empresas similares reduziram 40% do custo e aumentaram CSAT em 25% em 90 dias. Quando voce tem 20 minutos?",
-        "[Nome], bom dia! BDR da Zendesk. Pergunta direta: qual o CSAT atual de voces e o que acontece com o SLA quando o volume de tickets sobe?",
-        "Oi [Nome], BDR da Zendesk. Empresa de "+setor+" com perfil da "+company+" aumentou CSAT em 25 pontos em 90 dias. Vale 2 minutos agora?"
-      ],
-      perguntas_spin:[
-        "SITUACAO: Como esta o time de atendimento da "+company+" , quantos agentes, quais canais?",
-        "SITUACAO: Qual a ferramenta de helpdesk que voces usam e ha quanto tempo?",
-        "SITUACAO: Voces visualizam CSAT, SLA e volume em tempo real em todos os canais?",
-        "SITUACAO: Existe self-service ou base de conhecimento para os clientes?",
-        "PROBLEMA: Com que frequencia o SLA e estourado e qual o impacto no CSAT?",
-        "PROBLEMA: Quando o volume cresce, contratam mais agentes ou o SLA piora?",
-        "PROBLEMA: Os clientes precisam repetir o problema quando mudam de canal?",
-        "PROBLEMA: O time de TI gasta tempo mantendo customizacoes na ferramenta atual?",
-        "IMPLICACAO: Qual o impacto no churn quando um cliente fica insatisfeito?",
-        "IMPLICACAO: Se o CSAT continuar caindo, qual o impacto na renovacao e expansao?",
-        "IMPLICACAO: Qual o custo mensal do time e voces tem visibilidade do custo por ticket?",
-        "NECESSIDADE: Se deflexionassem 30% dos tickets com IA, o que isso liberaria?",
-        "NECESSIDADE: O que precisaria para CX subir de prioridade na "+company+"?",
-        "NECESSIDADE: Se eu mostrasse como aumentar CSAT em 25 pontos em 90 dias, valeria 20 minutos?"
-      ],
-      objeções:[
-        {objeção:"Ja usamos Freshdesk e estamos satisfeitos",resposta:"A diferenca na pratica e na IA nativa, omnichannel real e analytics profundo com Explore. Vale ver lado a lado?"},
-        {objeção:"Nao temos budget para isso agora",resposta:"Posso mostrar o ROI baseado no custo por ticket atual? Clientes de "+setor+" costumam pagar a plataforma com a economia em 4 a 6 meses."},
-        {objeção:"Nossa TI nao tem capacidade",resposta:"Nosso CS conduz toda a implementacao. Empresas de "+setor+" ficaram no ar em media em 4 semanas sem demandar TI interna."},
-        {objeção:"Nao e prioridade agora",resposta:"Quando CX ganha prioridade , e antes ou depois de uma queda de CSAT que impacta churn?"},
-        {objeção:"Ja usamos Salesforce Service Cloud",resposta:"O Salesforce e poderoso. Zendesk e mais rapida para implementar, mais intuitiva para o agente e mais barata para escalar."},
-        {objeção:"Precisamos envolver mais areas",resposta:"Posso te ajudar a preparar o business case com ROI e casos do "+setor+" para facilitar a conversa interna."},
-        {objeção:"Ja tentamos uma ferramenta e o time nao adotou",resposta:"Problema de UX da ferramenta. Zendesk tem NPS de 86 entre agentes. Posso mostrar a interface em 10 minutos?"},
-        {objeção:"Preferimos desenvolver internamente",resposta:"Manter helpdesk interno custa em media 3x mais que a Zendesk em 2 anos. Posso mostrar o calculo?"}
-      ]
+      emails:CLIENT_CONFIG.buildData.emails(company,setor),
+      inmails:CLIENT_CONFIG.buildData.inmails(company,setor),
+      whatsapps:CLIENT_CONFIG.buildData.whatsapps(company,setor),
+      cold_calls:CLIENT_CONFIG.buildData.coldCalls(company,setor),
+      perguntas_spin:CLIENT_CONFIG.buildData.spin(company),
+      objeções:CLIENT_CONFIG.buildData.objecoes(company,setor)
     },
-    proximos_passos:{
-      ae:["Mapear organograma no LinkedIn , foco em Head de CX, CEO e VP de Ops da "+company,"Pesquisar vagas de agente CX e Analista de Atendimento , sinal de crescimento","Verificar "+company+" no Reclame Aqui , alto volume de reclamacoes e oportunidade","Buscar noticias de crescimento ou lancamento de produto da "+company,"Preparar business case com ROI da Zendesk Suite para "+setor,"InMail ao Head de CX ou CEO com contexto do "+setor],
-      bdr:["Cold call focado em Head de CX e CEO","WhatsApp com Loom referenciando Reclame Aqui ou crescimento recente","Sequencia de 3 emails: Custo de Ticket, Case CSAT, FUP Final","Monitorar LinkedIn , posts sobre CX, vagas abertas, mudanca de lideranca","Eventos: Conarec, ExpoRelations, NRF Brasil, summit de CX"],
-      prazo:"Primeira abordagem em ate 48 horas , prioridade Tier 1 se ha sinal de crescimento ou reclamacoes publicas."
-    }
+    proximos_passos:{ae:CLIENT_CONFIG.buildData.proximosPassos.ae(company),bdr:CLIENT_CONFIG.buildData.proximosPassos.bdr(company,setor),prazo:CLIENT_CONFIG.buildData.proximosPassos.prazo}
   };
 }
 
@@ -2237,6 +2509,7 @@ function SearchView(props) {
   var _st_inputVal = useState(""); var inputVal = _st_inputVal[0]; var setInputVal = _st_inputVal[1];
   var _st_loading = useState(false); var loading = _st_loading[0]; var setLoading = _st_loading[1];
   var _st_done = useState(null); var done = _st_done[0]; var setDone = _st_done[1];
+  var _st_doneAcc = useState(null); var doneAcc = _st_doneAcc[0]; var setDoneAcc = _st_doneAcc[1];
   var _st_searchError = useState(""); var searchError = _st_searchError[0]; var setSearchError = _st_searchError[1];
   var _st_duplicate = useState(null); var duplicate = _st_duplicate[0]; var setDuplicate = _st_duplicate[1];
   var _st_attachment = useState(null); var attachment = _st_attachment[0]; var setAttachment = _st_attachment[1];
@@ -2330,37 +2603,57 @@ function SearchView(props) {
   }
   function handleSearch() {
     if (!inputVal.trim() || loading) return;
-    var nome = inputVal.trim();
-    var domain = extractDomain(nome);
+    var raw = inputVal.trim();
+    // Se é URL/domínio: extrai domínio e usa como nome provisório até o Gemini refinar
+    var domain = "";
+    var nome   = raw;
+    if (isUrl(raw) || /\.\w{2,}$/.test(raw)) {
+      var withProto = raw.startsWith("http") ? raw : "https://" + raw;
+      try {
+        var u = new URL(withProto);
+        domain = u.hostname.replace(/^www\./,"");
+        // Transforma "nubank.com.br" → "nubank" como nome inicial
+        nome = domain.split(".")[0];
+        nome = nome.charAt(0).toUpperCase() + nome.slice(1);
+      } catch(e) {
+        domain = extractDomain(raw);
+      }
+    } else {
+      domain = extractDomain(raw);
+    }
     var nomeLower = nome.toLowerCase().trim();
     if (props.accounts) {
       var dup = props.accounts.find(function(a){ return a.nome && a.nome.toLowerCase().trim() === nomeLower; });
-      if (dup) { setDuplicate(dup); setInputVal(""); return; }
+      if (dup) {
+        if (dup.manualOnly) {
+          if (props.onRequestCredit) {
+            props.onRequestCredit().then(function(ok){ if (!ok) return; runSearch(nome, domain, dup); });
+          } else { runSearch(nome, domain, dup); }
+          return;
+        }
+        setDuplicate(dup); setInputVal(""); return;
+      }
     }
-    // Consome 1 crédito ANTES de mapear. Se estourou o limite, bloqueia.
     if (props.onRequestCredit) {
-      props.onRequestCredit().then(function(ok){
-        if (!ok) return; // limite atingido -> toast ja exibido pelo App
-        runSearch(nome, domain);
-      });
+      props.onRequestCredit().then(function(ok){ if (!ok) return; runSearch(nome, domain, null); });
     } else {
-      runSearch(nome, domain);
+      runSearch(nome, domain, null);
     }
   }
-  function runSearch(nome, domain) {
-    setLoading(true); setDone(null); setSearchError("");
+  function runSearch(nome, domain, existingAcc) {
+    setLoading(true); setDone(null); setDoneAcc(null); setSearchError("");
     fetch("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company:nome,context:""})})
       .then(function(r){if(!r.ok)return r.json().then(function(j){throw new Error(j.error||"HTTP "+r.status);}); return r.json();})
       .then(function(resp){
         var data = buildData(nome, resp.results);
-        props.onSave(nome, data, true, attachment, attachName);
+        props.onSave(nome, data, true, attachment, attachName, function(acc){ setDoneAcc(acc); }, existingAcc);
         setAttachment(null); setAttachName("");
         doEnrich(nome, domain);
         setLoading(false); setDone(nome); setInputVal("");
       })
       .catch(function(){
         var data = buildData(nome, null);
-        props.onSave(nome, data, false, attachment, attachName);
+        props.onSave(nome, data, false, attachment, attachName, function(acc){ setDoneAcc(acc); }, existingAcc);
         setAttachment(null); setAttachName("");
         doEnrich(nome, domain);
         setLoading(false); setDone(nome); setInputVal("");
@@ -2373,7 +2666,7 @@ function SearchView(props) {
         <div style={{fontSize:26,fontWeight:800,color:"#0f172a",marginBottom:6,letterSpacing:"-0.5px"}}>
           {"Account "}<span style={{color:"#a5b4fc"}}>{"Mapping"}</span>
         </div>
-        <div style={{fontSize:13,color:"#52617a",marginBottom:20,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento de CX completo. O resultado é salvo automaticamente em Contas."}</div>
+        <div style={{fontSize:13,color:"#52617a",marginBottom:20,lineHeight:1.7}}>{"Digite o nome da empresa para gerar o mapeamento completo. O resultado é salvo automaticamente em Contas."}</div>
 
         {usage && (
           <div style={{background:"#ffffff",border:"1.5px solid "+(usage.remaining<=0?"#fecdd3":"#e8edf4"),borderRadius:16,padding:"16px 18px",marginBottom:20}}>
@@ -2474,7 +2767,7 @@ function SearchView(props) {
           </div>
         )}
         <div style={{display:"flex",gap:10}}>
-          <input value={inputVal} onChange={function(e){setInputVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleSearch();}} placeholder="Ex: Nubank, TOTVS, Stone..." style={{flex:1,background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:12,padding:"14px 18px",fontSize:13.5,color:"#0f172a",fontFamily:"inherit",outline:"none",boxShadow:"0 1px 3px rgba(15,23,42,.06)",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
+          <input value={inputVal} onChange={function(e){setInputVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleSearch();}} placeholder="Nome da empresa ou site (ex: nubank.com.br)" style={{flex:1,background:"#ffffff",border:"1.5px solid #e6e9ef",borderRadius:12,padding:"14px 18px",fontSize:13.5,color:"#0f172a",fontFamily:"inherit",outline:"none",boxShadow:"0 1px 3px rgba(15,23,42,.06)",transition:"border-color .2s"}} onFocus={function(e){e.target.style.borderColor="rgba(99,102,241,.5)";}} onBlur={function(e){e.target.style.borderColor="#e6e9ef";}}/>
           <button onClick={handleSearch} disabled={loading||!inputVal.trim()} style={{background:loading||!inputVal.trim()?"#e2e8f0":"linear-gradient(135deg,#6366f1,#4f46e5)",color:loading||!inputVal.trim()?"#94a3b8":"#fff",border:"none",borderRadius:12,padding:"14px 28px",fontSize:13,fontWeight:600,cursor:loading||!inputVal.trim()?"not-allowed":"pointer",fontFamily:"inherit",boxShadow:loading||!inputVal.trim()?"none":"0 4px 14px rgba(99,102,241,.35)",transition:"all .2s",whiteSpace:"nowrap"}}>
             {loading?"Buscando na internet...":"Analisar"}
           </button>
@@ -2525,9 +2818,21 @@ function SearchView(props) {
           </div>
         )}
         {done && (
-          <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10,background:"rgba(99,102,241,.1)",border:"1px solid rgba(52,211,153,.35)",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#4f46e5",fontWeight:600}}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            {done + " mapeado e salvo em Contas!"}
+          <div style={{marginTop:14,background:"rgba(99,102,241,.08)",border:"1px solid rgba(52,211,153,.35)",borderRadius:14,padding:"14px 18px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span style={{fontSize:13,color:"#0f172a",fontWeight:700}}>{done + " mapeado e salvo em Contas!"}</span>
+            </div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {doneAcc && (
+                <button onClick={function(){ if(props.onOpenAccount) props.onOpenAccount(doneAcc); }} style={{background:"linear-gradient(135deg,#6366f1,#4f46e5)",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 12px rgba(99,102,241,.3)"}}>
+                  {"Ver mapeamento"}
+                </button>
+              )}
+              <button onClick={function(){ if(props.onNav) props.onNav("contacts"); }} style={{background:"#fff",color:"#4f46e5",border:"1.5px solid rgba(99,102,241,.4)",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+                {"Ver contatos mapeados"}
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -2535,9 +2840,9 @@ function SearchView(props) {
         <div style={{fontSize:10,fontWeight:700,color:"#a5b4fc",letterSpacing:2,textTransform:"uppercase",marginBottom:16}}>Como funciona o + Pipe</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:14}}>
           {[
-            {n:"1",title:"Busca",desc:"Analise qualquer empresa Mid Market e gere o account mapping completo com fit de CX, dores, stakeholders e mensagens."},
+            {n:"1",title:"Busca",desc:"Analise qualquer empresa e gere account mapping com riscos de seguranca, dores, stakeholders e mensagens personalizadas."},
             {n:"2",title:"Contas",desc:"Todas as empresas ficam salvas com status de prospecção, organizadas por fit, tier e estágio."},
-            {n:"3",title:"Sequências",desc:"Gere cadências de 6 toques personalizadas por stakeholder com scripts prontos para copiar e usar."},
+            {n:"3",title:"Sequências",desc:"Gere cadencias de 6 toques personalizadas por stakeholder com scripts focados em seguranca, privacidade e compliance."},
             {n:"4",title:"Pipeline",desc:"Kanban visual para acompanhar cada conta do mapeamento até a conversão."},
           ].map(function(item) {
             return (
@@ -2866,7 +3171,7 @@ function exportRelatoriosPDF(accounts, filters) {
     var fitClass = a.fit==="ALTO"?"fit-alto":a.fit==="MEDIO"?"fit-medio":"fit-baixo";
     html += "<tr><td><strong>"+a.nome+"</strong></td><td>"+a.setor+"</td><td><span class='"+fitClass+"'>"+a.fit+"</span></td><td>"+a.tier+"</td><td>"+(STATUS_CONFIG[a.status]&&STATUS_CONFIG[a.status].label||a.status)+"</td><td>"+fmtDate(a.savedAt)+"</td></tr>";
   });
-  html += "</table><div class='footer'>Mais Pipe Beta , Zendesk , BDR/SDR Zendesk</div></body></html>";
+  html += "</table><div class='footer'>"+CLIENT_CONFIG.empresa.rodape+"</div></body></html>";
   var w = window.open("","_blank");
   w.document.write(html);
   w.document.close();
@@ -3295,11 +3600,32 @@ export default function App() {
       });
     }).catch(function(){setLoading(false);});
   }, []);
-  function saveAccount(nome, data, liveMode, attachData, attachFileName) {
+  function saveAccount(nome, data, liveMode, attachData, attachFileName, onCreated, existingAcc) {
+    // Se é uma conta manual sendo mapeada pela primeira vez — atualiza em vez de criar
+    if (existingAcc && existingAcc.manualOnly) {
+      var merged = Object.assign({}, existingAcc, {
+        setor: (data.empresa&&data.empresa.setor) || existingAcc.setor || "Empresa",
+        fit:   (data.fit&&data.fit.score) || existingAcc.fit || "ALTO",
+        tier:  (data.estratégia&&data.estratégia.tier) || existingAcc.tier || "Tier 2",
+        mapped: true,
+        manualOnly: false,
+        liveMode: liveMode||false,
+        mappedAt: Date.now(),
+        data: data,
+        attachData: attachData||existingAcc.attachData||null,
+        attachFileName: attachFileName||existingAcc.attachFileName||""
+      });
+      storageSet(existingAcc.id, merged).then(function() {
+        setAccounts(function(prev){ return prev.map(function(a){ return a.id===existingAcc.id ? merged : a; }); });
+        if (onCreated) onCreated(merged);
+      });
+      return;
+    }
     var id = "acc:" + Date.now() + "-" + Math.random().toString(36).slice(2,7);
     var acc = { id:id, nome:nome, setor:(data.empresa&&data.empresa.setor)||"Empresa", fit:(data.fit&&data.fit.score)||"ALTO", tier:(data.estratégia&&data.estratégia.tier)||"Tier 2", status:"prospecting", mapped:true, liveMode:liveMode||false, savedAt:Date.now(), data:data, attachData:attachData||null, attachFileName:attachFileName||"" };
     storageSet(id, acc).then(function() {
       setAccounts(function(prev){return [acc].concat(prev);});
+      if (onCreated) onCreated(acc);
     });
     var enriched = (data.enriched && data.enriched.contacts && Array.isArray(data.enriched.contacts)) ? data.enriched.contacts : [];
     enriched.forEach(function(s) {
@@ -3462,7 +3788,7 @@ export default function App() {
                             <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACYAKEDASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAAAAEHBggCBAUD/8QAQxAAAQIEAgYECwUGBwAAAAAAAAECAwQFEQYhBxIxQWGRE1FxsiY1UlNkc4GTlLPRFBUiVXQWIzM2YsElMkJjg4Tw/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAQFAgYHAQP/xAAzEQACAQICBQkJAQEAAAAAAAAAAQIDBAURBhIhcdETMTM0QVKRobEVFiI1UVNhcsEUgf/aAAwDAQACEQMRAD8A0yAAAAAAAAAAAABKJdcj2aXhWv1KAkeSpc1FhrsejLNXsVbX9h9qNvVrvVpRcn+FmYynGCzk8jxQd+rUepUqJ0dQkpiWcuzpGKiL2LsX2HQMKlOdKTjNZP8AJ6pKSzQABgegAAAAAAAAAE3AAIAAAAAAAAABKbQDPtEOGYFWn41SnoSRJaUsjYbku18Rc0vwRM7b7oXQz8KIm5Cv9B+WHZ1fS0+W0sC9zsmi9rSo4dCUVtltf52s1nEJynWefYdOtU+Uq0jEkZ+EkWBESyou1q9adSp1mueIKdEpNZmqfEW7oEVzL9aJsX2pZTZZ6ZGv+k7+d6n61O40p9OLan/np1svizy/5k+BKwmb13HsyMaBKEHMy8AAAAAAAAAAAAAJIAAAAAAABJCAAuTQgvg/Op6Uny2lhohXmg9P8AnV9KTuNLERTtmjvyylufqzVr3p5HF+w1/0nfzvU/XJ3GmwD8kNftJy3xxU/XJ3WlNpx1GH7L0ZKwrpXu/qMaABywvwAAAAAAAAAAAAAAAATqr2e09yBAJ1V4cxqrw5jJggltr5ko3PO3MK1b5KnMZMFy6EEvhyd/Vp8tpn7MtpgOg1fB6ezS32tPltLAVM8jtejvy2lu/rNWvenkcYmZr/AKTUtjep+uTuNL/dkUDpOS+OKna38VN/9DSm036jD9l6MlYV0r3f1GMA5aq8OZGqvDmctyZfggnVXhzGqvDmMmCASqKm1CDwAkgAAAAAAltrpfYAZ3owwZCrrolQqSPSRhO1EY1bLFdvS+5E327OstiFQKLAhJCg0mRYxNiJAav9jytFPR/sHTuj23io/r1tdbmULkp2XR/C7a3soSUU3JJt79prF5cTnVkm9iZ0EpFLalvuuS+Hb9CUo1JXbS5L4dv0O+uYvYvOQpd1eBF15fU85aRS2rlS5L4dv0OTaRSnJnTJK/qG/Q7yhMhyFLurwGvL6nwlpSXlWqyWl4UFqrdUhsRqKvXkfdFJVSLH0UVBZRRjmSqXQ6cWm06LFdFjU+UiRHZuc+C1VXtVUO4ihczyUIzXxLMJtHnOpFLVfFcj8O36D7mpabKXJfDt+h6KC6XMFQpd1eBlryPPSjUq+dLkfcN+hzSk0lE8VSPw7fod29jjrZh29LurwDlJ9pi2KME0WsS0RIcpBkptU/dx4LEbnu1kTJUKKqUnHkJ6NJzLFZGgvVj2ruVDaBbauZQ+lxYC45n+htsho+3laiX/ALGiaZ4bQhRjcwilLPJ5duxvx2FthdxNydN7VkYeADnJdgAAAAAGa6NcaLhyM+TnWvi0+M7Wcjc3QnbNZE38U4XQtiWxdhmYgtjNrki1HbokTUcnai5oa5HNIsREsj3InabNhmlN1Y0uRyUormz7PPmIFxh9OtLW5mbHuxRhq3j6m/EIcFxThz89p3v0Nc+li+cdzJSNE847mWfvxc/bXnxI6wmHeZsYzFGG99epqf8AOgdijDd8q9Tffoa6dM9P9buZxWLE8t3MLTm5+2vPiPZMO8zZqnVGRqMJ0WQm4E0xrtVzoL9ZEXqO3uMA0HLfDs85y3X7Uma+raZ9tN9wu7ld2sK8lk3xKivTVKo4LsCnnzGIKFKTL5abrEhAisWzmRIyNc1eKHoZWKB0nOezG9U1XOT98mxf6GkHSHFqmGUI1aaTzeW3c+B9rO2VxNxby2F0vxPhpNlfpq/9hDimKMN/n1O9+hrn00Ty3cx0sTzjuZqHvxc/bXnxLH2TDvM2MXFGG/z6m+/QJifDaJ4+pvv0NculiecdzJSLE8t3Me/Nz9tefEeyYd5l3Yo0i0WnysSHTorahNqlmJDv0bV61dv7EKUnpmPOTcWZmYixI0Vyve5dqqp8nOVy3VVVTia/i+N3OKSXK7EuZLmJ1taQt18POwT2kApiSTlxBAAAAAAJQgAAAAE2yIABc2hBfB2d/Vp8tpYLSvdB/iCd/VJ8tpYNrKds0d+W0tz9Wate9PIPyQ1+0mOVcbVS/nk7rTYB65FAaT1RccVO3nU7jSm046jD9l6MlYV0r3cDGQAcsL8AAAAAAAAAAAAAAAAAAAAAAAAufQcng7Or6Wny2lgXK+0Hu8HZ1PS0+W0sFM0O2aO/LaW5+rNWvenkcX2sa/6Tktjepp/up3GmwERFtka/aTFVcbVO/nU7rSm046jD9l6Ml4V0r3cDGwAcsL4AAAAAAAlCAAAAAAAAAAAAAASm0gAGcaK8UQKHUIsnPPVknNat3rshvTY5eCpkvsLwgq2LBZGhOSIx6Xa5i3RU4Khqwm253pKsVSSh9FJ1GclmeTBjuYnJFsbfgmlU8Po8hVjrRXN9UVl3h/LS14vJmw+I63T6BIPnKhFRiIn4ISf54jtzWp/6xrrWp+LU6rMz8b+JHiOiKm5LrsTs2ew+c3NzE3FWLMx4seIqWV8R6uVfap8CFjukFTFXGOWrBdn5+rPtZ2at03nm2CATwNdJpAAAAAAAAAJy4ggAAAAAAAAAAAAAAAAAAAAbgAAAAAAAAAACb8AAAf/Z" alt="+pipe" style={{width:36,height:36,borderRadius:10,objectFit:"contain",flexShrink:0}}/>
               <div style={{minWidth:0,overflow:"hidden"}}>
                 <div style={{fontSize:14,fontWeight:800,letterSpacing:"-0.3px",lineHeight:1.2,whiteSpace:"nowrap"}}><span style={{color:"#818cf8"}}>+</span><span style={{color:"#ffffff"}}> pipe</span></div>
-                <div style={{fontSize:7.5,color:"#7c869b",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL Beta</div>
+                <div style={{fontSize:7.5,color:"#7c869b",fontWeight:600,letterSpacing:1.5,textTransform:"uppercase",whiteSpace:"nowrap"}}>PROSPECTING TOOL</div>
               </div>
             </div>
             <button onClick={function(){setSidebarExpanded(false);}} title="Recolher menu" style={{width:26,height:26,borderRadius:7,border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#8b93a7",flexShrink:0,padding:0,transition:"all .2s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}} onMouseLeave={function(e){e.currentTarget.style.background="transparent";e.currentTarget.style.color="rgba(255,255,255,.5)";}}>
@@ -3524,12 +3850,17 @@ export default function App() {
           ) : (
             <div key={nav} style={{animation:"fadeUp .4s cubic-bezier(.4,0,.2,1) both"}}>
               {nav==="home"      && <HomeView accounts={accounts} onNav={setNav}/>}
-              {nav==="search"    && <SearchView accounts={accounts} onSave={saveAccount} onOpenAccount={function(acc){setOpenAcc(acc);}} onUpdateAccount={function(updated){setAccounts(function(prev){return prev.map(function(a){return a.id===updated.id?updated:a;});});}} usage={usage} onRequestCredit={requestMapCredit} onImport={importAccounts} onChangePlan={changePlan}/>}
+              {nav==="search"    && <SearchView accounts={accounts} onSave={saveAccount} onOpenAccount={function(acc){setOpenAcc(acc);}} onUpdateAccount={function(updated){setAccounts(function(prev){return prev.map(function(a){return a.id===updated.id?updated:a;});});}} usage={usage} onRequestCredit={requestMapCredit} onImport={importAccounts} onChangePlan={changePlan} onOpenAccount={function(acc){setOpenAcc(acc);}} onNav={setNav}/>}
               {nav==="accounts"  && <AccountsView accounts={accounts} onOpen={setOpenAcc} onStatusChange={updateStatus} onDelete={deleteAccount} usage={usage} onImport={importAccounts} onMap={mapAccount} mappingId={mappingId} onChangePlan={changePlan}/>}
               {nav==="sequences" && <SequenceView accounts={accounts} showToast={showToast} seqRequest={seqRequest} onConsumeSeqRequest={function(){setSeqRequest(null);}}/>}
               {nav==="relatorios"&& <InsightsView accounts={accounts}/>}
               {nav==="biblioteca" && <BibliotecaView showToast={showToast} onCountChange={setSeqCount} onOpenSeq={setOpenSeq}/>}
-              {nav==="contacts" && <ContactsView showToast={showToast} onGenerateSequence={generateSequenceFromContact}/>}
+              {nav==="contacts" && <ContactsView showToast={showToast} onGenerateSequence={generateSequenceFromContact} accounts={accounts} onCreateAccount={function(nome){
+                var id="acc:"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
+                var acc={id:id,nome:nome,setor:"Criada manualmente",fit:"-",tier:"-",status:"prospecting",mapped:false,manualOnly:true,savedAt:Date.now(),data:null};
+                storageSet(id,acc).then(function(){setAccounts(function(prev){return [acc].concat(prev);});});
+                return acc;
+              }}/>}
               {nav==="integracoes" && <IntegrationsView/>}
               {nav==="pipeline"  && (
                 <div>
@@ -3542,7 +3873,7 @@ export default function App() {
           )}
         </div>
       </div>
-      {openAcc && <AccountModal acc={openAcc} onClose={function(){setOpenAcc(null);}} onStatusChange={updateStatus}/>}
+      {openAcc && <AccountModal acc={openAcc} onClose={function(){setOpenAcc(null);}} onStatusChange={updateStatus} onNav={setNav}/>}
       {openSeq && <SequenceModal seq={openSeq} onClose={function(){setOpenSeq(null);}}/>}
       {toast && (
         <div style={{position:"fixed",bottom:28,right:28,background:toast.color,color:"#fff",borderRadius:14,padding:"14px 22px",fontSize:13,fontWeight:600,boxShadow:"0 12px 40px rgba(15,23,42,.10),0 0 0 1px rgba(255,255,255,.15)",animation:"toastIn .35s cubic-bezier(.22,1,.36,1)",zIndex:300,maxWidth:340,display:"flex",alignItems:"center",gap:10}}>
